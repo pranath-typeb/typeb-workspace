@@ -4,6 +4,7 @@ import { NavItem, NavGroupLabel } from '../../components/NavItem'
 import { BuildingIcon, ChevronLeftIcon, EditIcon, ProjectsIcon, StaffingIcon, TrashIcon } from '../../components/icons'
 import { deleteProject, updateProject, useProjects, type ProjectStatus } from '../../data/projects'
 import { personById } from '../../data/people'
+import { showToast } from '../../data/toast'
 
 const statusBadge: Record<ProjectStatus, string> = {
   Active: 'b-pine',
@@ -21,7 +22,9 @@ export default function ProjectDetail() {
 
   function handleDeactivate() {
     if (!project) return
-    updateProject(project.id, { status: project.status === 'Completed' ? 'Active' : 'Completed' })
+    const nextStatus = project.status === 'Completed' ? 'Active' : 'Completed'
+    updateProject(project.id, { status: nextStatus })
+    showToast(`"${project.name}" ${nextStatus === 'Completed' ? 'deactivated' : 'reactivated'}`, nextStatus === 'Completed' ? 'danger' : 'success')
   }
 
   function handleDelete() {

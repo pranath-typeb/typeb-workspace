@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { showToast } from './toast'
 
 export type LeaveType = 'PTO' | 'Sick Leave' | 'Unpaid Time Off' | 'Accrued Public Holiday' | 'LIEU'
 export type LeaveStatus = 'Pending' | 'Approved' | 'Rejected'
@@ -57,6 +58,7 @@ export function addLeaveRequest(input: Omit<LeaveRequest, 'id' | 'status'>) {
     status: 'Pending',
   }
   setState([request, ...state])
+  showToast(`${request.type} request submitted for ${request.date}`, 'success')
 }
 
 export function useLeaveRequests(): LeaveRequest[] {

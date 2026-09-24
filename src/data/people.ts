@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { showToast } from './toast'
 
 export type Department = 'Technology' | 'Growth' | 'Strategy' | 'Operations' | 'People'
 export type EmploymentType = 'full_time' | 'part_time' | 'contract'
@@ -248,6 +249,8 @@ function setState(next: Person[]) {
 
 export function updatePerson(id: string, patch: Partial<Person>) {
   setState(people.map((p) => (p.id === id ? { ...p, ...patch } : p)))
+  const person = people.find((p) => p.id === id)
+  showToast(`${person?.name ?? 'Record'} updated`, 'success')
 }
 
 export function usePeople(): Person[] {

@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+import { showToast } from './toast'
+import { personById } from './people'
+import { projectById } from './projects'
 
 export interface Assignment {
   id: string
@@ -51,11 +54,20 @@ function setState(next: Assignment[]) {
 export function addAssignment(input: Omit<Assignment, 'id'>) {
   const assignment: Assignment = { ...input, id: `s${Date.now()}` }
   setState([assignment, ...state])
+  const person = personById(assignment.personId)
+  const project = projectById(assignment.projectId)
+  showToast(`Committed ${assignment.hoursPerWeek}h/wk for ${person?.name ?? 'employee'} on ${project?.name ?? 'project'}`, 'success')
   return assignment
 }
 
 export function removeAssignment(id: string) {
+  const assignment = state.find((a) => a.id === id)
   setState(state.filter((a) => a.id !== id))
+  if (assignment) {
+    const person = personById(assignment.personId)
+    const project = projectById(assignment.projectId)
+    showToast(`Removed ${person?.name ?? 'employee'}'s commitment on ${project?.name ?? 'project'}`, 'danger')
+  }
 }
 
 export function useAssignments(): Assignment[] {

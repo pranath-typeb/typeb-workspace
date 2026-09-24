@@ -15,6 +15,7 @@ import Staffing from './pages/Projects/Staffing'
 import ComingSoon from './pages/ComingSoon'
 import StandaloneComingSoon from './pages/StandaloneComingSoon'
 import BottomNav from './components/BottomNav'
+import ToastContainer from './components/ToastContainer'
 import { NavItem, NavGroupLabel, NavSep } from './components/NavItem'
 import { GridIcon, ClockIcon, LetterIcon, PolicyIcon, BenefitsIcon } from './components/icons'
 
@@ -100,6 +101,7 @@ export default function App() {
       <Route path="*" element={<Home />} />
     </Routes>
     <BottomNav />
+    <ToastContainer />
     </>
   )
 }

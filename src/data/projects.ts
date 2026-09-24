@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { showToast } from './toast'
 
 export type ProjectStatus = 'Active' | 'On Track' | 'Completed'
 export type BillingType = 'Fixed bid' | 'Time & materials' | 'Retainer'
@@ -169,6 +170,7 @@ export function addProject(input: Omit<Project, 'id' | 'hoursLogged'>) {
     hoursLogged: 0,
   }
   setState([project, ...state])
+  showToast(`"${project.name}" created`, 'success')
   return project
 }
 
@@ -177,7 +179,9 @@ export function updateProject(id: string, patch: Partial<Project>) {
 }
 
 export function deleteProject(id: string) {
+  const project = state.find((p) => p.id === id)
   setState(state.filter((p) => p.id !== id))
+  if (project) showToast(`"${project.name}" deleted`, 'danger')
 }
 
 export function useProjects(): Project[] {
