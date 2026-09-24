@@ -6,6 +6,7 @@ import MyLeave from './pages/HR/MyLeave'
 import ProjectsList from './pages/Projects/List'
 import ProjectDetail from './pages/Projects/Detail'
 import Clients from './pages/Projects/Clients'
+import Staffing from './pages/Projects/Staffing'
 import ComingSoon from './pages/ComingSoon'
 import StandaloneComingSoon from './pages/StandaloneComingSoon'
 import BottomNav from './components/BottomNav'
@@ -20,9 +21,6 @@ import {
   LetterIcon,
   PolicyIcon,
   BenefitsIcon,
-  ProjectsIcon,
-  StaffingIcon,
-  BuildingIcon,
 } from './components/icons'
 
 function PeopleSidebar({ active }: { active: string }) {
@@ -53,20 +51,8 @@ function HrSidebar({ active }: { active: string }) {
   )
 }
 
-function ProjectsSidebar({ active }: { active: string }) {
-  return (
-    <>
-      <NavGroupLabel label="General" />
-      <NavItem to="/projects" icon={<ProjectsIcon color={active === 'projects' ? '#fafafa' : undefined} />} label="Projects" active={active === 'projects'} />
-      <NavItem to="/projects/staffing" icon={<StaffingIcon color={active === 'staffing' ? '#fafafa' : undefined} />} label="Staffing" active={active === 'staffing'} />
-      <NavItem to="/projects/clients" icon={<BuildingIcon color={active === 'clients' ? '#fafafa' : undefined} />} label="Clients" active={active === 'clients'} />
-    </>
-  )
-}
-
 const peopleAppProps = { appIcon: <PeopleIcon size={16} color="rgba(0,0,0,0.53)" />, appLabel: 'People', appHref: '/people' }
 const hrAppProps = { appIcon: <ClockIcon size={16} color="rgba(0,0,0,0.53)" />, appLabel: 'HR', appHref: '/hr/leave' }
-const projectsAppProps = { appIcon: <ProjectsIcon size={16} color="rgba(0,0,0,0.53)" />, appLabel: 'Projects', appHref: '/projects' }
 
 export default function App() {
   return (
@@ -123,10 +109,7 @@ export default function App() {
       <Route path="/projects" element={<ProjectsList />} />
       <Route path="/projects/:id" element={<ProjectDetail />} />
       <Route path="/projects/clients" element={<Clients />} />
-      <Route
-        path="/projects/staffing"
-        element={<ComingSoon {...projectsAppProps} sidebar={<ProjectsSidebar active="staffing" />} title="Staffing" />}
-      />
+      <Route path="/projects/staffing" element={<Staffing />} />
 
       <Route
         path="/calendar"
