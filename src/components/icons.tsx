@@ -212,3 +212,42 @@ export function StopIcon({ size = 14, color = 'currentColor' }: IconProps) {
     </svg>
   )
 }
+
+export function ChevronRightIcon({ size = 12, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5">
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  )
+}
+
+export function CakeIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8">
+      <path d="M4 21v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7" />
+      <path d="M2 21h20" />
+      <path d="M7 12V9M12 12V9M17 12V9" />
+      <circle cx="12" cy="4" r="1.5" />
+    </svg>
+  )
+}
+
+export function FlagIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8">
+      <path d="M4 22V4" />
+      <path d="M4 4h14l-3 4 3 4H4" />
+    </svg>
+  )
+}
+
+export function AlertFileIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <path d="M12 11v3" />
+      <circle cx="12" cy="17" r="0.5" fill={color} />
+    </svg>
+  )
+}

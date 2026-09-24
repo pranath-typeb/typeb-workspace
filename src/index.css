@@ -291,6 +291,22 @@ input.input:focus, select.input:focus {
   background: #fff;
 }
 
+.tag {
+  background: #f5f5f5;
+  border: 1px solid #ececee;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.53);
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+
+.task-row:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
 .avatar {
   width: 40px;
   height: 40px;
