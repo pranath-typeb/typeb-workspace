@@ -22,6 +22,15 @@ const seedAssignments: Assignment[] = [
   { id: 's2', personId: 'ashkar-haris', projectId: 'echo-integration', hoursPerWeek: 15, startDate: '2026-08-01', openEnded: true },
   { id: 's3', personId: 'charinda-dissanayake', projectId: 'echo-migration', hoursPerWeek: 20, startDate: '2026-07-01', openEnded: true },
   { id: 's4', personId: 'charinda-dissanayake', projectId: 'cobalt-launch', hoursPerWeek: 8, startDate: '2026-09-01', openEnded: true },
+  // Over-allocated: two concurrent commitments push this well past 100%
+  { id: 's5', personId: 'faran-siddiqui', projectId: 'falcon-launch', hoursPerWeek: 30, startDate: '2026-09-07', openEnded: true },
+  { id: 's6', personId: 'faran-siddiqui', projectId: 'vantage-crm', hoursPerWeek: 30, startDate: '2026-08-01', openEnded: true },
+  // At capacity: exactly 40h/wk ≈ 176h/month
+  { id: 's7', personId: 'hashan-wijesinghe', projectId: 'legacy-migration', hoursPerWeek: 40, startDate: '2025-11-01', openEnded: false, note: 'Backfilled while hiring' },
+  // Has room: small, partial commitments
+  { id: 's8', personId: 'priya-nair', projectId: 'atlas-launch', hoursPerWeek: 8, startDate: '2026-09-10', openEnded: true },
+  { id: 's9', personId: 'dinusha-randika', projectId: 'beacon-support', hoursPerWeek: 5, startDate: '2026-01-01', openEnded: true },
+  { id: 's10', personId: 'yuki-tanaka', projectId: 'vantage-crm', hoursPerWeek: 20, startDate: '2026-08-01', openEnded: true },
 ]
 
 function load(): Assignment[] {

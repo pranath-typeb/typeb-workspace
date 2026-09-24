@@ -22,6 +22,14 @@ const seedRequests: LeaveRequest[] = [
   { id: 'l4', type: 'Accrued Public Holiday', date: '15-Nov-2026', status: 'Pending', requestedBy: 'Fatima Hussain', days: 1 },
   { id: 'l5', type: 'Unpaid Time Off', date: '20-Dec-2026', status: 'Approved', requestedBy: 'Omar Farooq', days: 3 },
   { id: 'l6', type: 'Unpaid Time Off', date: '05-Jan-2027', status: 'Pending', requestedBy: 'Zeeshan Ali', days: 1 },
+  { id: 'l7', type: 'LIEU', date: '26-Sep-2026', status: 'Pending', requestedBy: 'Priya Nair', days: 1 },
+  { id: 'l8', type: 'PTO', date: '30-Sep-2026', status: 'Approved', requestedBy: 'Marcus Chen', days: 5 },
+  { id: 'l9', type: 'Sick Leave', date: '22-Sep-2026', status: 'Approved', requestedBy: 'Yuki Tanaka', days: 2 },
+  { id: 'l10', type: 'PTO', date: '18-Oct-2026', status: 'Rejected', requestedBy: 'Layla Haddad', days: 4 },
+  { id: 'l11', type: 'Accrued Public Holiday', date: '02-Nov-2026', status: 'Approved', requestedBy: 'Amina Diallo', days: 1 },
+  { id: 'l12', type: 'Unpaid Time Off', date: '12-Dec-2026', status: 'Pending', requestedBy: 'Oliver Bennett', days: 2 },
+  { id: 'l13', type: 'LIEU', date: '08-Jan-2027', status: 'Approved', requestedBy: 'Sara Kowalski', days: 1 },
+  { id: 'l14', type: 'PTO', date: '20-Jan-2027', status: 'Pending', requestedBy: 'Tomás Rivera', days: 3 },
 ]
 
 function load(): LeaveRequest[] {
