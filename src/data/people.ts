@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react'
+
 export type Department = 'Technology' | 'Growth' | 'Strategy' | 'Operations' | 'People'
+export type EmploymentType = 'full_time' | 'part_time' | 'contract'
 
 export const deptBadgeClass: Record<Department, string> = {
   Technology: 'b-pine',
@@ -18,9 +21,32 @@ export interface Person {
   timezone: string
   managerId: string | null
   startDate: string
+  jurisdiction: string | null
+  employmentType: EmploymentType | null
+  payrollExcluded: boolean
+  syncedDaysAgo: number
 }
 
-export const people: Person[] = [
+const STORAGE_KEY = 'typeb-hr.people.v1'
+
+export const CURRENT_USER_ID = 'pranath-b'
+
+const seedPeople: Person[] = [
+  {
+    id: CURRENT_USER_ID,
+    name: 'Pranath',
+    initials: 'PB',
+    title: 'Founder',
+    department: 'Strategy',
+    email: 'pranath@typeb.digital',
+    timezone: 'Asia/Colombo',
+    managerId: null,
+    startDate: '2021-01-04',
+    jurisdiction: 'Sri Lanka',
+    employmentType: 'full_time',
+    payrollExcluded: false,
+    syncedDaysAgo: 18,
+  },
   {
     id: 'nabeel-syed',
     name: 'Nabeel Syed',
@@ -31,6 +57,10 @@ export const people: Person[] = [
     timezone: 'Asia/Colombo',
     managerId: null,
     startDate: '2021-01-04',
+    jurisdiction: 'Sri Lanka',
+    employmentType: 'full_time',
+    payrollExcluded: false,
+    syncedDaysAgo: 18,
   },
   {
     id: 'faran-siddiqui',
@@ -42,6 +72,10 @@ export const people: Person[] = [
     timezone: 'Asia/Colombo',
     managerId: 'nabeel-syed',
     startDate: '2021-03-15',
+    jurisdiction: 'Sri Lanka',
+    employmentType: 'full_time',
+    payrollExcluded: false,
+    syncedDaysAgo: 18,
   },
   {
     id: 'hashan-wijesinghe',
@@ -53,6 +87,10 @@ export const people: Person[] = [
     timezone: 'Asia/Colombo',
     managerId: 'faran-siddiqui',
     startDate: '2022-02-01',
+    jurisdiction: 'Sri Lanka',
+    employmentType: 'full_time',
+    payrollExcluded: false,
+    syncedDaysAgo: 18,
   },
   {
     id: 'ajith-pathmanathan',
@@ -64,6 +102,10 @@ export const people: Person[] = [
     timezone: 'Asia/Colombo',
     managerId: 'hashan-wijesinghe',
     startDate: '2025-08-03',
+    jurisdiction: 'Sri Lanka',
+    employmentType: 'full_time',
+    payrollExcluded: false,
+    syncedDaysAgo: 18,
   },
   {
     id: 'ashkar-haris',
@@ -75,6 +117,10 @@ export const people: Person[] = [
     timezone: 'Asia/Colombo',
     managerId: 'hashan-wijesinghe',
     startDate: '2024-11-11',
+    jurisdiction: 'Sri Lanka',
+    employmentType: 'contract',
+    payrollExcluded: false,
+    syncedDaysAgo: 18,
   },
   {
     id: 'charinda-dissanayake',
@@ -86,6 +132,10 @@ export const people: Person[] = [
     timezone: 'Asia/Colombo',
     managerId: 'hashan-wijesinghe',
     startDate: '2023-06-19',
+    jurisdiction: 'Sri Lanka',
+    employmentType: 'full_time',
+    payrollExcluded: false,
+    syncedDaysAgo: 18,
   },
   {
     id: 'batool-abdullah',
@@ -97,6 +147,10 @@ export const people: Person[] = [
     timezone: 'Asia/Gaza',
     managerId: 'nabeel-syed',
     startDate: '2024-01-22',
+    jurisdiction: 'Palestine',
+    employmentType: 'full_time',
+    payrollExcluded: false,
+    syncedDaysAgo: 18,
   },
   {
     id: 'chamika-wijeratne',
@@ -108,6 +162,10 @@ export const people: Person[] = [
     timezone: 'Asia/Colombo',
     managerId: 'nabeel-syed',
     startDate: '2024-09-02',
+    jurisdiction: 'Sri Lanka',
+    employmentType: 'full_time',
+    payrollExcluded: false,
+    syncedDaysAgo: 18,
   },
   {
     id: 'dinusha-randika',
@@ -119,6 +177,10 @@ export const people: Person[] = [
     timezone: 'Asia/Colombo',
     managerId: 'nabeel-syed',
     startDate: '2023-10-10',
+    jurisdiction: 'Sri Lanka',
+    employmentType: 'full_time',
+    payrollExcluded: false,
+    syncedDaysAgo: 18,
   },
   {
     id: 'conor-burke-gaffney',
@@ -130,6 +192,10 @@ export const people: Person[] = [
     timezone: 'Asia/Colombo',
     managerId: null,
     startDate: '2025-05-01',
+    jurisdiction: null,
+    employmentType: null,
+    payrollExcluded: true,
+    syncedDaysAgo: 18,
   },
   {
     id: 'eduardo-tovar',
@@ -141,22 +207,59 @@ export const people: Person[] = [
     timezone: 'Asia/Colombo',
     managerId: null,
     startDate: '2025-05-01',
+    jurisdiction: null,
+    employmentType: null,
+    payrollExcluded: true,
+    syncedDaysAgo: 18,
   },
 ]
 
-export const CURRENT_USER_ID = 'pranath-b'
+function load(): Person[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return seedPeople
+    const parsed = JSON.parse(raw) as Person[]
+    // heal records saved before newer fields (jurisdiction, etc.) existed
+    return parsed.map((p) => {
+      const seed = seedPeople.find((s) => s.id === p.id)
+      return { ...seed, ...p } as Person
+    })
+  } catch {
+    return seedPeople
+  }
+}
 
-people.unshift({
-  id: CURRENT_USER_ID,
-  name: 'Pranath',
-  initials: 'PB',
-  title: 'Founder',
-  department: 'Strategy',
-  email: 'pranath@typeb.digital',
-  timezone: 'Asia/Colombo',
-  managerId: null,
-  startDate: '2021-01-04',
-})
+function save(next: Person[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+  } catch {
+    // storage unavailable — in-memory only for this session
+  }
+}
+
+let listeners: Array<(p: Person[]) => void> = []
+export let people: Person[] = load()
+
+function setState(next: Person[]) {
+  people = next
+  save(people)
+  listeners.forEach((l) => l(people))
+}
+
+export function updatePerson(id: string, patch: Partial<Person>) {
+  setState(people.map((p) => (p.id === id ? { ...p, ...patch } : p)))
+}
+
+export function usePeople(): Person[] {
+  const [value, setValue] = useState(people)
+  useEffect(() => {
+    listeners.push(setValue)
+    return () => {
+      listeners = listeners.filter((l) => l !== setValue)
+    }
+  }, [])
+  return value
+}
 
 export function personById(id: string): Person | undefined {
   return people.find((p) => p.id === id)
