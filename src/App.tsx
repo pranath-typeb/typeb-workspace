@@ -3,11 +3,27 @@ import Home from './pages/Home'
 import Directory from './pages/People/Directory'
 import Profile from './pages/People/Profile'
 import MyLeave from './pages/HR/MyLeave'
+import ProjectsList from './pages/Projects/List'
+import ProjectDetail from './pages/Projects/Detail'
+import Clients from './pages/Projects/Clients'
 import ComingSoon from './pages/ComingSoon'
 import StandaloneComingSoon from './pages/StandaloneComingSoon'
 import BottomNav from './components/BottomNav'
 import { NavItem, NavGroupLabel, NavSep } from './components/NavItem'
-import { GridIcon, OrgChartIcon, PeopleIcon, InsightsIcon, RecordsIcon, ClockIcon, LetterIcon, PolicyIcon, BenefitsIcon } from './components/icons'
+import {
+  GridIcon,
+  OrgChartIcon,
+  PeopleIcon,
+  InsightsIcon,
+  RecordsIcon,
+  ClockIcon,
+  LetterIcon,
+  PolicyIcon,
+  BenefitsIcon,
+  ProjectsIcon,
+  StaffingIcon,
+  BuildingIcon,
+} from './components/icons'
 
 function PeopleSidebar({ active }: { active: string }) {
   return (
@@ -37,8 +53,20 @@ function HrSidebar({ active }: { active: string }) {
   )
 }
 
+function ProjectsSidebar({ active }: { active: string }) {
+  return (
+    <>
+      <NavGroupLabel label="General" />
+      <NavItem to="/projects" icon={<ProjectsIcon color={active === 'projects' ? '#fafafa' : undefined} />} label="Projects" active={active === 'projects'} />
+      <NavItem to="/projects/staffing" icon={<StaffingIcon color={active === 'staffing' ? '#fafafa' : undefined} />} label="Staffing" active={active === 'staffing'} />
+      <NavItem to="/projects/clients" icon={<BuildingIcon color={active === 'clients' ? '#fafafa' : undefined} />} label="Clients" active={active === 'clients'} />
+    </>
+  )
+}
+
 const peopleAppProps = { appIcon: <PeopleIcon size={16} color="rgba(0,0,0,0.53)" />, appLabel: 'People', appHref: '/people' }
 const hrAppProps = { appIcon: <ClockIcon size={16} color="rgba(0,0,0,0.53)" />, appLabel: 'HR', appHref: '/hr/leave' }
+const projectsAppProps = { appIcon: <ProjectsIcon size={16} color="rgba(0,0,0,0.53)" />, appLabel: 'Projects', appHref: '/projects' }
 
 export default function App() {
   return (
@@ -91,10 +119,15 @@ export default function App() {
         path="/payroll"
         element={<StandaloneComingSoon title="Payroll" description="Payroll dashboard and reviews aren't wired up yet in this build." />}
       />
+
+      <Route path="/projects" element={<ProjectsList />} />
+      <Route path="/projects/:id" element={<ProjectDetail />} />
+      <Route path="/projects/clients" element={<Clients />} />
       <Route
-        path="/projects"
-        element={<StandaloneComingSoon title="Projects" description="Project list, staffing, and clients aren't wired up yet in this build." />}
+        path="/projects/staffing"
+        element={<ComingSoon {...projectsAppProps} sidebar={<ProjectsSidebar active="staffing" />} title="Staffing" />}
       />
+
       <Route
         path="/calendar"
         element={<StandaloneComingSoon title="Calendar" description="Month/list views and event creation aren't wired up yet in this build." />}

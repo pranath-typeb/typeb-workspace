@@ -251,3 +251,48 @@ export function AlertFileIcon({ size = 16, color = 'currentColor' }: IconProps) 
     </svg>
   )
 }
+
+export function ProjectsIcon({ size = 20, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8">
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  )
+}
+
+export function StaffingIcon({ size = 20, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8">
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M2.5 20c0-3.4 2.9-5.4 6.5-5.4S15.5 16.6 15.5 20" />
+      <circle cx="17" cy="9" r="2.6" />
+      <path d="M15 14.3c2.9.4 4.5 2.1 4.5 5.2" />
+    </svg>
+  )
+}
+
+export function BuildingIcon({ size = 20, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8">
+      <path d="M4 21V6a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v15M4 21h15M15 10h4a1 1 0 0 1 1 1v10" />
+      <path d="M8 8h1M8 12h1M8 16h1M12 8h1M12 12h1M12 16h1" />
+    </svg>
+  )
+}
+
+export function EditIcon({ size = 14, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+      <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  )
+}
+
+export function TrashIcon({ size = 14, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" />
+    </svg>
+  )
+}
