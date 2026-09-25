@@ -51,10 +51,14 @@ export default function MyTime() {
     return () => clearInterval(t)
   }, [running])
 
+  const today = todayLocal()
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart])
   const weekMinutes = minutesForPersonWeek(entries, CURRENT_USER_ID, weekStart)
   const submission = submissionFor(CURRENT_USER_ID, weekStart)
   const weekEntries = entries.filter((e) => e.personId === CURRENT_USER_ID && days.includes(e.date))
+
+  const currentWeek = weekStartFor(today)
+  const quickWeeks = useMemo(() => Array.from({ length: 5 }, (_, i) => addDays(currentWeek, -14 + i * 7)), [currentWeek])
 
   function stopTimer() {
     if (seconds > 0) {
@@ -154,14 +158,53 @@ export default function MyTime() {
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {days.map((d) => {
           const mins = minutesForPersonDate(entries, CURRENT_USER_ID, d)
-          const label = new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+          const isToday = d === today
+          const dayName = new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
+          const dateNum = d.slice(-2)
           return (
-            <div key={d} style={{ flex: '1 1 80px', background: mins > 0 ? '#004543' : '#fff', border: mins > 0 ? 'none' : '1px solid #f5f5f5', borderRadius: 10, padding: 12, textAlign: 'center' }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: mins > 0 ? 'rgba(255,255,255,0.6)' : '#a1a1a1', textTransform: 'uppercase', marginBottom: 6 }}>{label}</div>
-              <div className="mono" style={{ fontSize: 14, fontWeight: 600, color: mins > 0 ? '#fff' : '#171717' }}>{mins > 0 ? formatMinutes(mins) : '—'}</div>
-            </div>
+            <button
+              key={d}
+              onClick={() => setManualDate(d)}
+              style={{
+                flex: '1 1 90px',
+                background: mins > 0 ? '#004543' : '#fff',
+                border: isToday ? '1.5px dashed #00736f' : mins > 0 ? 'none' : '1px solid #f5f5f5',
+                boxShadow: isToday ? '0 0 0 3px rgba(0,115,111,0.08)' : 'none',
+                borderRadius: 14,
+                padding: 12,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                textAlign: 'left',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="mono" style={{ fontSize: 16, fontWeight: 600, color: mins > 0 ? '#fff' : isToday ? '#00736f' : '#171717' }}>{dateNum}</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: mins > 0 ? 'rgba(255,255,255,0.6)' : isToday ? '#00736f' : '#a1a1a1' }}>{dayName}</span>
+              </div>
+              <div className="mono" style={{ fontSize: 13, fontWeight: 600, color: mins > 0 ? '#fff' : '#171717' }}>{mins > 0 ? formatMinutes(mins) : '—'}</div>
+            </button>
           )
         })}
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {quickWeeks.map((w) => (
+          <button
+            key={w}
+            onClick={() => setWeekStart(w)}
+            style={{
+              padding: '8px 14px',
+              borderRadius: 20,
+              fontSize: 12,
+              fontWeight: 600,
+              color: w === weekStart ? '#fff' : '#a1a1a1',
+              background: w === weekStart ? '#0a0a0a' : '#f5f5f5',
+            }}
+          >
+            {formatWeekRange(w)}
+          </button>
+        ))}
       </div>
 
       <div className="card">
@@ -207,19 +250,27 @@ export default function MyTime() {
           </div>
         </div>
 
-        {weekEntries.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.4)', padding: '12px 4px' }}>No entries logged this week yet.</div>
-        ) : (
-          days.map((d) => {
-            const dayEntries = weekEntries.filter((e) => e.date === d)
-            if (dayEntries.length === 0) return null
-            const dayLabel = new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-            return (
-              <div key={d} style={{ background: '#fff', borderRadius: 10, padding: '14px 16px' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+        {days.map((d) => {
+          const dayEntries = weekEntries.filter((e) => e.date === d)
+          const isToday = d === today
+          const dayLabel = new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+          return (
+            <div key={d} style={{ background: '#fff', borderRadius: 10, padding: '14px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{dayLabel}</span>
-                  <span className="mono" style={{ fontSize: 13, fontWeight: 600 }}>{formatMinutes(dayEntries.reduce((s, e) => s + e.minutes, 0))}</span>
-                </div>
+                  {isToday && <span className="badge b-pine">Today</span>}
+                </span>
+                <span className="mono" style={{ fontSize: 13, fontWeight: 600 }}>{formatMinutes(dayEntries.reduce((s, e) => s + e.minutes, 0))}</span>
+              </div>
+              {dayEntries.length === 0 ? (
+                <button
+                  onClick={() => setManualDate(d)}
+                  style={{ width: '100%', textAlign: 'left', padding: '10px 14px', border: '1px dashed #ebebeb', borderRadius: 10, fontSize: 12, color: 'rgba(0,0,0,0.35)' }}
+                >
+                  Nothing logged, click to add
+                </button>
+              ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {dayEntries.map((e) => (
                     <div key={e.id} style={{ display: 'flex', gap: 14, alignItems: 'center', padding: '10px 14px', border: '1px solid #ebebeb', borderRadius: 10 }}>
@@ -232,10 +283,10 @@ export default function MyTime() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )
-          })
-        )}
+              )}
+            </div>
+          )
+        })}
       </div>
     </AppShell>
   )

@@ -213,3 +213,16 @@ export function projectLabel(projectId: string | null): string {
   if (!projectId) return 'No project'
   return projectById(projectId)?.name ?? 'Unknown project'
 }
+
+// Counts past weeks (excluding the current week) with logged time that are
+// still Not Submitted / Rejected — drives the Timesheets sidebar badge.
+export function overdueWeekCount(list: TimeEntry[], subs: WeekSubmission[], personId: string): number {
+  const currentWeek = weekStartFor(todayLocal())
+  const weeks = Array.from({ length: 8 }, (_, i) => addDays(currentWeek, -7 * (i + 1)))
+  return weeks.filter((w) => {
+    const minutes = minutesForPersonWeek(list, personId, w)
+    if (minutes === 0) return false
+    const sub = subs.find((s) => s.personId === personId && s.weekStart === w)
+    return !sub || sub.status === 'Rejected'
+  }).length
+}
