@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { addAssignment } from '../data/staffing'
 import { useProjects } from '../data/projects'
 import type { Person } from '../data/people'
+import { todayLocal } from '../data/timeEntries'
 import { CloseIcon } from './icons'
 
 interface CommitHoursModalProps {
@@ -13,7 +14,7 @@ export default function CommitHoursModal({ person, onClose }: CommitHoursModalPr
   const projects = useProjects()
   const [projectId, setProjectId] = useState(projects[0]?.id ?? '')
   const [hoursPerWeek, setHoursPerWeek] = useState(10)
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [startDate, setStartDate] = useState(() => todayLocal())
   const [openEnded, setOpenEnded] = useState(true)
   const [note, setNote] = useState('')
 

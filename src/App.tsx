@@ -12,6 +12,14 @@ import ProjectsList from './pages/Projects/List'
 import ProjectDetail from './pages/Projects/Detail'
 import Clients from './pages/Projects/Clients'
 import Staffing from './pages/Projects/Staffing'
+import MyTime from './pages/Time/MyTime'
+import Timesheets from './pages/Time/Timesheets'
+import TimeCalendar from './pages/Time/Calendar'
+import Reporting from './pages/Time/Reporting'
+import Approvals from './pages/Time/Approvals'
+import PayrollDashboard from './pages/Payroll/Dashboard'
+import PayrollReviews from './pages/Payroll/Reviews'
+import MyPayroll from './pages/Payroll/MyPayroll'
 import ComingSoon from './pages/ComingSoon'
 import StandaloneComingSoon from './pages/StandaloneComingSoon'
 import BottomNav from './components/BottomNav'
@@ -67,14 +75,15 @@ export default function App() {
         element={<ComingSoon {...hrAppProps} sidebar={<HrSidebar active="benefits" />} title="Benefits" />}
       />
 
-      <Route
-        path="/time"
-        element={<StandaloneComingSoon title="Time" description="Timesheets, calendar, and reporting aren't wired up yet in this build." />}
-      />
-      <Route
-        path="/payroll"
-        element={<StandaloneComingSoon title="Payroll" description="Payroll dashboard and reviews aren't wired up yet in this build." />}
-      />
+      <Route path="/time" element={<MyTime />} />
+      <Route path="/time/timesheets" element={<Timesheets />} />
+      <Route path="/time/calendar" element={<TimeCalendar />} />
+      <Route path="/time/reporting" element={<Reporting />} />
+      <Route path="/time/approvals" element={<Approvals />} />
+
+      <Route path="/payroll" element={<PayrollDashboard />} />
+      <Route path="/payroll/reviews" element={<PayrollReviews />} />
+      <Route path="/payroll/my" element={<MyPayroll />} />
 
       <Route path="/projects" element={<ProjectsList />} />
       <Route path="/projects/:id" element={<ProjectDetail />} />
