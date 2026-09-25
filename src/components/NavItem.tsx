@@ -11,14 +11,14 @@ interface NavItemProps {
 
 export function NavItem({ to, icon, label, active, badge }: NavItemProps) {
   return (
-    <Link to={to} className={active ? 'navitem' : 'navitem-sm'} style={badge ? { justifyContent: 'space-between' } : undefined}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <Link to={to} className={active ? 'navitem' : 'navitem-sm'} style={badge ? { justifyContent: 'space-between' } : undefined} title={label}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
         {icon}
-        {label}
+        <span className="navitem-label">{label}</span>
       </span>
       {Boolean(badge) && (
         <span
-          className="mono"
+          className="mono navitem-badge"
           style={{
             background: active ? '#99c7c5' : '#ebebeb',
             color: active ? '#004543' : '#525252',

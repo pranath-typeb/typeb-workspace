@@ -171,9 +171,41 @@ a {
   background: #262626;
 }
 
-.sidebar-fab-collapsed {
-  position: static;
-  flex-shrink: 0;
+/* collapsed sidebar: narrow icon-only rail, not fully hidden */
+.sidebar-collapsed {
+  width: 64px;
+}
+
+.sidebar-collapsed .sidebar-inner {
+  padding: 16px 8px;
+  align-items: center;
+}
+
+.sidebar-collapsed .navitem-label,
+.sidebar-collapsed .navgroup-label,
+.sidebar-collapsed .navsep {
+  display: none;
+}
+
+.sidebar-collapsed .navitem,
+.sidebar-collapsed .navitem-sm {
+  width: 36px;
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebar-collapsed .navitem-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  padding: 0 4px;
+  min-width: 14px;
+  text-align: center;
+}
+
+.sidebar-collapsed .navitem,
+.sidebar-collapsed .navitem-sm {
+  position: relative;
 }
 
 /* content */
