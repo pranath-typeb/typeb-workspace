@@ -151,6 +151,7 @@ export default function ProjectsList() {
 
       {modalOpen && (
         <CreateProjectModal
+          existingClients={clients}
           onClose={() => setModalOpen(false)}
           onCreated={(id) => {
             setModalOpen(false)

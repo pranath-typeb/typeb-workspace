@@ -24,6 +24,7 @@ export default function ClientDetail() {
 
   const clientName = name ? decodeURIComponent(name) : ''
   const clientProjects = useMemo(() => projects.filter((p) => p.client === clientName), [projects, clientName])
+  const allClients = useMemo(() => Array.from(new Set(projects.map((p) => p.client))).sort(), [projects])
   const status = statuses[clientName]?.status ?? 'Active'
   const activeCount = clientProjects.filter((p) => p.status !== 'Completed').length
 
@@ -128,6 +129,7 @@ export default function ClientDetail() {
       {modalOpen && (
         <CreateProjectModal
           initialClient={clientName}
+          existingClients={allClients}
           onClose={() => setModalOpen(false)}
           onCreated={(id) => {
             setModalOpen(false)
