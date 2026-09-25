@@ -350,11 +350,10 @@ input.input:focus, select.input:focus {
 /* bottom nav */
 .bottom-nav {
   position: fixed;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: 0;
-  transform: translateX(-50%);
-  width: 1440px;
-  max-width: calc(100vw - 32px);
+  width: 100%;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
