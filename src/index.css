@@ -46,17 +46,14 @@ a {
 .stage {
   width: 100%;
   min-height: 100vh;
-  background: #f0f0f0;
+  background: #ffffff;
   display: flex;
   justify-content: center;
-  padding: 40px 0;
 }
 
 .canvas {
-  width: 1440px;
-  max-width: calc(100vw - 32px);
+  width: 100%;
   background: #ffffff;
-  border-radius: 12px;
   overflow: hidden;
   flex-shrink: 0;
 }
