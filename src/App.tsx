@@ -20,6 +20,8 @@ import Approvals from './pages/Time/Approvals'
 import PayrollDashboard from './pages/Payroll/Dashboard'
 import PayrollReviews from './pages/Payroll/Reviews'
 import MyPayroll from './pages/Payroll/MyPayroll'
+import CompanyCalendar from './pages/Calendar'
+import Analytics from './pages/Analytics'
 import ComingSoon from './pages/ComingSoon'
 import StandaloneComingSoon from './pages/StandaloneComingSoon'
 import BottomNav from './components/BottomNav'
@@ -90,14 +92,9 @@ export default function App() {
       <Route path="/projects/clients" element={<Clients />} />
       <Route path="/projects/staffing" element={<Staffing />} />
 
-      <Route
-        path="/calendar"
-        element={<StandaloneComingSoon title="Calendar" description="Month/list views and event creation aren't wired up yet in this build." />}
-      />
-      <Route
-        path="/analytics"
-        element={<StandaloneComingSoon title="Analytics" description="Company analytics and overview charts aren't wired up yet in this build." />}
-      />
+      <Route path="/calendar" element={<CompanyCalendar />} />
+      <Route path="/analytics" element={<Analytics />} />
+
       <Route
         path="/settings"
         element={<StandaloneComingSoon title="Settings" description="Workspace settings aren't wired up yet in this build." />}

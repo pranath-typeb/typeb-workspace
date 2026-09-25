@@ -11,7 +11,7 @@ interface NavItemProps {
 
 export function NavItem({ to, icon, label, active, badge }: NavItemProps) {
   return (
-    <Link to={to} className={active ? 'navitem' : 'navitem-sm'} style={badge ? { justifyContent: 'space-between' } : undefined} title={label}>
+    <Link to={to} className={`${active ? 'navitem' : 'navitem-sm'}${badge ? ' has-badge' : ''}`} title={label}>
       <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
         {icon}
         <span className="navitem-label">{label}</span>
