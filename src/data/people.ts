@@ -411,6 +411,17 @@ export function updatePerson(id: string, patch: Partial<Person>) {
   showToast(`${person?.name ?? 'Record'} updated`, 'success')
 }
 
+export function resyncPerson(id: string) {
+  setState(people.map((p) => (p.id === id ? { ...p, syncedDaysAgo: 0 } : p)))
+  const person = people.find((p) => p.id === id)
+  showToast(`${person?.name ?? 'Record'} re-synced from Nucleus`, 'success')
+}
+
+export function resyncAllPeople() {
+  setState(people.map((p) => ({ ...p, syncedDaysAgo: 0 })))
+  showToast(`All ${people.length} records re-synced from Nucleus`, 'success')
+}
+
 export function usePeople(): Person[] {
   const [value, setValue] = useState(people)
   useEffect(() => {

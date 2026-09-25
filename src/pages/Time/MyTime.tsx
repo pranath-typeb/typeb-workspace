@@ -31,6 +31,7 @@ function formatStopwatch(totalSeconds: number): string {
 }
 
 const QUICK_DURATIONS = [30, 60, 90, 120, 240]
+const CATEGORIES = ['Development', 'Code Review', 'Meetings & Calls', 'Admin', 'Manual', 'Design', 'Research']
 
 function timeToMinutes(t: string): number {
   const [h, m] = t.split(':').map(Number)
@@ -53,12 +54,18 @@ export default function MyTime() {
   const [seconds, setSeconds] = useState(0)
   const [timerDesc, setTimerDesc] = useState('')
   const [timerProject, setTimerProject] = useState('')
+  const [timerCategory, setTimerCategory] = useState('Development')
+  const [timerBillable, setTimerBillable] = useState(true)
 
   const [manualDate, setManualDate] = useState(() => todayLocal())
   const [manualDesc, setManualDesc] = useState('')
   const [manualProject, setManualProject] = useState('')
   const [manualStartTime, setManualStartTime] = useState('09:00')
   const [manualEndTime, setManualEndTime] = useState('10:00')
+  const [manualCategory, setManualCategory] = useState('Manual')
+  const [manualBillable, setManualBillable] = useState(true)
+
+  const [openMenu, setOpenMenu] = useState<'timer-cat' | 'timer-bill' | 'manual-cat' | 'manual-bill' | null>(null)
 
   useEffect(() => {
     if (!running) return
@@ -85,15 +92,18 @@ export default function MyTime() {
         date: todayLocal(),
         description: timerDesc.trim() || 'Untitled entry',
         projectId: timerProject || null,
-        category: 'Development',
+        category: timerCategory,
         minutes: durationMinutes,
         startMinutes: Math.max(0, nowMinutes - durationMinutes),
+        billable: timerBillable,
       })
     }
     setRunning(false)
     setSeconds(0)
     setTimerDesc('')
     setTimerProject('')
+    setTimerCategory('Development')
+    setTimerBillable(true)
   }
 
   const manualMinutes = timeToMinutes(manualEndTime) - timeToMinutes(manualStartTime)
@@ -105,9 +115,10 @@ export default function MyTime() {
       date: manualDate,
       description: manualDesc.trim(),
       projectId: manualProject || null,
-      category: 'Manual',
+      category: manualCategory,
       minutes: manualMinutes,
       startMinutes: timeToMinutes(manualStartTime),
+      billable: manualBillable,
     })
     setManualDesc('')
   }
@@ -168,13 +179,35 @@ export default function MyTime() {
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <button className="btn-dark" style={{ width: 36, padding: 0, justifyContent: 'center' }} title="Category" aria-label="Category">
+            <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
+              <button
+                className="btn-dark"
+                style={{ width: 36, padding: 0, justifyContent: 'center' }}
+                title={`Category: ${timerCategory}`}
+                aria-label="Category"
+                onClick={() => setOpenMenu(openMenu === 'timer-cat' ? null : 'timer-cat')}
+              >
                 <TagIcon size={16} color="#e5e5e5" />
               </button>
-              <button className="btn-dark" style={{ width: 36, padding: 0, justifyContent: 'center' }} title="Billable" aria-label="Billable">
-                <DollarIcon size={16} color="#e5e5e5" />
+              <button
+                className="btn-dark"
+                style={{ width: 36, padding: 0, justifyContent: 'center' }}
+                title={timerBillable ? 'Billable' : 'Non-billable'}
+                aria-label="Billable"
+                onClick={() => setOpenMenu(openMenu === 'timer-bill' ? null : 'timer-bill')}
+              >
+                <DollarIcon size={16} color={timerBillable ? '#e5e5e5' : '#737373'} />
               </button>
+              {openMenu === 'timer-cat' && (
+                <IconMenu options={CATEGORIES} onSelect={(v) => { setTimerCategory(v); setOpenMenu(null) }} onClose={() => setOpenMenu(null)} />
+              )}
+              {openMenu === 'timer-bill' && (
+                <IconMenu
+                  options={['Billable', 'Non-billable']}
+                  onSelect={(v) => { setTimerBillable(v === 'Billable'); setOpenMenu(null) }}
+                  onClose={() => setOpenMenu(null)}
+                />
+              )}
             </div>
             {running ? (
               <button className="btn-outline" onClick={stopTimer}>Stop & save</button>
@@ -231,14 +264,37 @@ export default function MyTime() {
                   </button>
                 ))}
               </div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                <button className="btn-dark" style={{ width: 36, padding: 0, justifyContent: 'center' }} title="Category" aria-label="Category">
+              <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
+                <button
+                  className="btn-dark"
+                  style={{ width: 36, padding: 0, justifyContent: 'center' }}
+                  title={`Category: ${manualCategory}`}
+                  aria-label="Category"
+                  onClick={() => setOpenMenu(openMenu === 'manual-cat' ? null : 'manual-cat')}
+                >
                   <TagIcon size={16} color="#e5e5e5" />
                 </button>
-                <button className="btn-dark" style={{ width: 36, padding: 0, justifyContent: 'center' }} title="Billable" aria-label="Billable">
-                  <DollarIcon size={16} color="#e5e5e5" />
+                <button
+                  className="btn-dark"
+                  style={{ width: 36, padding: 0, justifyContent: 'center' }}
+                  title={manualBillable ? 'Billable' : 'Non-billable'}
+                  aria-label="Billable"
+                  onClick={() => setOpenMenu(openMenu === 'manual-bill' ? null : 'manual-bill')}
+                >
+                  <DollarIcon size={16} color={manualBillable ? '#e5e5e5' : '#737373'} />
                 </button>
                 <button className="btn-dark" disabled={!manualDesc.trim() || manualMinutes <= 0} onClick={addManualEntry}>Add Entry</button>
+                {openMenu === 'manual-cat' && (
+                  <IconMenu options={CATEGORIES} onSelect={(v) => { setManualCategory(v); setOpenMenu(null) }} onClose={() => setOpenMenu(null)} align="right" />
+                )}
+                {openMenu === 'manual-bill' && (
+                  <IconMenu
+                    options={['Billable', 'Non-billable']}
+                    onSelect={(v) => { setManualBillable(v === 'Billable'); setOpenMenu(null) }}
+                    onClose={() => setOpenMenu(null)}
+                    align="right"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -382,7 +438,10 @@ export default function MyTime() {
                       )}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12, fontWeight: 600 }}>{e.description}</div>
-                        <div style={{ fontSize: 11, color: '#737373', marginTop: 2 }}>{projectLabel(e.projectId)} · {e.category}</div>
+                        <div style={{ fontSize: 11, color: '#737373', marginTop: 2 }}>
+                          {projectLabel(e.projectId)} · {e.category}
+                          {e.billable === false && <span className="badge b-neutral" style={{ marginLeft: 6, fontSize: 9, padding: '0 6px', height: 16 }}>Non-billable</span>}
+                        </div>
                       </div>
                       <div className="mono" style={{ fontSize: 13, fontWeight: 500 }}>{formatMinutes(e.minutes)}</div>
                       <button onClick={() => deleteEntry(e.id)} aria-label="Delete entry"><TrashIcon color="rgba(0,0,0,0.35)" /></button>
@@ -395,5 +454,42 @@ export default function MyTime() {
         })}
       </div>
     </AppShell>
+  )
+}
+
+function IconMenu({ options, onSelect, onClose, align = 'left' }: { options: string[]; onSelect: (value: string) => void; onClose: () => void; align?: 'left' | 'right' }) {
+  return (
+    <>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={onClose} />
+      <div
+        style={{
+          position: 'absolute',
+          top: 40,
+          [align === 'left' ? 'left' : 'right']: 0,
+          background: '#fff',
+          border: '1px solid #ebebeb',
+          borderRadius: 10,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          padding: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          zIndex: 10,
+          minWidth: 160,
+        }}
+      >
+        {options.map((opt) => (
+          <button
+            key={opt}
+            onClick={() => onSelect(opt)}
+            style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 6, fontSize: 13, fontWeight: 500 }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f5')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+    </>
   )
 }

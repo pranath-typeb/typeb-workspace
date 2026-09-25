@@ -4,6 +4,7 @@ import PeopleSidebar from '../../components/PeopleSidebar'
 import { OrgChartIcon, PeopleIcon, ChevronLeftIcon, ChevronRightIcon, CakeIcon, DownloadIcon } from '../../components/icons'
 import { people, personById, localTimeFor, CURRENT_USER_ID } from '../../data/people'
 import { statusBadgeClass, usePayrollPeriods } from '../../data/payroll'
+import { showToast } from '../../data/toast'
 
 function tenureFrom(startDate: string): string {
   const start = new Date(startDate)
@@ -262,7 +263,16 @@ export default function Profile() {
                 </div>
                 <span className={`badge ${statusBadgeClass(p.status)}`}>{p.status}</span>
                 <span style={{ fontSize: 14, fontWeight: 500, width: 90, textAlign: 'right' }}>${p.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                <DownloadIcon size={14} color="rgba(0,0,0,0.4)" />
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    showToast('Payslip downloads aren\'t wired up in this build', 'info')
+                  }}
+                  aria-label={`Download payslip for ${p.label}`}
+                  style={{ display: 'flex', padding: 4 }}
+                >
+                  <DownloadIcon size={14} color="rgba(0,0,0,0.4)" />
+                </button>
               </div>
             ))}
           </div>

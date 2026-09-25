@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PeopleSidebar from '../../components/PeopleSidebar'
 import { PeopleIcon, RefreshIcon } from '../../components/icons'
-import { usePeople, type Department } from '../../data/people'
+import { resyncAllPeople, usePeople, type Department } from '../../data/people'
 
 const departments: Department[] = ['Technology', 'Growth', 'Strategy', 'Operations', 'People']
 
@@ -41,7 +41,7 @@ export default function EmployeeRecords() {
         <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', maxWidth: 640 }}>
           Nucleus-synced records. Placement fields (jurisdiction, department, …) write back to Nucleus; payroll exclusion is local to OS.
         </div>
-        <button className="btn-outline"><RefreshIcon color="#0f0f10" /> Sync all</button>
+        <button className="btn-outline" onClick={resyncAllPeople}><RefreshIcon color="#0f0f10" /> Sync all</button>
       </div>
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>

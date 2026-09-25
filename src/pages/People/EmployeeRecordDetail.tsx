@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PeopleSidebar from '../../components/PeopleSidebar'
 import { ChevronLeftIcon, OrgChartIcon, PeopleIcon, RefreshIcon } from '../../components/icons'
-import { people, updatePerson, usePeople, type Department, type EmploymentType } from '../../data/people'
+import { people, resyncPerson, updatePerson, usePeople, type Department, type EmploymentType } from '../../data/people'
 
 const departments: Department[] = ['Technology', 'Growth', 'Strategy', 'Operations', 'People']
 const employmentTypes: EmploymentType[] = ['full_time', 'part_time', 'contract']
@@ -101,7 +101,7 @@ export default function EmployeeRecordDetail() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span className="badge b-ember">Synced {person.syncedDaysAgo}d ago</span>
-          <button className="btn-outline"><RefreshIcon color="#0f0f10" /> Re-sync</button>
+          <button className="btn-outline" onClick={() => resyncPerson(person.id)}><RefreshIcon color="#0f0f10" /> Re-sync</button>
         </div>
       </div>
 

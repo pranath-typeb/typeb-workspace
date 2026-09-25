@@ -12,6 +12,7 @@ export interface TimeEntry {
   category: string
   minutes: number
   startMinutes?: number // minutes since local midnight — powers the week-grid Calendar view
+  billable?: boolean
 }
 
 export type SubmissionStatus = 'Not Submitted' | 'Pending' | 'Approved' | 'Rejected'
