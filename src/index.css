@@ -167,6 +167,15 @@ a {
   box-shadow: 0 4px 6px rgba(20, 22, 27, 0.08), 0 2px 2px rgba(20, 22, 27, 0.05);
 }
 
+.sidebar-fab:hover {
+  background: #262626;
+}
+
+.sidebar-fab-collapsed {
+  position: static;
+  flex-shrink: 0;
+}
+
 /* content */
 .content {
   flex: 1;

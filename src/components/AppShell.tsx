@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { CloseIcon, PlusIcon } from './icons'
 
@@ -11,6 +11,8 @@ interface AppShellProps {
 }
 
 export default function AppShell({ appIcon, appLabel, appHref, sidebar, children }: AppShellProps) {
+  const [collapsed, setCollapsed] = useState(false)
+
   return (
     <section className="stage">
       <div className="canvas">
@@ -29,12 +31,28 @@ export default function AppShell({ appIcon, appLabel, appHref, sidebar, children
         </div>
 
         <div className="body-row">
-          <div className="sidebar" style={{ alignSelf: 'flex-start' }}>
-            <div className="sidebar-inner">{sidebar}</div>
-            <button className="sidebar-fab" aria-label="New">
+          {collapsed ? (
+            <button
+              className="sidebar-fab sidebar-fab-collapsed"
+              aria-label="Open sidebar"
+              aria-expanded={false}
+              onClick={() => setCollapsed(false)}
+            >
               <PlusIcon color="#fff" />
             </button>
-          </div>
+          ) : (
+            <div className="sidebar" style={{ alignSelf: 'flex-start' }}>
+              <div className="sidebar-inner">{sidebar}</div>
+              <button
+                className="sidebar-fab"
+                aria-label="Close sidebar"
+                aria-expanded={true}
+                onClick={() => setCollapsed(true)}
+              >
+                <PlusIcon color="#fff" />
+              </button>
+            </div>
+          )}
 
           <div className="content">{children}</div>
         </div>
