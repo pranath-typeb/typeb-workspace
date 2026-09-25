@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
-import { ClockIcon, TrashIcon } from '../../components/icons'
+import { ClockIcon, DollarIcon, TagIcon, TrashIcon } from '../../components/icons'
 import { CURRENT_USER_ID } from '../../data/people'
 import { useProjects } from '../../data/projects'
 import {
@@ -30,12 +30,25 @@ function formatStopwatch(totalSeconds: number): string {
   return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':')
 }
 
+const QUICK_DURATIONS = [30, 60, 90, 120, 240]
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(':').map(Number)
+  return h * 60 + m
+}
+
+function minutesToTime(min: number): string {
+  const m = ((min % 1440) + 1440) % 1440
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+}
+
 export default function MyTime() {
   const entries = useTimeEntries()
   const submissions = useSubmissions()
   const projects = useProjects()
 
   const [weekStart, setWeekStart] = useState(() => weekStartFor(todayLocal()))
+  const [mode, setMode] = useState<'Timer' | 'Manual'>('Timer')
   const [running, setRunning] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [timerDesc, setTimerDesc] = useState('')
@@ -44,8 +57,8 @@ export default function MyTime() {
   const [manualDate, setManualDate] = useState(() => todayLocal())
   const [manualDesc, setManualDesc] = useState('')
   const [manualProject, setManualProject] = useState('')
-  const [manualMinutes, setManualMinutes] = useState(60)
   const [manualStartTime, setManualStartTime] = useState('09:00')
+  const [manualEndTime, setManualEndTime] = useState('10:00')
 
   useEffect(() => {
     if (!running) return
@@ -83,9 +96,10 @@ export default function MyTime() {
     setTimerProject('')
   }
 
+  const manualMinutes = timeToMinutes(manualEndTime) - timeToMinutes(manualStartTime)
+
   function addManualEntry() {
     if (!manualDesc.trim() || manualMinutes <= 0) return
-    const [h, m] = manualStartTime.split(':').map(Number)
     addEntry({
       personId: CURRENT_USER_ID,
       date: manualDate,
@@ -93,10 +107,13 @@ export default function MyTime() {
       projectId: manualProject || null,
       category: 'Manual',
       minutes: manualMinutes,
-      startMinutes: h * 60 + m,
+      startMinutes: timeToMinutes(manualStartTime),
     })
     setManualDesc('')
-    setManualMinutes(60)
+  }
+
+  function applyQuickDuration(mins: number) {
+    setManualEndTime(minutesToTime(timeToMinutes(manualStartTime) + mins))
   }
 
   return (
@@ -104,30 +121,128 @@ export default function MyTime() {
       <div className="page-title">My Time</div>
 
       <div style={{ position: 'relative', background: '#fafafa', border: '1px solid #ebebeb', borderRadius: 14, padding: 21 }}>
-        <div style={{ position: 'absolute', top: -12, left: 21, display: 'flex', background: '#fff', border: '1px solid #ebebeb', borderRadius: 20, padding: 2 }}>
-          <span style={{ padding: '4px 14px', borderRadius: 16, background: '#171717', color: '#fff', fontSize: 12, fontWeight: 600 }}>Timer</span>
+        <div style={{ position: 'absolute', top: -12, left: 21, display: 'flex', gap: 2, background: '#fff', border: '1px solid #ebebeb', borderRadius: 20, padding: 2 }}>
+          <button
+            onClick={() => setMode('Timer')}
+            style={{
+              padding: '4px 14px',
+              borderRadius: 16,
+              background: mode === 'Timer' ? '#171717' : 'transparent',
+              color: mode === 'Timer' ? '#fff' : '#171717',
+              fontSize: 12,
+              fontWeight: 600,
+              boxShadow: mode === 'Timer' ? 'inset 0 2px 0 0 #66aba9' : 'none',
+            }}
+          >
+            Timer
+          </button>
+          <button
+            onClick={() => setMode('Manual')}
+            style={{
+              padding: '4px 14px',
+              borderRadius: 16,
+              background: mode === 'Manual' ? '#171717' : 'transparent',
+              color: mode === 'Manual' ? '#fff' : '#171717',
+              fontSize: 12,
+              fontWeight: 600,
+              boxShadow: mode === 'Manual' ? 'inset 0 2px 0 0 #66aba9' : 'none',
+            }}
+          >
+            Manual
+          </button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 8, flexWrap: 'wrap' }}>
-          <div className="mono" style={{ fontSize: 24, fontWeight: 600, minWidth: 100 }}>{formatStopwatch(seconds)}</div>
-          <input
-            className="input"
-            style={{ flex: 1, minWidth: 160 }}
-            placeholder="What are you working on?"
-            value={timerDesc}
-            onChange={(e) => setTimerDesc(e.target.value)}
-          />
-          <select className="input" style={{ width: 180 }} value={timerProject} onChange={(e) => setTimerProject(e.target.value)}>
-            <option value="">No project</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-          {running ? (
-            <button className="btn-outline" onClick={stopTimer}>Stop & save</button>
-          ) : (
-            <button className="btn-dark" onClick={() => setRunning(true)}>Start timer</button>
-          )}
-        </div>
+
+        {mode === 'Timer' ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 8, flexWrap: 'wrap' }}>
+            <div className="mono" style={{ fontSize: 24, fontWeight: 600, minWidth: 100 }}>{formatStopwatch(seconds)}</div>
+            <input
+              className="input"
+              style={{ flex: 1, minWidth: 160 }}
+              placeholder="What are you working on?"
+              value={timerDesc}
+              onChange={(e) => setTimerDesc(e.target.value)}
+            />
+            <select className="input" style={{ width: 180 }} value={timerProject} onChange={(e) => setTimerProject(e.target.value)}>
+              <option value="">No project</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button className="btn-dark" style={{ width: 36, padding: 0, justifyContent: 'center' }} title="Category" aria-label="Category">
+                <TagIcon size={16} color="#e5e5e5" />
+              </button>
+              <button className="btn-dark" style={{ width: 36, padding: 0, justifyContent: 'center' }} title="Billable" aria-label="Billable">
+                <DollarIcon size={16} color="#e5e5e5" />
+              </button>
+            </div>
+            {running ? (
+              <button className="btn-outline" onClick={stopTimer}>Stop & save</button>
+            ) : (
+              <button className="btn-dark" onClick={() => setRunning(true)}>Start timer</button>
+            )}
+          </div>
+        ) : (
+          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div style={{ width: 110 }}>
+                <div className="field-label">Start</div>
+                <input className="input" type="time" value={manualStartTime} onChange={(e) => setManualStartTime(e.target.value)} />
+              </div>
+              <div style={{ width: 110 }}>
+                <div className="field-label">End</div>
+                <input className="input" type="time" value={manualEndTime} onChange={(e) => setManualEndTime(e.target.value)} />
+              </div>
+              <div style={{ width: 150 }}>
+                <div className="field-label">Date</div>
+                <input className="input" type="date" value={manualDate} onChange={(e) => setManualDate(e.target.value)} />
+              </div>
+              <div style={{ flex: 2, minWidth: 180 }}>
+                <div className="field-label">Description</div>
+                <input className="input" value={manualDesc} onChange={(e) => setManualDesc(e.target.value)} placeholder="What are you working on?" />
+              </div>
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <div className="field-label">Project</div>
+                <select className="input" value={manualProject} onChange={(e) => setManualProject(e.target.value)}>
+                  <option value="">No project</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {QUICK_DURATIONS.map((mins) => (
+                  <button
+                    key={mins}
+                    onClick={() => applyQuickDuration(mins)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: 9999,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      background: manualMinutes === mins ? '#171717' : '#f5f5f5',
+                      color: manualMinutes === mins ? '#fff' : '#404040',
+                      border: '1px solid #ebebeb',
+                    }}
+                  >
+                    {formatMinutes(mins)}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button className="btn-dark" style={{ width: 36, padding: 0, justifyContent: 'center' }} title="Category" aria-label="Category">
+                  <TagIcon size={16} color="#e5e5e5" />
+                </button>
+                <button className="btn-dark" style={{ width: 36, padding: 0, justifyContent: 'center' }} title="Billable" aria-label="Billable">
+                  <DollarIcon size={16} color="#e5e5e5" />
+                </button>
+                <button className="btn-dark" disabled={!manualDesc.trim() || manualMinutes <= 0} onClick={addManualEntry}>Add Entry</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', background: '#fff', border: '1px solid #ececee', borderRadius: 14 }}>
@@ -172,7 +287,10 @@ export default function MyTime() {
           return (
             <button
               key={d}
-              onClick={() => setManualDate(d)}
+              onClick={() => {
+                setManualDate(d)
+                setMode('Manual')
+              }}
               style={{
                 flex: '1 1 90px',
                 background: mins > 0 ? '#004543' : '#fff',
@@ -215,38 +333,6 @@ export default function MyTime() {
         ))}
       </div>
 
-      <div className="card">
-        <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 14 }}>Add a manual entry</div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 140 }}>
-            <div className="field-label">Date</div>
-            <input className="input" type="date" value={manualDate} onChange={(e) => setManualDate(e.target.value)} />
-          </div>
-          <div style={{ width: 110 }}>
-            <div className="field-label">Start time</div>
-            <input className="input" type="time" value={manualStartTime} onChange={(e) => setManualStartTime(e.target.value)} />
-          </div>
-          <div style={{ flex: 2, minWidth: 180 }}>
-            <div className="field-label">Description</div>
-            <input className="input" value={manualDesc} onChange={(e) => setManualDesc(e.target.value)} placeholder="What did you work on?" />
-          </div>
-          <div style={{ flex: 1, minWidth: 160 }}>
-            <div className="field-label">Project</div>
-            <select className="input" value={manualProject} onChange={(e) => setManualProject(e.target.value)}>
-              <option value="">No project</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-          <div style={{ width: 100 }}>
-            <div className="field-label">Minutes</div>
-            <input className="input" type="number" min={1} value={manualMinutes} onChange={(e) => setManualMinutes(Number(e.target.value))} />
-          </div>
-          <button className="btn-dark" onClick={addManualEntry}>Add</button>
-        </div>
-      </div>
-
       <div style={{ background: '#f6f6f6', border: '1px solid #ebebeb', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontSize: 14, fontWeight: 600 }}>{formatWeekRange(weekStart)}</div>
@@ -277,7 +363,10 @@ export default function MyTime() {
               </div>
               {dayEntries.length === 0 ? (
                 <button
-                  onClick={() => setManualDate(d)}
+                  onClick={() => {
+                    setManualDate(d)
+                    setMode('Manual')
+                  }}
                   style={{ width: '100%', textAlign: 'left', padding: '10px 14px', border: '1px dashed #ebebeb', borderRadius: 10, fontSize: 12, color: 'rgba(0,0,0,0.35)' }}
                 >
                   Nothing logged, click to add

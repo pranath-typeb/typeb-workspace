@@ -135,6 +135,15 @@ export function SearchIcon({ size = 16, color = 'currentColor' }: IconProps) {
   )
 }
 
+export function TagIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8">
+      <path d="M11 3h6a2 2 0 0 1 2 2v6a2 2 0 0 1-.59 1.41l-8 8a2 2 0 0 1-2.82 0l-6-6a2 2 0 0 1 0-2.82l8-8A2 2 0 0 1 11 3z" />
+      <circle cx="15.5" cy="8.5" r="1.2" fill={color} stroke="none" />
+    </svg>
+  )
+}
+
 export function DollarIcon({ size = 16, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8">
