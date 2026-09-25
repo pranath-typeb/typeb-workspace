@@ -14,7 +14,7 @@ export default function ComingSoon({ appIcon, appLabel, appHref, sidebar, title 
     <AppShell appIcon={appIcon} appLabel={appLabel} appHref={appHref} sidebar={sidebar}>
       <div className="page-title">{title}</div>
       <div className="card" style={{ fontSize: 14, color: 'rgba(0,0,0,0.53)' }}>
-        This screen isn't wired up yet in this build — only Home, People Directory, People Profile and My Leave are functional.
+        This screen isn't wired up yet in this build.
       </div>
     </AppShell>
   )

@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
-import { NavItem, NavGroupLabel, NavSep } from '../../components/NavItem'
-import { GridIcon, OrgChartIcon, PeopleIcon, InsightsIcon, RecordsIcon, ChevronLeftIcon } from '../../components/icons'
+import PeopleSidebar from '../../components/PeopleSidebar'
+import { OrgChartIcon, PeopleIcon, ChevronLeftIcon } from '../../components/icons'
 import { people, personById, deptBadgeClass, localTimeFor } from '../../data/people'
 
 function tenureFrom(startDate: string): string {
@@ -28,17 +28,7 @@ export default function Profile() {
       appIcon={<PeopleIcon size={16} color="rgba(0,0,0,0.53)" />}
       appLabel="People"
       appHref="/people"
-      sidebar={
-        <>
-          <NavItem to="/people" icon={<GridIcon />} label="Directory" />
-          <NavItem to="/people/org-chart" icon={<OrgChartIcon />} label="Org chart" />
-          <NavItem to="/people/my-team" icon={<PeopleIcon />} label="My team" />
-          <NavItem to="/people/insights" icon={<InsightsIcon />} label="Insights" />
-          <NavSep />
-          <NavGroupLabel label="Manage" />
-          <NavItem to="/people/records" icon={<RecordsIcon />} label="Employee records" />
-        </>
-      }
+      sidebar={<PeopleSidebar active="directory" />}
     >
       <div className="page-title">Profile</div>
 
