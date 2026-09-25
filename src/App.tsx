@@ -11,6 +11,7 @@ import MyLeave from './pages/HR/MyLeave'
 import ProjectsList from './pages/Projects/List'
 import ProjectDetail from './pages/Projects/Detail'
 import Clients from './pages/Projects/Clients'
+import ClientDetail from './pages/Projects/ClientDetail'
 import Staffing from './pages/Projects/Staffing'
 import MyTime from './pages/Time/MyTime'
 import Timesheets from './pages/Time/Timesheets'
@@ -90,6 +91,7 @@ export default function App() {
       <Route path="/projects" element={<ProjectsList />} />
       <Route path="/projects/:id" element={<ProjectDetail />} />
       <Route path="/projects/clients" element={<Clients />} />
+      <Route path="/projects/clients/:name" element={<ClientDetail />} />
       <Route path="/projects/staffing" element={<Staffing />} />
 
       <Route path="/calendar" element={<CompanyCalendar />} />

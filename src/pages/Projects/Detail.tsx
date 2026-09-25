@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel } from '../../components/NavItem'
@@ -5,6 +6,8 @@ import { BuildingIcon, ChevronLeftIcon, EditIcon, ProjectsIcon, StaffingIcon, Tr
 import { deleteProject, updateProject, useProjects, type ProjectStatus } from '../../data/projects'
 import { personById } from '../../data/people'
 import { showToast } from '../../data/toast'
+import { addDays, todayLocal, useTimeEntries } from '../../data/timeEntries'
+import EditProjectModal from '../../components/EditProjectModal'
 
 const statusBadge: Record<ProjectStatus, string> = {
   Active: 'b-pine',
@@ -16,9 +19,15 @@ export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const projects = useProjects()
+  const entries = useTimeEntries()
+  const [editing, setEditing] = useState(false)
   const project = projects.find((p) => p.id === id)
   const manager = project?.managerId ? personById(project.managerId) : undefined
   const team = project ? project.teamIds.map((tid) => personById(tid)).filter((p): p is NonNullable<typeof p> => Boolean(p)) : []
+  const thirtyDaysAgo = addDays(todayLocal(), -30)
+  const hoursLast30Days = project
+    ? Math.round((entries.filter((e) => e.projectId === project.id && e.date >= thirtyDaysAgo).reduce((sum, e) => sum + e.minutes, 0) / 60) * 10) / 10
+    : 0
 
   function handleDeactivate() {
     if (!project) return
@@ -65,7 +74,7 @@ export default function ProjectDetail() {
               <ChevronLeftIcon color="rgba(0,0,0,0.53)" /> Projects
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn-outline" style={{ height: 36 }}>
+              <button className="btn-outline" style={{ height: 36 }} onClick={() => setEditing(true)}>
                 <EditIcon color="#0f0f10" /> Edit Project
               </button>
               <button onClick={handleDeactivate} style={{ height: 36, padding: '0 14px', borderRadius: 10, fontSize: 14, fontWeight: 600, background: '#ffdacc', color: '#cc3a00' }}>
@@ -89,6 +98,7 @@ export default function ProjectDetail() {
             <div style={{ textAlign: 'right' }}>
               <div className="mono" style={{ fontSize: 24, fontWeight: 600 }}>{project.hoursLogged}h</div>
               <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginTop: 4 }}>logged all time</div>
+              <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>{hoursLast30Days}h in the last 30 days</div>
             </div>
           </div>
 
@@ -102,6 +112,16 @@ export default function ProjectDetail() {
               <Detail label="Project Manager" value={manager?.name ?? '—'} />
               <Detail label="Team Size" value={String(team.length)} mono />
             </div>
+            {project.calendarKeywords && project.calendarKeywords.length > 0 && (
+              <div style={{ marginTop: 20 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'rgba(0,0,0,0.53)', marginBottom: 6 }}>Calendar keywords</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {project.calendarKeywords.map((kw) => (
+                    <span key={kw} className="tag">[{kw}]</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="card">
@@ -124,6 +144,8 @@ export default function ProjectDetail() {
           </div>
         </>
       )}
+
+      {editing && project && <EditProjectModal project={project} onClose={() => setEditing(false)} />}
     </AppShell>
   )
 }

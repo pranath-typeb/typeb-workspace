@@ -5,14 +5,15 @@ import { CloseIcon } from './icons'
 interface CreateProjectModalProps {
   onClose: () => void
   onCreated: (id: string) => void
+  initialClient?: string
 }
 
 const billingTypes: BillingType[] = ['Fixed bid', 'Time & materials', 'Retainer']
 const statuses: ProjectStatus[] = ['Active', 'On Track', 'Completed']
 
-export default function CreateProjectModal({ onClose, onCreated }: CreateProjectModalProps) {
+export default function CreateProjectModal({ onClose, onCreated, initialClient }: CreateProjectModalProps) {
   const [name, setName] = useState('')
-  const [client, setClient] = useState('')
+  const [client, setClient] = useState(initialClient ?? '')
   const [status, setStatus] = useState<ProjectStatus>('Active')
   const [billing, setBilling] = useState<BillingType>('Fixed bid')
   const [billable, setBillable] = useState(true)

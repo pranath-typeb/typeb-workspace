@@ -17,6 +17,7 @@ export interface Project {
   billing: BillingType
   managerId: string | null
   teamIds: string[]
+  calendarKeywords?: string[]
 }
 
 const STORAGE_KEY = 'typeb-hr.projects.v1'
@@ -268,15 +269,4 @@ export function useProjects(): Project[] {
 
 export function projectById(id: string): Project | undefined {
   return state.find((p) => p.id === id)
-}
-
-export function clientSummaries(projects: Project[]): { name: string; total: number; active: number }[] {
-  const map = new Map<string, { name: string; total: number; active: number }>()
-  for (const p of projects) {
-    const entry = map.get(p.client) ?? { name: p.client, total: 0, active: 0 }
-    entry.total += 1
-    if (p.status !== 'Completed') entry.active += 1
-    map.set(p.client, entry)
-  }
-  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
 }

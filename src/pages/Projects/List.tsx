@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel, NavSep } from '../../components/NavItem'
 import { BuildingIcon, PlusIcon, ProjectsIcon, StaffingIcon } from '../../components/icons'
-import { useProjects, type ProjectStatus } from '../../data/projects'
+import { useProjects, type BillingType, type ProjectStatus } from '../../data/projects'
+import { CURRENT_USER_ID } from '../../data/people'
 import CreateProjectModal from '../../components/CreateProjectModal'
 import { useNavigate } from 'react-router-dom'
 
@@ -13,12 +14,16 @@ const statusBadge: Record<ProjectStatus, string> = {
   Completed: 'b-neutral',
 }
 
+const stages: BillingType[] = ['Fixed bid', 'Time & materials', 'Retainer']
+
 export default function ProjectsList() {
   const projects = useProjects()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<'Any' | ProjectStatus>('Any')
+  const [stage, setStage] = useState<'Any' | BillingType>('Any')
   const [client, setClient] = useState('Any')
+  const [onlyMine, setOnlyMine] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
 
   const clients = useMemo(() => Array.from(new Set(projects.map((p) => p.client))).sort(), [projects])
@@ -28,10 +33,12 @@ export default function ProjectsList() {
     return projects.filter((p) => {
       const matchesQuery = !q || p.name.toLowerCase().includes(q) || p.client.toLowerCase().includes(q)
       const matchesStatus = status === 'Any' || p.status === status
+      const matchesStage = stage === 'Any' || p.billing === stage
       const matchesClient = client === 'Any' || p.client === client
-      return matchesQuery && matchesStatus && matchesClient
+      const matchesMine = !onlyMine || p.managerId === CURRENT_USER_ID || p.teamIds.includes(CURRENT_USER_ID)
+      return matchesQuery && matchesStatus && matchesStage && matchesClient && matchesMine
     })
-  }, [projects, query, status, client])
+  }, [projects, query, status, stage, client, onlyMine])
 
   const activeCount = projects.filter((p) => p.status !== 'Completed').length
   const completedCount = projects.filter((p) => p.status === 'Completed').length
@@ -83,6 +90,15 @@ export default function ProjectsList() {
           </select>
         </div>
         <div style={{ flex: 1, minWidth: 140 }}>
+          <div className="field-label">Stage</div>
+          <select className="input" value={stage} onChange={(e) => setStage(e.target.value as 'Any' | BillingType)}>
+            <option value="Any">Any</option>
+            {stages.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ flex: 1, minWidth: 140 }}>
           <div className="field-label">Client</div>
           <select className="input" value={client} onChange={(e) => setClient(e.target.value)}>
             <option value="Any">Any</option>
@@ -91,6 +107,15 @@ export default function ProjectsList() {
             ))}
           </select>
         </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 36, fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.53)', cursor: 'pointer' }}>
+          <span
+            onClick={() => setOnlyMine((v) => !v)}
+            style={{ width: 32, height: 18, borderRadius: 9999, background: onlyMine ? '#171717' : '#e5e5e5', position: 'relative', transition: 'background 0.15s', flexShrink: 0 }}
+          >
+            <span style={{ position: 'absolute', top: 2, left: onlyMine ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
+          </span>
+          Only mine
+        </label>
         <button className="btn-dark" onClick={() => setModalOpen(true)}>Create Project</button>
       </div>
 

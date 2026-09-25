@@ -90,10 +90,10 @@ export function useAssignments(): Assignment[] {
   return value
 }
 
-export function committedHoursFor(assignments: Assignment[], personId: string): number {
+export function committedHoursFor(assignments: Assignment[], personId: string, weeksMultiplier = 4.4): number {
   return assignments
     .filter((a) => a.personId === personId)
-    .reduce((sum, a) => sum + Math.round(a.hoursPerWeek * 4.4), 0)
+    .reduce((sum, a) => sum + Math.round(a.hoursPerWeek * weeksMultiplier), 0)
 }
 
 export function allocationStatus(pct: number): { label: string; badgeClass: string } {
