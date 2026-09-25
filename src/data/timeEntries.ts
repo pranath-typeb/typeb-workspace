@@ -11,6 +11,7 @@ export interface TimeEntry {
   projectId: string | null
   category: string
   minutes: number
+  startMinutes?: number // minutes since local midnight — powers the week-grid Calendar view
 }
 
 export type SubmissionStatus = 'Not Submitted' | 'Pending' | 'Approved' | 'Rejected'
@@ -63,6 +64,18 @@ export function formatMinutes(mins: number): string {
   return `${sign}${h}:${String(m).padStart(2, '0')}`
 }
 
+export function formatTimeOfDay(startMinutes: number): string {
+  const h24 = Math.floor(startMinutes / 60) % 24
+  const m = startMinutes % 60
+  const period = h24 >= 12 ? 'PM' : 'AM'
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`
+}
+
+export function formatTimeRange(startMinutes: number, minutes: number): string {
+  return `${formatTimeOfDay(startMinutes)} – ${formatTimeOfDay(startMinutes + minutes)}`
+}
+
 export function formatWeekRange(weekStart: string): string {
   const start = new Date(weekStart + 'T00:00:00')
   const end = new Date(start)
@@ -77,16 +90,16 @@ const lastWeekStart = addDays(thisWeekStart, -7)
 const twoWeeksAgoStart = addDays(thisWeekStart, -14)
 
 const seedEntries: TimeEntry[] = [
-  { id: 'te1', personId: CURRENT_USER_ID, date: addDays(thisWeekStart, 0), description: 'Daily standup', projectId: 'atlas-launch', category: 'Meetings & Calls', minutes: 30 },
-  { id: 'te2', personId: CURRENT_USER_ID, date: addDays(thisWeekStart, 0), description: 'Roadmap planning', projectId: 'echo-integration', category: 'Meetings & Calls', minutes: 60 },
-  { id: 'te3', personId: CURRENT_USER_ID, date: addDays(thisWeekStart, 1), description: 'Investor update deck', projectId: null, category: 'Admin', minutes: 90 },
-  { id: 'te4', personId: CURRENT_USER_ID, date: addDays(thisWeekStart, 1), description: 'Client feedback walkthrough', projectId: 'falcon-launch', category: 'Meetings & Calls', minutes: 45 },
-  { id: 'te5', personId: CURRENT_USER_ID, date: addDays(thisWeekStart, 2), description: 'Hiring pipeline review', projectId: null, category: 'Admin', minutes: 60 },
-  { id: 'te6', personId: CURRENT_USER_ID, date: addDays(lastWeekStart, 0), description: 'Board prep', projectId: null, category: 'Admin', minutes: 120 },
-  { id: 'te7', personId: CURRENT_USER_ID, date: addDays(lastWeekStart, 2), description: 'Vantage CRM kickoff', projectId: 'vantage-crm', category: 'Meetings & Calls', minutes: 60 },
-  { id: 'te8', personId: 'ajith-pathmanathan', date: addDays(thisWeekStart, 0), description: 'API integration', projectId: 'atlas-launch', category: 'Development', minutes: 240 },
-  { id: 'te9', personId: 'ajith-pathmanathan', date: addDays(thisWeekStart, 1), description: 'Code review', projectId: 'atlas-launch', category: 'Code Review', minutes: 90 },
-  { id: 'te10', personId: 'hashan-wijesinghe', date: addDays(twoWeeksAgoStart, 0), description: 'Sprint planning', projectId: 'legacy-migration', category: 'Meetings & Calls', minutes: 60 },
+  { id: 'te1', personId: CURRENT_USER_ID, date: addDays(thisWeekStart, 0), description: 'Daily standup', projectId: 'atlas-launch', category: 'Meetings & Calls', minutes: 30, startMinutes: 9 * 60 },
+  { id: 'te2', personId: CURRENT_USER_ID, date: addDays(thisWeekStart, 0), description: 'Roadmap planning', projectId: 'echo-integration', category: 'Meetings & Calls', minutes: 60, startMinutes: 10 * 60 },
+  { id: 'te3', personId: CURRENT_USER_ID, date: addDays(thisWeekStart, 1), description: 'Investor update deck', projectId: null, category: 'Admin', minutes: 90, startMinutes: 9 * 60 + 30 },
+  { id: 'te4', personId: CURRENT_USER_ID, date: addDays(thisWeekStart, 1), description: 'Client feedback walkthrough', projectId: 'falcon-launch', category: 'Meetings & Calls', minutes: 45, startMinutes: 13 * 60 },
+  { id: 'te5', personId: CURRENT_USER_ID, date: addDays(thisWeekStart, 2), description: 'Hiring pipeline review', projectId: null, category: 'Admin', minutes: 60, startMinutes: 11 * 60 },
+  { id: 'te6', personId: CURRENT_USER_ID, date: addDays(lastWeekStart, 0), description: 'Board prep', projectId: null, category: 'Admin', minutes: 120, startMinutes: 9 * 60 },
+  { id: 'te7', personId: CURRENT_USER_ID, date: addDays(lastWeekStart, 2), description: 'Vantage CRM kickoff', projectId: 'vantage-crm', category: 'Meetings & Calls', minutes: 60, startMinutes: 14 * 60 },
+  { id: 'te8', personId: 'ajith-pathmanathan', date: addDays(thisWeekStart, 0), description: 'API integration', projectId: 'atlas-launch', category: 'Development', minutes: 240, startMinutes: 9 * 60 },
+  { id: 'te9', personId: 'ajith-pathmanathan', date: addDays(thisWeekStart, 1), description: 'Code review', projectId: 'atlas-launch', category: 'Code Review', minutes: 90, startMinutes: 14 * 60 },
+  { id: 'te10', personId: 'hashan-wijesinghe', date: addDays(twoWeeksAgoStart, 0), description: 'Sprint planning', projectId: 'legacy-migration', category: 'Meetings & Calls', minutes: 60, startMinutes: 9 * 60 },
 ]
 
 const seedSubmissions: WeekSubmission[] = [

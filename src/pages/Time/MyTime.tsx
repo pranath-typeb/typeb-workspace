@@ -9,6 +9,7 @@ import {
   addEntry,
   deleteEntry,
   formatMinutes,
+  formatTimeRange,
   formatWeekRange,
   minutesForPersonDate,
   minutesForPersonWeek,
@@ -44,6 +45,7 @@ export default function MyTime() {
   const [manualDesc, setManualDesc] = useState('')
   const [manualProject, setManualProject] = useState('')
   const [manualMinutes, setManualMinutes] = useState(60)
+  const [manualStartTime, setManualStartTime] = useState('09:00')
 
   useEffect(() => {
     if (!running) return
@@ -62,13 +64,17 @@ export default function MyTime() {
 
   function stopTimer() {
     if (seconds > 0) {
+      const durationMinutes = Math.max(1, Math.round(seconds / 60))
+      const now = new Date()
+      const nowMinutes = now.getHours() * 60 + now.getMinutes()
       addEntry({
         personId: CURRENT_USER_ID,
         date: todayLocal(),
         description: timerDesc.trim() || 'Untitled entry',
         projectId: timerProject || null,
         category: 'Development',
-        minutes: Math.max(1, Math.round(seconds / 60)),
+        minutes: durationMinutes,
+        startMinutes: Math.max(0, nowMinutes - durationMinutes),
       })
     }
     setRunning(false)
@@ -79,6 +85,7 @@ export default function MyTime() {
 
   function addManualEntry() {
     if (!manualDesc.trim() || manualMinutes <= 0) return
+    const [h, m] = manualStartTime.split(':').map(Number)
     addEntry({
       personId: CURRENT_USER_ID,
       date: manualDate,
@@ -86,6 +93,7 @@ export default function MyTime() {
       projectId: manualProject || null,
       category: 'Manual',
       minutes: manualMinutes,
+      startMinutes: h * 60 + m,
     })
     setManualDesc('')
     setManualMinutes(60)
@@ -214,6 +222,10 @@ export default function MyTime() {
             <div className="field-label">Date</div>
             <input className="input" type="date" value={manualDate} onChange={(e) => setManualDate(e.target.value)} />
           </div>
+          <div style={{ width: 110 }}>
+            <div className="field-label">Start time</div>
+            <input className="input" type="time" value={manualStartTime} onChange={(e) => setManualStartTime(e.target.value)} />
+          </div>
           <div style={{ flex: 2, minWidth: 180 }}>
             <div className="field-label">Description</div>
             <input className="input" value={manualDesc} onChange={(e) => setManualDesc(e.target.value)} placeholder="What did you work on?" />
@@ -274,6 +286,11 @@ export default function MyTime() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {dayEntries.map((e) => (
                     <div key={e.id} style={{ display: 'flex', gap: 14, alignItems: 'center', padding: '10px 14px', border: '1px solid #ebebeb', borderRadius: 10 }}>
+                      {e.startMinutes !== undefined && (
+                        <div className="mono" style={{ width: 130, textAlign: 'right', fontSize: 11, color: '#737373', flexShrink: 0 }}>
+                          {formatTimeRange(e.startMinutes, e.minutes)}
+                        </div>
+                      )}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12, fontWeight: 600 }}>{e.description}</div>
                         <div style={{ fontSize: 11, color: '#737373', marginTop: 2 }}>{projectLabel(e.projectId)} · {e.category}</div>
