@@ -12,6 +12,13 @@ export const deptBadgeClass: Record<Department, string> = {
   People: 'b-pine',
 }
 
+export interface EmergencyContact {
+  name: string
+  relationship: string
+  email: string
+  phone: string
+}
+
 export interface Person {
   id: string
   name: string
@@ -26,6 +33,12 @@ export interface Person {
   employmentType: EmploymentType | null
   payrollExcluded: boolean
   syncedDaysAgo: number
+  employeeId?: string | null
+  phone?: string | null
+  birthday?: string | null
+  city?: string | null
+  personalEmail?: string | null
+  emergencyContact?: EmergencyContact | null
 }
 
 const STORAGE_KEY = 'typeb-hr.people.v1'
@@ -47,6 +60,12 @@ const seedPeople: Person[] = [
     employmentType: 'full_time',
     payrollExcluded: false,
     syncedDaysAgo: 18,
+    employeeId: 'DSG-0956',
+    phone: '+1 (416) 555-0138',
+    birthday: '1998-09-20',
+    city: 'Vavuniya',
+    personalEmail: 'thivyapranathb@gmail.com',
+    emergencyContact: { name: 'Kalaivani', relationship: 'Mother', email: 'bkalaivani@email.com', phone: '+1 (416) 555-0138' },
   },
   {
     id: 'nabeel-syed',
