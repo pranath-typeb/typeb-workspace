@@ -7,6 +7,7 @@ import { useProjects } from '../../data/projects'
 import {
   addDays,
   addEntry,
+  CATEGORIES,
   deleteEntry,
   formatMinutes,
   formatTimeRange,
@@ -31,7 +32,6 @@ function formatStopwatch(totalSeconds: number): string {
 }
 
 const QUICK_DURATIONS = [30, 60, 90, 120, 240]
-const CATEGORIES = ['Development', 'Code Review', 'Meetings & Calls', 'Admin', 'Manual', 'Design', 'Research']
 
 function timeToMinutes(t: string): number {
   const [h, m] = t.split(':').map(Number)

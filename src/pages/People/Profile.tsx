@@ -1,10 +1,33 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PeopleSidebar from '../../components/PeopleSidebar'
-import { OrgChartIcon, PeopleIcon, ChevronLeftIcon, ChevronRightIcon, CakeIcon, DownloadIcon } from '../../components/icons'
+import { OrgChartIcon, PeopleIcon, ChevronLeftIcon, ChevronRightIcon, CakeIcon, DownloadIcon, HistoryIcon, TrendingUpIcon, DollarIcon, FlagIcon } from '../../components/icons'
 import { people, personById, localTimeFor, CURRENT_USER_ID } from '../../data/people'
 import { statusBadgeClass, usePayrollPeriods } from '../../data/payroll'
+import { useHistoryFor, typeBadgeClass, type HistoryEvent, type HistoryEventType } from '../../data/employeeHistory'
 import { showToast } from '../../data/toast'
+
+function historyHeadline(e: HistoryEvent): string {
+  if (e.type === 'Hire') return `Joined as ${e.title}`
+  if (e.type === 'Promotion') return `Promoted to ${e.title}`
+  if (e.type === 'Title Change') return `Title changed to ${e.title}`
+  if (e.type === 'Transfer') return `Transferred to ${e.department ?? e.title}`
+  return `Salary updated to $${(e.salary ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0 })}/mo`
+}
+
+function historyIconFor(type: HistoryEventType) {
+  if (type === 'Promotion') return <TrendingUpIcon size={16} color="#004543" />
+  if (type === 'Salary Change') return <DollarIcon size={16} color="#cc3a00" />
+  if (type === 'Hire') return <FlagIcon size={16} color="#004543" />
+  return <HistoryIcon size={16} color="#5f636c" />
+}
+
+function historyIconBg(type: HistoryEventType): string {
+  if (type === 'Promotion') return '#cce3e2'
+  if (type === 'Salary Change') return '#ffdacc'
+  if (type === 'Hire') return '#cce3e2'
+  return '#ebebeb'
+}
 
 function tenureFrom(startDate: string): string {
   const start = new Date(startDate)
@@ -71,6 +94,7 @@ export default function Profile() {
   const allPeriods = usePayrollPeriods()
   const periods = person ? allPeriods.filter((p) => p.personId === person.id) : []
   const currentPeriod = periods[0]
+  const history = useHistoryFor(person?.id)
 
   if (!person) {
     return (
@@ -234,6 +258,42 @@ export default function Profile() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ fontWeight: 600, fontSize: 14 }}>Employment history</div>
+        {history.length === 0 ? (
+          <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.4)', padding: '10px 0' }}>No history on file yet.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {history.map((e, i) => {
+              const delta = e.salary !== undefined && e.previousSalary !== undefined ? e.salary - e.previousSalary : undefined
+              return (
+                <div
+                  key={e.id}
+                  style={{ display: 'flex', gap: 12, padding: '14px 0', borderTop: i === 0 ? 'none' : '1px solid #f5f5f5' }}
+                >
+                  <div style={{ width: 34, height: 34, borderRadius: 9, background: historyIconBg(e.type), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {historyIconFor(e.type)}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{historyHeadline(e)}</span>
+                      <span className={`badge ${typeBadgeClass(e.type)}`} style={{ fontSize: 10 }}>{e.type}</span>
+                      {delta !== undefined && delta !== 0 && (
+                        <span className={`badge ${delta > 0 ? 'b-pine' : 'b-danger'}`} style={{ fontSize: 10 }}>
+                          {delta > 0 ? '+' : '−'}${Math.abs(delta).toLocaleString(undefined, { minimumFractionDigits: 0 })}/mo
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.53)', marginTop: 2 }}>{fmtDate(e.date)}</div>
+                    {e.note && <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginTop: 4 }}>{e.note}</div>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

@@ -29,6 +29,8 @@ const SUBMISSIONS_KEY = 'typeb-hr.time-submissions.v1'
 
 export const WEEKLY_TARGET_MINUTES = 40 * 60
 
+export const CATEGORIES = ['Development', 'Code Review', 'Meetings & Calls', 'Admin', 'Manual', 'Design', 'Research']
+
 // Formats a Date using its LOCAL calendar fields — never use toISOString() for
 // this, since it converts to UTC first and silently shifts the date by a day
 // in any timezone ahead of or behind UTC.
@@ -169,6 +171,20 @@ export function addEntry(input: Omit<TimeEntry, 'id'>) {
 
 export function deleteEntry(id: string) {
   setEntries(entries.filter((e) => e.id !== id))
+}
+
+export function updateEntry(id: string, patch: Partial<TimeEntry>) {
+  setEntries(entries.map((e) => (e.id === id ? { ...e, ...patch } : e)))
+}
+
+export function duplicateEntry(id: string): TimeEntry | undefined {
+  const source = entries.find((e) => e.id === id)
+  if (!source) return undefined
+  const startMinutes = source.startMinutes !== undefined ? source.startMinutes + source.minutes : undefined
+  const copy: TimeEntry = { ...source, id: `te${Date.now()}`, startMinutes }
+  setEntries([copy, ...entries])
+  showToast(`Duplicated — ${copy.description || 'Untitled entry'}`, 'success')
+  return copy
 }
 
 export function useTimeEntries(): TimeEntry[] {

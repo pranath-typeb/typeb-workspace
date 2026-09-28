@@ -389,6 +389,43 @@ input.input:focus, select.input:focus {
   margin-bottom: 6px;
 }
 
+/* calendar week-grid entry blocks */
+.cal-entry-block {
+  cursor: grab;
+}
+
+.cal-entry-block:active {
+  cursor: grabbing;
+}
+
+.cal-resize-handle {
+  opacity: 0;
+  cursor: ns-resize;
+}
+
+.cal-entry-block:hover .cal-resize-handle {
+  opacity: 1;
+}
+
+.cal-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.cal-popover {
+  position: absolute;
+  z-index: 61;
+  width: 300px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* bottom nav */
 .bottom-nav {
   position: fixed;
