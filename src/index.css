@@ -794,6 +794,20 @@ tr:hover .row-actions {
 }
 
 /* time entry rows (My Time day list) — actions reveal on hover */
+.time-entry-row {
+  transition: background 0.15s ease;
+}
+
+.time-entry-row:hover {
+  background: var(--color-state-hover);
+}
+
+/* week day-jump rail (My Time) — subtle glow ring on hover, layered via box-shadow
+   so it never fights the inline active/today background colors. */
+.week-nav-dot:hover {
+  box-shadow: 0 0 0 4px var(--color-state-hover);
+}
+
 .time-entry-actions {
   display: flex;
   align-items: center;

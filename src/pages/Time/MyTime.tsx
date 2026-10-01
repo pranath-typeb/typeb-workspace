@@ -119,8 +119,21 @@ export default function MyTime() {
     return () => observer.disconnect()
   }, [days])
 
+  const [jumpedDay, setJumpedDay] = useState<string | null>(null)
+  const jumpTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (jumpTimeoutRef.current) clearTimeout(jumpTimeoutRef.current)
+    }
+  }, [])
+
   function scrollToDay(d: string) {
+    setActiveDay(d)
     dayRefs.current[d]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (jumpTimeoutRef.current) clearTimeout(jumpTimeoutRef.current)
+    setJumpedDay(d)
+    jumpTimeoutRef.current = setTimeout(() => setJumpedDay(null), 1100)
   }
 
   const manualMinutes = timeToMinutes(manualEndTime) - timeToMinutes(manualStartTime)
@@ -588,13 +601,22 @@ export default function MyTime() {
           {days.map((d) => {
             const dayEntries = weekEntries.filter((e) => e.date === d)
             const isToday = d === today
+            const isJumped = d === jumpedDay
             const dayLabel = new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
             return (
               <div
                 key={d}
                 data-day={d}
                 ref={(el) => { dayRefs.current[d] = el }}
-                style={{ background: 'var(--color-background-page)', borderRadius: 10, padding: '14px 16px', scrollMarginTop: 16 }}
+                style={{
+                  background: isJumped ? 'var(--color-background-muted)' : 'var(--color-background-page)',
+                  borderRadius: 10,
+                  padding: '14px 16px',
+                  scrollMarginTop: 70,
+                  boxShadow: isJumped ? '0 6px 20px rgba(20,22,27,0.12)' : 'none',
+                  transform: isJumped ? 'translateY(-2px)' : 'translateY(0)',
+                  transition: 'transform 0.25s ease, box-shadow 0.25s ease, background 0.4s ease',
+                }}
               >
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -633,6 +655,7 @@ export default function MyTime() {
               return (
                 <button
                   key={d}
+                  className="week-nav-dot"
                   onClick={() => scrollToDay(d)}
                   title={full}
                   aria-label={`Jump to ${full}`}
