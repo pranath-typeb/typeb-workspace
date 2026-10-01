@@ -218,6 +218,7 @@ a {
   padding: 1px;
   position: sticky;
   top: 70px;
+  transition: width 0.22s ease;
 }
 
 .sidebar-inner {
@@ -227,6 +228,14 @@ a {
   gap: 2px;
   max-height: calc(100vh - 160px);
   overflow-y: auto;
+  transition: padding 0.22s ease;
+}
+
+/* Collapsed rail has few enough items it never needs to scroll — switch to
+   visible overflow so the hover tooltips can pop out past the icon rail
+   instead of being clipped by the scroll container. */
+.sidebar-collapsed .sidebar-inner {
+  overflow: visible;
 }
 
 .navitem, .navitem-sm {
@@ -238,7 +247,23 @@ a {
   border-radius: 10px;
   font-size: 14px;
   white-space: nowrap;
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease, width 0.22s ease, padding 0.22s ease;
+}
+
+.navitem-label {
+  display: inline-block;
+  overflow: hidden;
+  max-width: 160px;
+  opacity: 1;
+  transition: max-width 0.2s ease, opacity 0.12s ease;
+}
+
+.navgroup-label,
+.navsep {
+  overflow: hidden;
+  opacity: 1;
+  max-height: 24px;
+  transition: max-height 0.2s ease, opacity 0.12s ease, margin 0.2s ease;
 }
 
 .navitem:active, .navitem-sm:active {
@@ -320,10 +345,16 @@ a {
   align-items: center;
 }
 
-.sidebar-collapsed .navitem-label,
+.sidebar-collapsed .navitem-label {
+  max-width: 0;
+  opacity: 0;
+}
+
 .sidebar-collapsed .navgroup-label,
 .sidebar-collapsed .navsep {
-  display: none;
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
 }
 
 .sidebar-collapsed .navitem,
@@ -341,6 +372,36 @@ a {
   padding: 0 4px;
   min-width: 14px;
   text-align: center;
+}
+
+/* Custom tooltips for collapsed sidebar icons — same idea as the bottom nav's
+   data-tooltip, popped out to the right since the sidebar always docks left. */
+.sidebar-collapsed [data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%) translateX(-2px);
+  background: #1a1a1a;
+  color: #fafafa;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 60;
+}
+
+.sidebar-collapsed [data-tooltip]:hover::after,
+.sidebar-collapsed [data-tooltip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
 }
 
 /* content */
