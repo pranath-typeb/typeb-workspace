@@ -904,6 +904,64 @@ tr:hover .row-actions {
   pointer-events: auto;
 }
 
+/* auto-hide (Settings → Appearance → Pin nav bar off): the bar slides off its
+   docked edge and only slides back in when the cursor hits the hot edge or
+   the bar itself (e.g. while a popover is open). */
+.bottom-nav.auto-hide {
+  transition: transform 0.22s ease;
+  transform: translateY(100%);
+}
+
+.bottom-nav.auto-hide.pos-top {
+  transform: translateY(-100%);
+}
+
+.bottom-nav.auto-hide.pos-left {
+  transform: translateX(-100%);
+}
+
+.bottom-nav.auto-hide.pos-right {
+  transform: translateX(100%);
+}
+
+.bottom-nav.auto-hide.revealed {
+  transform: translate(0, 0);
+}
+
+.bn-hot-edge {
+  position: fixed;
+  z-index: 39;
+  pointer-events: auto;
+}
+
+.bn-hot-edge-bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 10px;
+}
+
+.bn-hot-edge-top {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 10px;
+}
+
+.bn-hot-edge-left {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 10px;
+}
+
+.bn-hot-edge-right {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+}
+
 .bn-bar {
   background: var(--nav-bg);
   height: 56px;
@@ -1123,7 +1181,7 @@ body[data-navpos='top'] .stage {
 }
 
 .bn-brand-text {
-  color: #fafafa;
+  color: var(--nav-fg);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.42px;

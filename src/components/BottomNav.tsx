@@ -28,7 +28,7 @@ import { CURRENT_USER_ID, usePeople } from '../data/people'
 import { useProjects } from '../data/projects'
 import { CATEGORIES } from '../data/timeEntries'
 import { showToast } from '../data/toast'
-import { useNavPosition, type NavPosition } from '../data/navPosition'
+import { useNavPinned, useNavPosition, type NavPosition } from '../data/navPosition'
 import { togglePinnedApp, usePinnedApps } from '../data/pinnedApps'
 import { setTimerBillable, setTimerCategory, setTimerDescription, setTimerProjectId, stopAndSaveTimer, toggleTimerRunning, useTimerState } from '../data/timer'
 import { setTheme, useTheme, type Theme } from '../data/theme'
@@ -102,6 +102,9 @@ export default function BottomNav() {
   const navigate = useNavigate()
   const active = activeAppKey(location.pathname)
   const navPos = useNavPosition()
+  const navPinned = useNavPinned()
+  const [revealed, setRevealed] = useState(false)
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const people = usePeople()
   const currentUser = people.find((p) => p.id === CURRENT_USER_ID)!
   const projects = useProjects()
@@ -154,6 +157,28 @@ export default function BottomNav() {
       document.removeEventListener('keydown', onKeyDown)
     }
   }, [])
+
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
+    }
+  }, [])
+
+  function showNav() {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current)
+      hideTimeoutRef.current = null
+    }
+    setRevealed(true)
+  }
+
+  function scheduleHideNav() {
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
+    hideTimeoutRef.current = setTimeout(() => setRevealed(false), 250)
+  }
+
+  const anyPopoverOpen = appSwitcherOpen || searchOpen || notifOpen || timerPopupOpen || profileOpen || feedbackOpen
+  const navVisible = navPinned || revealed || anyPopoverOpen
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -210,7 +235,17 @@ export default function BottomNav() {
 
   return (
     <>
-      <nav className={`bottom-nav pos-${navPos}`}>
+      {!navPinned && (
+        <div
+          className={`bn-hot-edge bn-hot-edge-${navPos}`}
+          onMouseEnter={showNav}
+        />
+      )}
+      <nav
+        className={`bottom-nav pos-${navPos}${!navPinned ? ' auto-hide' : ''}${navVisible ? ' revealed' : ''}`}
+        onMouseEnter={navPinned ? undefined : showNav}
+        onMouseLeave={navPinned ? undefined : scheduleHideNav}
+      >
         {/* Left segment */}
         <div className="bn-segment bn-segment-left">
           <div className="bn-bar bn-bar-left">

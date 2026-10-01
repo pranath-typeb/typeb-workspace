@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { GoogleIcon, AppleIcon } from './icons'
+import { GoogleIcon } from './icons'
 
 interface AuthLayoutProps {
   title: string
@@ -28,9 +28,6 @@ export function SocialButtons() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <button type="button" className="btn-outline" style={{ justifyContent: 'center', width: '100%' }}>
         <GoogleIcon /> Continue with Google
-      </button>
-      <button type="button" className="btn-outline" style={{ justifyContent: 'center', width: '100%' }}>
-        <AppleIcon /> Continue with Apple
       </button>
     </div>
   )

@@ -12,7 +12,7 @@ import {
 import { CURRENT_USER_ID } from '../data/people'
 import { addDays, categoryColor, minutesForPersonDate, projectLabel, todayLocal, useTimeEntries, weekStartFor, type TimeEntry } from '../data/timeEntries'
 import { startTimer } from '../data/timer'
-import { AlertFileIcon, CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon, PlusIcon } from '../components/icons'
+import { AlertFileIcon, CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon } from '../components/icons'
 import { avatarContent } from '../components/Avatar'
 
 const DAILY_TARGET_MINUTES = 480
@@ -110,7 +110,8 @@ export default function Home() {
 
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
-  const secStr = now.toLocaleTimeString('en-US', { second: '2-digit' }).split(':').pop() ?? '00'
+  const weekdayStr = now.toLocaleDateString('en-US', { weekday: 'long' })
+  const dayMonthStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })
 
   return (
     <section className="stage">
@@ -136,17 +137,30 @@ export default function Home() {
                 {dateStr} · Times shown in Asia/Colombo
               </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, justifyContent: 'flex-end' }}>
-                <span className="home-clock" style={{ fontSize: 48, fontWeight: 600, lineHeight: 1 }}>{timeStr}</span>
-                <span style={{ fontSize: 14, fontWeight: 600, paddingBottom: 8 }}>{secStr}</span>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+                background: 'var(--color-background-muted)',
+                border: '1px solid var(--color-border-subtle)',
+                borderRadius: 18,
+                padding: '10px 22px',
+              }}
+            >
+              <span className="home-clock" style={{ fontSize: 40, fontWeight: 700, lineHeight: 1, letterSpacing: '-0.5px', color: 'var(--color-text-primary)' }}>
+                {timeStr}
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>{weekdayStr}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>{dayMonthStr}</span>
               </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             {/* Left column */}
-            <div style={{ width: 880, maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ flex: '1 1 480px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ background: 'var(--color-background-subtle)', border: '1px solid var(--color-border-default)', borderRadius: 14 }}>
                 <div style={{ padding: '20px 20px 12px' }}>
                   <SectionLabel>Recent Works</SectionLabel>
@@ -174,12 +188,14 @@ export default function Home() {
                           {work.tasksInProgress} recent {work.tasksInProgress === 1 ? 'task' : 'tasks'}
                         </span>
                       </div>
-                      <Link
-                        to={work.projectId ? `/projects/${work.projectId}` : '/projects'}
+                      <button
+                        onClick={() => startTimer({ description: '', projectId: work.projectId, category: 'Development' })}
+                        aria-label={`Start a new task timer for ${work.project}`}
+                        title={`Start a new task timer for ${work.project}`}
                         style={{ background: '#2f2f33', color: '#fff', fontSize: 13, fontWeight: 600, padding: '5px 12px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 4 }}
                       >
-                        <PlusIcon size={12} color="#fff" /> New Task
-                      </Link>
+                        <PlayIcon size={12} color="#fff" /> New Task
+                      </button>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       {work.tasks.map((t) => (
@@ -202,7 +218,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 <div style={{ flex: '1 1 340px', border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: 21, display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <SectionLabel>Events this week</SectionLabel>
@@ -264,7 +280,7 @@ export default function Home() {
             </div>
 
             {/* Right column */}
-            <div style={{ flex: '1 1 340px', display: 'flex', flexDirection: 'column', gap: 16, alignSelf: 'stretch' }}>
+            <div style={{ width: 420, maxWidth: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16, alignSelf: 'stretch' }}>
               <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <SectionLabel>This week</SectionLabel>

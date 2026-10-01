@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CURRENT_USER_ID, personById } from './people'
 import { projectById } from './projects'
 import { showToast } from './toast'
+import { supabase } from '../lib/supabaseClient'
 
 export interface TimeEntry {
   id: string
@@ -2394,6 +2395,52 @@ function loadEntries(): TimeEntry[] {
   }
 }
 
+interface TimeEntryRow {
+  id: string
+  person_id: string
+  date: string
+  description: string
+  project_id: string | null
+  category: string
+  minutes: number
+  start_minutes: number | null
+  billable: boolean
+}
+
+function timeEntryFromRow(row: TimeEntryRow): TimeEntry {
+  return {
+    id: row.id,
+    personId: row.person_id,
+    date: row.date,
+    description: row.description,
+    projectId: row.project_id,
+    category: row.category,
+    minutes: row.minutes,
+    startMinutes: row.start_minutes ?? undefined,
+    billable: row.billable,
+  }
+}
+
+function timeEntryToRow(entry: TimeEntry): TimeEntryRow {
+  return {
+    id: entry.id,
+    person_id: entry.personId,
+    date: entry.date,
+    description: entry.description,
+    project_id: entry.projectId,
+    category: entry.category,
+    minutes: entry.minutes,
+    start_minutes: entry.startMinutes ?? null,
+    billable: entry.billable ?? true,
+  }
+}
+
+async function hydrateFromSupabase() {
+  const { data, error } = await supabase.from('time_entries').select('*')
+  if (error || !data) return
+  setEntries(data.map((row) => timeEntryFromRow(row as TimeEntryRow)))
+}
+
 function loadSubmissions(): WeekSubmission[] {
   try {
     const raw = localStorage.getItem(SUBMISSIONS_KEY)
@@ -2437,9 +2484,44 @@ function setSubmissions(next: WeekSubmission[]) {
   subListeners.forEach((l) => l(submissions))
 }
 
+hydrateFromSupabase()
+
+// Fire-and-forget pushes to Supabase so the UI never blocks on network round-trips.
+// Local state (and localStorage) is always updated first — these just keep the
+// server copy in sync, and surface a toast if that sync fails.
+function syncUpsert(entry: TimeEntry) {
+  supabase
+    .from('time_entries')
+    .upsert(timeEntryToRow(entry))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync time entry to the server', 'danger')
+    })
+}
+
+function syncUpsertMany(list: TimeEntry[]) {
+  if (list.length === 0) return
+  supabase
+    .from('time_entries')
+    .upsert(list.map(timeEntryToRow))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync time entries to the server', 'danger')
+    })
+}
+
+function syncDelete(id: string) {
+  supabase
+    .from('time_entries')
+    .delete()
+    .eq('id', id)
+    .then(({ error }) => {
+      if (error) showToast('Could not sync deletion to the server', 'danger')
+    })
+}
+
 export function addEntry(input: Omit<TimeEntry, 'id'>) {
   const entry: TimeEntry = { ...input, id: `te${Date.now()}` }
   setEntries([entry, ...entries])
+  syncUpsert(entry)
   showToast(`Logged ${formatMinutes(entry.minutes)} — ${entry.description || 'Untitled entry'}`, 'success')
   return entry
 }
@@ -2451,16 +2533,20 @@ export function addEntries(inputs: Omit<TimeEntry, 'id'>[]) {
   const now = Date.now()
   const created = inputs.map((input, i) => ({ ...input, id: `te${now}-${i}` }))
   setEntries([...created, ...entries])
+  syncUpsertMany(created)
   showToast(`Logged ${created.length} ${created.length === 1 ? 'entry' : 'entries'}`, 'success')
   return created
 }
 
 export function deleteEntry(id: string) {
   setEntries(entries.filter((e) => e.id !== id))
+  syncDelete(id)
 }
 
 export function updateEntry(id: string, patch: Partial<TimeEntry>) {
   setEntries(entries.map((e) => (e.id === id ? { ...e, ...patch } : e)))
+  const updated = entries.find((e) => e.id === id)
+  if (updated) syncUpsert(updated)
 }
 
 export function duplicateEntry(id: string): TimeEntry | undefined {
@@ -2469,6 +2555,7 @@ export function duplicateEntry(id: string): TimeEntry | undefined {
   const startMinutes = source.startMinutes !== undefined ? source.startMinutes + source.minutes : undefined
   const copy: TimeEntry = { ...source, id: `te${Date.now()}`, startMinutes }
   setEntries([copy, ...entries])
+  syncUpsert(copy)
   showToast(`Duplicated — ${copy.description || 'Untitled entry'}`, 'success')
   return copy
 }

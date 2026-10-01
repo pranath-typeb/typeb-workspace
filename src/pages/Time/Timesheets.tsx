@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
-import { ChevronRightIcon, ClockIcon } from '../../components/icons'
+import { ChevronLeftIcon, ChevronRightIcon, ClockIcon } from '../../components/icons'
 import { CURRENT_USER_ID } from '../../data/people'
 import {
   addDays,
@@ -14,12 +14,17 @@ import {
   submissionFor,
   submitWeek,
   todayLocal,
+  toLocalDateStr,
   useSubmissions,
   useTimeEntries,
   weekStartFor,
   weeksOverlapping,
   WEEKLY_TARGET_MINUTES,
 } from '../../data/timeEntries'
+
+function pad2(n: number): string {
+  return String(n).padStart(2, '0')
+}
 
 function fmtDate(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -73,10 +78,34 @@ export default function Timesheets() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
+  const today = todayLocal()
+  const [monthCursor, setMonthCursor] = useState(() => {
+    const d = new Date(today + 'T00:00:00')
+    return { year: d.getFullYear(), month: d.getMonth() }
+  })
+
+  const monthLabel = new Date(monthCursor.year, monthCursor.month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const isCurrentMonth = (() => {
+    const d = new Date(today + 'T00:00:00')
+    return d.getFullYear() === monthCursor.year && d.getMonth() === monthCursor.month
+  })()
+
+  function goPrevMonth() {
+    setMonthCursor((c) => (c.month === 0 ? { year: c.year - 1, month: 11 } : { year: c.year, month: c.month - 1 }))
+  }
+  function goNextMonth() {
+    setMonthCursor((c) => (c.month === 11 ? { year: c.year + 1, month: 0 } : { year: c.year, month: c.month + 1 }))
+  }
+  function goThisMonth() {
+    const d = new Date(today + 'T00:00:00')
+    setMonthCursor({ year: d.getFullYear(), month: d.getMonth() })
+  }
+
   const weeks = useMemo(() => {
-    const currentWeek = weekStartFor(todayLocal())
-    return Array.from({ length: 6 }, (_, i) => addDays(currentWeek, -7 * i))
-  }, [])
+    const monthStart = `${monthCursor.year}-${pad2(monthCursor.month + 1)}-01`
+    const monthEnd = toLocalDateStr(new Date(monthCursor.year, monthCursor.month + 1, 0))
+    return weeksOverlapping(monthStart, monthEnd)
+  }, [monthCursor])
 
   const cycle = useMemo(() => payCycleRangeFor(todayLocal()), [])
   const cycleWeeks = useMemo(() => weeksOverlapping(cycle.start, cycle.end), [cycle])
@@ -159,7 +188,19 @@ export default function Timesheets() {
       </div>
 
       <div>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Timesheets</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>Timesheets</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {!isCurrentMonth && <button className="btn-outline" onClick={goThisMonth}>This month</button>}
+            <button className="btn-outline" style={{ width: 32, height: 32, padding: 0, justifyContent: 'center' }} onClick={goPrevMonth} aria-label="Previous month">
+              <ChevronLeftIcon size={14} color="var(--color-text-primary)" />
+            </button>
+            <span style={{ fontSize: 13, fontWeight: 600, minWidth: 130, textAlign: 'center' }}>{monthLabel}</span>
+            <button className="btn-outline" style={{ width: 32, height: 32, padding: 0, justifyContent: 'center' }} onClick={goNextMonth} aria-label="Next month">
+              <ChevronRightIcon size={14} color="var(--color-text-primary)" />
+            </button>
+          </div>
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {current.map((r) => (
             <TimesheetRow key={r.weekStart} {...r} onClick={() => navigate(`/time/timesheets/${CURRENT_USER_ID}/${r.weekStart}`)} />

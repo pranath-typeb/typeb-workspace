@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 export type NavPosition = 'bottom' | 'top' | 'left' | 'right'
 
 const STORAGE_KEY = 'typeb-hr.nav-position.v1'
+const PINNED_STORAGE_KEY = 'typeb-hr.nav-pinned.v1'
 
 function loadInitial(): NavPosition {
   try {
@@ -14,8 +15,21 @@ function loadInitial(): NavPosition {
   return 'bottom'
 }
 
+function loadInitialPinned(): boolean {
+  try {
+    const saved = localStorage.getItem(PINNED_STORAGE_KEY)
+    if (saved === 'false') return false
+  } catch {
+    // ignore
+  }
+  return true
+}
+
 let state: NavPosition = loadInitial()
 let listeners: Array<(p: NavPosition) => void> = []
+
+let pinnedState: boolean = loadInitialPinned()
+let pinnedListeners: Array<(p: boolean) => void> = []
 
 export function getNavPosition(): NavPosition {
   return state
@@ -37,6 +51,31 @@ export function useNavPosition(): NavPosition {
     listeners.push(setValue)
     return () => {
       listeners = listeners.filter((l) => l !== setValue)
+    }
+  }, [])
+  return value
+}
+
+export function getNavPinned(): boolean {
+  return pinnedState
+}
+
+export function setNavPinned(next: boolean) {
+  pinnedState = next
+  try {
+    localStorage.setItem(PINNED_STORAGE_KEY, String(next))
+  } catch {
+    // ignore
+  }
+  pinnedListeners.forEach((l) => l(pinnedState))
+}
+
+export function useNavPinned(): boolean {
+  const [value, setValue] = useState(pinnedState)
+  useEffect(() => {
+    pinnedListeners.push(setValue)
+    return () => {
+      pinnedListeners = pinnedListeners.filter((l) => l !== setValue)
     }
   }, [])
   return value

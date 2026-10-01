@@ -4,7 +4,7 @@ import { avatarContent } from '../components/Avatar'
 import { CURRENT_USER_ID, updatePerson, usePeople } from '../data/people'
 import { setTheme, useTheme, type Theme } from '../data/theme'
 import { showToast } from '../data/toast'
-import { useNavPosition, setNavPosition, type NavPosition } from '../data/navPosition'
+import { useNavPosition, setNavPosition, useNavPinned, setNavPinned, type NavPosition } from '../data/navPosition'
 import {
   BellIcon,
   EditIcon,
@@ -93,6 +93,7 @@ export default function Settings() {
   const [productUpdates, setProductUpdates] = useState(false)
 
   const navPos = useNavPosition()
+  const navPinned = useNavPinned()
 
   const theme = useTheme()
 
@@ -136,6 +137,12 @@ export default function Settings() {
   function chooseNavPosition(pos: NavPosition) {
     setNavPosition(pos)
     showToast(`Nav bar moved to ${pos}`, 'success')
+  }
+
+  function toggleNavPinned() {
+    const next = !navPinned
+    setNavPinned(next)
+    showToast(next ? 'Nav bar pinned' : 'Nav bar will auto-hide', 'success')
   }
 
   function updatePassword() {
@@ -308,6 +315,36 @@ export default function Settings() {
                   <span style={{ fontSize: 12, fontWeight: 600, color: navPos === p.key ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}>{p.label}</span>
                 </button>
               ))}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingTop: 4, borderTop: '1px solid var(--color-border-subtle)', marginTop: 4 }}>
+              <div style={{ paddingTop: 8 }}>
+                <div className="field-label" style={{ marginBottom: 2 }}>Pin nav bar</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                  {navPinned ? 'Always visible at its docked edge.' : 'Hidden until you move the cursor to that edge.'}
+                </div>
+              </div>
+              <button
+                role="switch"
+                aria-checked={navPinned}
+                aria-label="Pin nav bar"
+                onClick={toggleNavPinned}
+                style={{
+                  flexShrink: 0,
+                  width: 40,
+                  height: 24,
+                  borderRadius: 999,
+                  padding: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: navPinned ? 'flex-end' : 'flex-start',
+                  background: navPinned ? 'var(--color-background-inverse)' : 'var(--color-background-muted)',
+                  border: '1px solid var(--color-border-default)',
+                  transition: 'justify-content 0.15s ease, background 0.15s ease',
+                }}
+              >
+                <span style={{ width: 16, height: 16, borderRadius: '50%', background: navPinned ? 'var(--color-text-inverse)' : 'var(--color-background-page)', boxShadow: '0 1px 2px rgba(0,0,0,0.25)' }} />
+              </button>
             </div>
           </div>
         </>
