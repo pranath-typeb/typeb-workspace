@@ -381,13 +381,17 @@ a {
   position: absolute;
   top: 50%;
   left: calc(100% + 10px);
+  display: flex;
+  align-items: center;
+  height: 22px;
   transform: translateY(-50%) translateX(-2px);
   background: #1a1a1a;
   color: #fafafa;
   font-size: 11px;
+  line-height: 1;
   font-weight: 600;
   letter-spacing: -0.1px;
-  padding: 5px 9px;
+  padding: 0 9px;
   border-radius: 6px;
   white-space: nowrap;
   pointer-events: none;
