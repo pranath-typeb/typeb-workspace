@@ -2441,6 +2441,80 @@ async function hydrateFromSupabase() {
   setEntries(data.map((row) => timeEntryFromRow(row as TimeEntryRow)))
 }
 
+interface SubmissionRow {
+  id: string
+  person_id: string
+  week_start: string
+  status: SubmissionStatus
+  comment: string | null
+  lm_status: ApprovalStatus
+  lm_by: string | null
+  lm_at: string | null
+  hr_status: ApprovalStatus
+  hr_by: string | null
+  hr_at: string | null
+  history: SubmissionHistoryEntry[]
+}
+
+function submissionFromRow(row: SubmissionRow): WeekSubmission {
+  return {
+    id: row.id,
+    personId: row.person_id,
+    weekStart: row.week_start,
+    status: row.status,
+    comment: row.comment ?? undefined,
+    lmStatus: row.lm_status,
+    lmBy: row.lm_by ?? undefined,
+    lmAt: row.lm_at ?? undefined,
+    hrStatus: row.hr_status,
+    hrBy: row.hr_by ?? undefined,
+    hrAt: row.hr_at ?? undefined,
+    history: row.history ?? [],
+  }
+}
+
+function submissionToRow(s: WeekSubmission): SubmissionRow {
+  return {
+    id: s.id,
+    person_id: s.personId,
+    week_start: s.weekStart,
+    status: s.status,
+    comment: s.comment ?? null,
+    lm_status: s.lmStatus,
+    lm_by: s.lmBy ?? null,
+    lm_at: s.lmAt ?? null,
+    hr_status: s.hrStatus,
+    hr_by: s.hrBy ?? null,
+    hr_at: s.hrAt ?? null,
+    history: s.history,
+  }
+}
+
+async function hydrateSubmissionsFromSupabase() {
+  const { data, error } = await supabase.from('time_submissions').select('*')
+  if (error || !data) return
+  setSubmissions(data.map((row) => submissionFromRow(row as SubmissionRow)))
+}
+
+function syncSubmissionUpsert(s: WeekSubmission) {
+  supabase
+    .from('time_submissions')
+    .upsert(submissionToRow(s))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync timesheet submission to the server', 'danger')
+    })
+}
+
+function syncSubmissionUpsertMany(list: WeekSubmission[]) {
+  if (list.length === 0) return
+  supabase
+    .from('time_submissions')
+    .upsert(list.map(submissionToRow))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync timesheet submissions to the server', 'danger')
+    })
+}
+
 function loadSubmissions(): WeekSubmission[] {
   try {
     const raw = localStorage.getItem(SUBMISSIONS_KEY)
@@ -2485,6 +2559,7 @@ function setSubmissions(next: WeekSubmission[]) {
 }
 
 hydrateFromSupabase()
+hydrateSubmissionsFromSupabase()
 
 // Fire-and-forget pushes to Supabase so the UI never blocks on network round-trips.
 // Local state (and localStorage) is always updated first — these just keep the
@@ -2598,31 +2673,26 @@ export function nextReviewStage(s: WeekSubmission): ReviewStage | null {
 export function submitWeek(personId: string, weekStart: string) {
   const existing = submissionFor(personId, weekStart)
   const historyEntry: SubmissionHistoryEntry = { label: 'Submitted for review', at: new Date().toISOString() }
+  let saved: WeekSubmission
   if (existing) {
-    setSubmissions(
-      submissions.map((s) =>
-        s.id === existing.id
-          ? {
-              ...s,
-              status: 'Pending',
-              lmStatus: 'Pending',
-              lmBy: undefined,
-              lmAt: undefined,
-              hrStatus: 'Pending',
-              hrBy: undefined,
-              hrAt: undefined,
-              comment: undefined,
-              history: [...s.history, historyEntry],
-            }
-          : s,
-      ),
-    )
+    saved = {
+      ...existing,
+      status: 'Pending',
+      lmStatus: 'Pending',
+      lmBy: undefined,
+      lmAt: undefined,
+      hrStatus: 'Pending',
+      hrBy: undefined,
+      hrAt: undefined,
+      comment: undefined,
+      history: [...existing.history, historyEntry],
+    }
+    setSubmissions(submissions.map((s) => (s.id === existing.id ? saved : s)))
   } else {
-    setSubmissions([
-      ...submissions,
-      { id: `ws${Date.now()}`, personId, weekStart, status: 'Pending', lmStatus: 'Pending', hrStatus: 'Pending', history: [historyEntry] },
-    ])
+    saved = { id: `ws${Date.now()}`, personId, weekStart, status: 'Pending', lmStatus: 'Pending', hrStatus: 'Pending', history: [historyEntry] }
+    setSubmissions([...submissions, saved])
   }
+  syncSubmissionUpsert(saved)
   showToast(`Week of ${formatWeekRange(weekStart)} submitted for review`, 'success')
 }
 
@@ -2649,7 +2719,9 @@ function applyStageReview(s: WeekSubmission, stage: ReviewStage, decision: 'Appr
 export function reviewSubmission(id: string, stage: ReviewStage, decision: 'Approved' | 'Rejected', reviewerName: string, comment?: string) {
   const sub = submissions.find((s) => s.id === id)
   if (!sub) return
-  setSubmissions(submissions.map((s) => (s.id === id ? applyStageReview(s, stage, decision, reviewerName, comment) : s)))
+  const updated = applyStageReview(sub, stage, decision, reviewerName, comment)
+  setSubmissions(submissions.map((s) => (s.id === id ? updated : s)))
+  syncSubmissionUpsert(updated)
   const person = personById(sub.personId)
   showToast(`${person?.name ?? 'Timesheet'} ${decision.toLowerCase()} by ${STAGE_LABEL[stage]}`, decision === 'Approved' ? 'success' : 'danger')
 }
@@ -2657,7 +2729,16 @@ export function reviewSubmission(id: string, stage: ReviewStage, decision: 'Appr
 // Approves or rejects several submissions at once (same reviewer, same stage), with one shared comment applied to any rejections.
 export function reviewSubmissions(ids: string[], stage: ReviewStage, decision: 'Approved' | 'Rejected', reviewerName: string, comment?: string) {
   const idSet = new Set(ids)
-  setSubmissions(submissions.map((s) => (idSet.has(s.id) ? applyStageReview(s, stage, decision, reviewerName, comment) : s)))
+  const updated: WeekSubmission[] = []
+  setSubmissions(
+    submissions.map((s) => {
+      if (!idSet.has(s.id)) return s
+      const next = applyStageReview(s, stage, decision, reviewerName, comment)
+      updated.push(next)
+      return next
+    }),
+  )
+  syncSubmissionUpsertMany(updated)
   showToast(`${ids.length} timesheet${ids.length === 1 ? '' : 's'} ${decision.toLowerCase()} by ${STAGE_LABEL[stage]}`, decision === 'Approved' ? 'success' : 'danger')
 }
 
