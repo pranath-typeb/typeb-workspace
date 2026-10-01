@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
 
 export type HistoryEventType = 'Hire' | 'Promotion' | 'Title Change' | 'Salary Change' | 'Transfer'
 
@@ -154,7 +155,289 @@ const seedHistory: HistoryEvent[] = [
     previousSalary: 4200,
     note: 'Promoted to lead the Technology department',
   },
+  // Sparse-history existing employees — backfilling hire (and a couple of later) events
+  {
+    id: 'eh-dinusha-1',
+    personId: 'dinusha-randika',
+    date: '2023-10-10',
+    type: 'Hire',
+    title: 'Operations Coordinator',
+    department: 'Operations',
+    salary: 1900,
+  },
+  {
+    id: 'eh-layla-1',
+    personId: 'layla-haddad',
+    date: '2022-10-05',
+    type: 'Hire',
+    title: 'Operations Coordinator',
+    department: 'Operations',
+    salary: 2100,
+  },
+  {
+    id: 'eh-layla-2',
+    personId: 'layla-haddad',
+    date: '2024-03-01',
+    type: 'Promotion',
+    title: 'Operations Manager',
+    department: 'Operations',
+    salary: 2900,
+    previousSalary: 2100,
+    note: 'Promoted to manage the Operations team',
+  },
+  {
+    id: 'eh-tomas-1',
+    personId: 'tomas-rivera',
+    date: '2024-10-22',
+    type: 'Hire',
+    title: 'Strategy Analyst',
+    department: 'Strategy',
+    salary: 2300,
+  },
+  {
+    id: 'eh-yuki-1',
+    personId: 'yuki-tanaka',
+    date: '2024-02-14',
+    type: 'Hire',
+    title: 'Software Engineer (Mobile)',
+    department: 'Technology',
+    salary: 3100,
+  },
+  {
+    id: 'eh-amina-1',
+    personId: 'amina-diallo',
+    date: '2023-05-08',
+    type: 'Hire',
+    title: 'People Ops Coordinator',
+    department: 'People',
+    salary: 2000,
+  },
+  {
+    id: 'eh-amina-2',
+    personId: 'amina-diallo',
+    date: '2024-09-01',
+    type: 'Title Change',
+    title: 'People Ops Partner',
+    department: 'People',
+    note: 'Title updated to reflect expanded remit',
+  },
+  {
+    id: 'eh-oliver-1',
+    personId: 'oliver-bennett',
+    date: '2025-01-20',
+    type: 'Hire',
+    title: 'Business Developer',
+    department: 'Growth',
+    salary: 2200,
+  },
+  {
+    id: 'eh-priya-1',
+    personId: 'priya-nair',
+    date: '2026-09-10',
+    type: 'Hire',
+    title: 'Software Engineer (Frontend)',
+    department: 'Technology',
+    salary: 2800,
+  },
+  {
+    id: 'eh-marcus-1',
+    personId: 'marcus-chen',
+    date: '2026-09-18',
+    type: 'Hire',
+    title: 'Growth Marketer',
+    department: 'Growth',
+    salary: 2500,
+  },
+  // New employees — hire events
+  {
+    id: 'eh-devon-1',
+    personId: 'devon-marsh',
+    date: '2023-01-10',
+    type: 'Hire',
+    title: 'Engineering Manager',
+    department: 'Technology',
+    salary: 5000,
+  },
+  {
+    id: 'eh-isabela-1',
+    personId: 'isabela-costa',
+    date: '2024-05-01',
+    type: 'Hire',
+    title: 'Software Engineer (Frontend)',
+    department: 'Technology',
+    salary: 3000,
+  },
+  {
+    id: 'eh-kwame-1',
+    personId: 'kwame-mensah',
+    date: '2023-09-01',
+    type: 'Hire',
+    title: 'Software Engineer (Backend)',
+    department: 'Technology',
+    salary: 2900,
+  },
+  {
+    id: 'eh-nadia-1',
+    personId: 'nadia-rahman',
+    date: '2024-03-15',
+    type: 'Hire',
+    title: 'QA Engineer',
+    department: 'Technology',
+    salary: 2600,
+  },
+  {
+    id: 'eh-felix-1',
+    personId: 'felix-huber',
+    date: '2025-02-01',
+    type: 'Hire',
+    title: 'DevOps Engineer',
+    department: 'Technology',
+    salary: 3400,
+  },
+  {
+    id: 'eh-meera-1',
+    personId: 'meera-pillai',
+    date: '2024-11-01',
+    type: 'Hire',
+    title: 'Software Engineer (Backend)',
+    department: 'Technology',
+    salary: 1800,
+  },
+  {
+    id: 'eh-diego-1',
+    personId: 'diego-alvarez',
+    date: '2022-06-01',
+    type: 'Hire',
+    title: 'Sales Development Rep',
+    department: 'Growth',
+    salary: 2100,
+  },
+  {
+    id: 'eh-grace-1',
+    personId: 'grace-kim',
+    date: '2024-08-15',
+    type: 'Hire',
+    title: 'Business Developer',
+    department: 'Growth',
+    salary: 2350,
+  },
+  {
+    id: 'eh-henrik-1',
+    personId: 'henrik-larsen',
+    date: '2023-04-01',
+    type: 'Hire',
+    title: 'Strategy Analyst',
+    department: 'Strategy',
+    salary: 2400,
+  },
+  {
+    id: 'eh-aaliyah-1',
+    personId: 'aaliyah-johnson',
+    date: '2022-11-01',
+    type: 'Hire',
+    title: 'Product Manager',
+    department: 'Strategy',
+    salary: 4000,
+  },
+  {
+    id: 'eh-fatima-1',
+    personId: 'fatima-al-sayed',
+    date: '2023-07-01',
+    type: 'Hire',
+    title: 'HR Coordinator',
+    department: 'People',
+    salary: 2200,
+  },
+  {
+    id: 'eh-viktor-1',
+    personId: 'viktor-petrov',
+    date: '2022-09-01',
+    type: 'Hire',
+    title: 'Operations Analyst',
+    department: 'Operations',
+    salary: 2000,
+  },
+  {
+    id: 'eh-chloe-1',
+    personId: 'chloe-dubois',
+    date: '2024-04-01',
+    type: 'Hire',
+    title: 'Operations Coordinator',
+    department: 'Operations',
+    salary: 1600,
+  },
+  {
+    id: 'eh-rohan-1',
+    personId: 'rohan-kapoor',
+    date: '2023-02-01',
+    type: 'Hire',
+    title: 'Talent Acquisition Specialist',
+    department: 'People',
+    salary: 2300,
+  },
+  {
+    id: 'eh-samuel-1',
+    personId: 'samuel-osei',
+    date: '2025-05-01',
+    type: 'Hire',
+    title: '',
+    department: null,
+  },
+  {
+    id: 'eh-lucia-1',
+    personId: 'lucia-fernandez',
+    date: '2026-09-22',
+    type: 'Hire',
+    title: 'Business Developer',
+    department: 'Growth',
+    salary: 1900,
+  },
+  {
+    id: 'eh-ben-1',
+    personId: 'ben-okafor',
+    date: '2021-10-12',
+    type: 'Hire',
+    title: 'Operations Analyst',
+    department: 'Operations',
+    salary: 1950,
+  },
 ]
+
+// Read-only Supabase mirror of this table (see src/lib/supabaseClient.ts and the same
+// note in data/people.ts). No add/edit UI writes to this data today, so read-only
+// hydration is a clean fit — addHistoryEvent still only writes to localStorage, for
+// whenever that UI gets built.
+interface HistoryEventRow {
+  id: string
+  person_id: string
+  date: string
+  type: HistoryEventType
+  title: string
+  department: string | null
+  salary: number | null
+  previous_salary: number | null
+  note: string | null
+}
+
+function historyEventFromRow(row: HistoryEventRow): HistoryEvent {
+  return {
+    id: row.id,
+    personId: row.person_id,
+    date: row.date,
+    type: row.type,
+    title: row.title,
+    department: row.department,
+    salary: row.salary ?? undefined,
+    previousSalary: row.previous_salary ?? undefined,
+    note: row.note ?? undefined,
+  }
+}
+
+async function hydrateFromSupabase() {
+  const { data, error } = await supabase.from('employment_history').select('*').order('date')
+  if (error || !data) return
+  setState(data.map((row) => historyEventFromRow(row as HistoryEventRow)))
+}
 
 function load(): HistoryEvent[] {
   try {
@@ -181,6 +464,8 @@ function setState(next: HistoryEvent[]) {
   save(history)
   listeners.forEach((l) => l(history))
 }
+
+hydrateFromSupabase()
 
 export function historyFor(personId: string): HistoryEvent[] {
   return history.filter((h) => h.personId === personId).sort((a, b) => b.date.localeCompare(a.date))

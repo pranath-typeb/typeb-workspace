@@ -30,6 +30,22 @@ const seedRequests: LeaveRequest[] = [
   { id: 'l12', type: 'Unpaid Time Off', date: '12-Dec-2026', status: 'Pending', requestedBy: 'Oliver Bennett', days: 2 },
   { id: 'l13', type: 'LIEU', date: '08-Jan-2027', status: 'Approved', requestedBy: 'Sara Kowalski', days: 1 },
   { id: 'l14', type: 'PTO', date: '20-Jan-2027', status: 'Pending', requestedBy: 'Tomás Rivera', days: 3 },
+  { id: 'l15', type: 'PTO', date: '24-Oct-2026', status: 'Approved', requestedBy: 'Pranath', days: 2 },
+  { id: 'l16', type: 'LIEU', date: '02-Oct-2026', status: 'Pending', requestedBy: 'Pranath', days: 1 },
+  { id: 'l17', type: 'PTO', date: '15-Oct-2026', status: 'Approved', requestedBy: 'Devon Marsh', days: 3 },
+  { id: 'l18', type: 'Sick Leave', date: '03-Nov-2026', status: 'Pending', requestedBy: 'Isabela Costa', days: 1 },
+  { id: 'l19', type: 'Unpaid Time Off', date: '20-Nov-2026', status: 'Rejected', requestedBy: 'Kwame Mensah', days: 2 },
+  { id: 'l20', type: 'LIEU', date: '28-Sep-2026', status: 'Approved', requestedBy: 'Nadia Rahman', days: 1 },
+  { id: 'l21', type: 'PTO', date: '01-Dec-2026', status: 'Pending', requestedBy: 'Felix Huber', days: 4 },
+  { id: 'l22', type: 'Accrued Public Holiday', date: '25-Dec-2026', status: 'Approved', requestedBy: 'Meera Pillai', days: 1 },
+  { id: 'l23', type: 'PTO', date: '10-Jan-2027', status: 'Pending', requestedBy: 'Diego Alvarez', days: 2 },
+  { id: 'l24', type: 'Sick Leave', date: '14-Oct-2026', status: 'Approved', requestedBy: 'Grace Kim', days: 1 },
+  { id: 'l25', type: 'Unpaid Time Off', date: '05-Feb-2027', status: 'Pending', requestedBy: 'Henrik Larsen', days: 3 },
+  { id: 'l26', type: 'PTO', date: '19-Nov-2026', status: 'Approved', requestedBy: 'Aaliyah Johnson', days: 5 },
+  { id: 'l27', type: 'LIEU', date: '30-Oct-2026', status: 'Rejected', requestedBy: 'Fatima Al-Sayed', days: 1 },
+  { id: 'l28', type: 'PTO', date: '22-Dec-2026', status: 'Pending', requestedBy: 'Rohan Kapoor', days: 2 },
+  { id: 'l29', type: 'Sick Leave', date: '11-Oct-2026', status: 'Approved', requestedBy: 'Charinda Dissanayake', days: 1 },
+  { id: 'l30', type: 'Accrued Public Holiday', date: '07-Nov-2026', status: 'Pending', requestedBy: 'Ajith Pathmanathan', days: 1 },
 ]
 
 function load(): LeaveRequest[] {
@@ -67,6 +83,16 @@ export function addLeaveRequest(input: Omit<LeaveRequest, 'id' | 'status'>) {
   }
   setState([request, ...state])
   showToast(`${request.type} request submitted for ${request.date}`, 'success')
+}
+
+export function updateLeaveRequest(id: string, patch: Partial<Omit<LeaveRequest, 'id'>>) {
+  setState(state.map((r) => (r.id === id ? { ...r, ...patch } : r)))
+  showToast('Leave request updated', 'success')
+}
+
+export function deleteLeaveRequest(id: string) {
+  setState(state.filter((r) => r.id !== id))
+  showToast('Leave request deleted', 'success')
 }
 
 export function useLeaveRequests(): LeaveRequest[] {

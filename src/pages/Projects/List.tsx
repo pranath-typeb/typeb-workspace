@@ -46,7 +46,7 @@ export default function ProjectsList() {
 
   return (
     <AppShell
-      appIcon={<ProjectsIcon size={16} color="rgba(0,0,0,0.53)" />}
+      appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="Projects"
       appHref="/projects"
       sidebar={
@@ -60,14 +60,14 @@ export default function ProjectsList() {
     >
       <div className="page-title">Projects</div>
 
-      <div style={{ display: 'flex', border: '1px solid #ececee', borderRadius: 14, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
         {[
           { label: 'All Projects', value: projects.length, sub: 'Across all clients' },
           { label: 'Active Projects', value: activeCount, sub: 'Currently in progress' },
           { label: 'Completed Projects', value: completedCount, sub: 'Delivered to date' },
           { label: 'Total Billable Hours', value: `${totalHours}h`, sub: 'Logged this cycle' },
         ].map((s, i, arr) => (
-          <div key={s.label} style={{ flex: 1, padding: '16px 20px', borderRight: i < arr.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none' }}>
+          <div key={s.label} style={{ flex: 1, padding: '16px 20px', borderRight: i < arr.length - 1 ? '1px solid var(--color-border-subtle)' : 'none' }}>
             <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: '#5f636c' }}>{s.label}</div>
             <div style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.48px', marginTop: 8 }}>{s.value}</div>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#5f636c' }}>{s.sub}</div>
@@ -107,10 +107,10 @@ export default function ProjectsList() {
             ))}
           </select>
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 36, fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.53)', cursor: 'pointer' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 36, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)', cursor: 'pointer' }}>
           <span
             onClick={() => setOnlyMine((v) => !v)}
-            style={{ width: 32, height: 18, borderRadius: 9999, background: onlyMine ? '#171717' : '#e5e5e5', position: 'relative', transition: 'background 0.15s', flexShrink: 0 }}
+            style={{ width: 32, height: 18, borderRadius: 9999, background: onlyMine ? 'var(--color-control-on)' : 'var(--color-border-subtle)', position: 'relative', transition: 'background 0.15s', flexShrink: 0 }}
           >
             <span style={{ position: 'absolute', top: 2, left: onlyMine ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
           </span>
@@ -119,7 +119,7 @@ export default function ProjectsList() {
         <button className="btn-dark" onClick={() => setModalOpen(true)}>Create Project</button>
       </div>
 
-      <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>{filtered.length} projects</div>
+      <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{filtered.length} projects</div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
         {filtered.map((p) => (
@@ -131,21 +131,21 @@ export default function ProjectsList() {
           >
             <div>
               <div style={{ fontSize: 16, fontWeight: 600 }}>{p.name}</div>
-              <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', marginTop: 2 }}>{p.client}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>{p.client}</div>
             </div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               <span className={`badge ${statusBadge[p.status]}`} style={{ textTransform: 'uppercase', fontSize: 10 }}>{p.status}</span>
               {p.staffing && <span className="badge b-neutral" style={{ textTransform: 'uppercase', fontSize: 10 }}>Staffing</span>}
               {p.billable && <span className="badge b-neutral" style={{ textTransform: 'uppercase', fontSize: 10 }}>Billable</span>}
             </div>
-            <div style={{ borderTop: '1px solid #f5f5f5', marginTop: 'auto', paddingTop: 10, display: 'flex', gap: 16, fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>
+            <div style={{ borderTop: '1px solid var(--table-row-border)', marginTop: 'auto', paddingTop: 10, display: 'flex', gap: 16, fontSize: 12, color: 'var(--color-text-secondary)' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><StaffingIcon size={12} color="currentColor" />{p.teamIds.length}</span>
               <span>{p.hoursLogged}h</span>
             </div>
           </Link>
         ))}
         {filtered.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', fontSize: 13, color: 'rgba(0,0,0,0.53)', padding: '24px 0' }}>No projects match those filters.</div>
+          <div style={{ gridColumn: '1 / -1', fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 0' }}>No projects match those filters.</div>
         )}
       </div>
 

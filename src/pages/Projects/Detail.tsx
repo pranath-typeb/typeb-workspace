@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel } from '../../components/NavItem'
+import { avatarContent } from '../../components/Avatar'
 import { BuildingIcon, ChevronLeftIcon, EditIcon, ProjectsIcon, StaffingIcon, TrashIcon } from '../../components/icons'
 import { deleteProject, updateProject, useProjects, type ProjectStatus } from '../../data/projects'
 import { personById } from '../../data/people'
@@ -45,7 +46,7 @@ export default function ProjectDetail() {
 
   return (
     <AppShell
-      appIcon={<ProjectsIcon size={16} color="rgba(0,0,0,0.53)" />}
+      appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="Projects"
       appHref="/projects"
       sidebar={
@@ -69,15 +70,15 @@ export default function ProjectDetail() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <button
               onClick={() => navigate('/projects')}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: 'rgba(0,0,0,0.53)' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: 'var(--color-text-secondary)' }}
             >
-              <ChevronLeftIcon color="rgba(0,0,0,0.53)" /> Projects
+              <ChevronLeftIcon color="var(--color-text-secondary)" /> Projects
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn-outline" style={{ height: 36 }} onClick={() => setEditing(true)}>
-                <EditIcon color="#0f0f10" /> Edit Project
+                <EditIcon color="var(--color-text-primary)" /> Edit Project
               </button>
-              <button onClick={handleDeactivate} style={{ height: 36, padding: '0 14px', borderRadius: 10, fontSize: 14, fontWeight: 600, background: '#ffdacc', color: '#cc3a00' }}>
+              <button onClick={handleDeactivate} style={{ height: 36, padding: '0 14px', borderRadius: 10, fontSize: 14, fontWeight: 600, background: 'var(--color-status-warning-border)', color: 'var(--color-status-warning-text)' }}>
                 {project.status === 'Completed' ? 'Reactivate' : 'Deactivate'}
               </button>
               <button
@@ -92,13 +93,13 @@ export default function ProjectDetail() {
           <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: 20, fontWeight: 600 }}>{project.name}</div>
-              <div style={{ fontSize: 14, color: 'rgba(0,0,0,0.53)', marginTop: 4 }}>{project.client}</div>
+              <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginTop: 4 }}>{project.client}</div>
               <span className={`badge ${statusBadge[project.status]}`} style={{ marginTop: 10, display: 'inline-flex', textTransform: 'uppercase', fontSize: 10 }}>{project.status}</span>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div className="mono" style={{ fontSize: 24, fontWeight: 600 }}>{project.hoursLogged}h</div>
-              <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginTop: 4 }}>logged all time</div>
-              <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>{hoursLast30Days}h in the last 30 days</div>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>logged all time</div>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{hoursLast30Days}h in the last 30 days</div>
             </div>
           </div>
 
@@ -114,7 +115,7 @@ export default function ProjectDetail() {
             </div>
             {project.calendarKeywords && project.calendarKeywords.length > 0 && (
               <div style={{ marginTop: 20 }}>
-                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'rgba(0,0,0,0.53)', marginBottom: 6 }}>Calendar keywords</div>
+                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--color-text-secondary)', marginBottom: 6 }}>Calendar keywords</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {project.calendarKeywords.map((kw) => (
                     <span key={kw} className="tag">[{kw}]</span>
@@ -127,15 +128,15 @@ export default function ProjectDetail() {
           <div className="card">
             <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Team ({team.length})</div>
             {team.length === 0 ? (
-              <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)' }}>No one staffed on this project yet.</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>No one staffed on this project yet.</div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
                 {team.map((member) => (
                   <Link key={member.id} to={`/people/${member.id}`} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>{member.initials}</div>
+                    <div className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>{avatarContent(member)}</div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 600 }}>{member.name}</div>
-                      <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>{member.title || member.email}</div>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{member.title || member.email}</div>
                     </div>
                   </Link>
                 ))}
@@ -153,7 +154,7 @@ export default function ProjectDetail() {
 function Detail({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'rgba(0,0,0,0.53)' }}>{label}</div>
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>{label}</div>
       <div className={mono ? 'mono' : undefined} style={{ fontSize: 14, marginTop: 4 }}>{value}</div>
     </div>
   )

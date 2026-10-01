@@ -1,35 +1,3 @@
-export interface WorkTask {
-  title: string
-  tag: string
-}
-
-export interface ProjectWork {
-  project: string
-  tasksInProgress: number
-  tasks: WorkTask[]
-}
-
-export const recentWorks: ProjectWork[] = [
-  {
-    project: 'Investera',
-    tasksInProgress: 3,
-    tasks: [
-      { title: 'Homepage hero section redesign', tag: 'UI/UX Design' },
-      { title: 'Checkout payment flow', tag: 'Research' },
-      { title: 'User profile settings page', tag: 'UI/UX Design' },
-      { title: 'Daily Sync', tag: 'Meeting' },
-    ],
-  },
-  {
-    project: 'Meridian',
-    tasksInProgress: 2,
-    tasks: [
-      { title: 'Landing page illustration set', tag: 'UI/UX Design' },
-      { title: 'Mobile onboarding screens', tag: 'UI/UX Design' },
-    ],
-  },
-]
-
 export interface CalendarEvent {
   month: string
   day: string
@@ -50,16 +18,9 @@ export const whoIsOff = [
   { initials: 'CW', name: 'Chamika Wijeratne' },
   { initials: 'AH', name: 'Ashkar Haris' },
   { initials: 'CD', name: 'Charinda Dissanayake' },
-]
-
-export const weekDays = [
-  { label: 'MON', date: '05', worked: true },
-  { label: 'TUE', date: '06', worked: true },
-  { label: 'WED', date: '07', worked: true },
-  { label: 'THU', date: '08', worked: true },
-  { label: 'FRI', date: '09', worked: false, today: true },
-  { label: 'SAT', date: '10', worked: false },
-  { label: 'SUN', date: '11', worked: false },
+  { initials: 'DM', name: 'Devon Marsh' },
+  { initials: 'GK', name: 'Grace Kim' },
+  { initials: 'VP', name: 'Viktor Petrov' },
 ]
 
 export const weeklyHoursWorked = '29:30'

@@ -1,17 +1,59 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLeaveRequests, PTO_TOTAL_ACCRUED, PTO_TOTAL_USED } from '../data/leave'
 import {
-  recentWorks,
   upcomingEvents,
   whoIsOff,
-  weekDays,
   weeklyHoursWorked,
   weeklyHoursTarget,
   weeklyBehindLabel,
   weekSummaries,
 } from '../data/dashboard'
-import { AlertFileIcon, CakeIcon, ChevronRightIcon, FlagIcon, PlusIcon } from '../components/icons'
+import { CURRENT_USER_ID } from '../data/people'
+import { addDays, categoryColor, minutesForPersonDate, projectLabel, todayLocal, useTimeEntries, weekStartFor, type TimeEntry } from '../data/timeEntries'
+import { startTimer } from '../data/timer'
+import { AlertFileIcon, CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon, PlusIcon } from '../components/icons'
+import { avatarContent } from '../components/Avatar'
+
+const DAILY_TARGET_MINUTES = 480
+
+interface RecentTask {
+  description: string
+  category: string
+  projectId: string | null
+}
+
+interface RecentWorkGroup {
+  projectId: string | null
+  project: string
+  tasksInProgress: number
+  tasks: RecentTask[]
+}
+
+// The most recently logged tasks, grouped by project — so you can pick up where you left
+// off. Sorted by most recent first; within a project, distinct task descriptions only (the
+// latest occurrence wins for its category), capped so the card doesn't run on forever.
+function recentWorkGroups(entries: TimeEntry[]): RecentWorkGroup[] {
+  const mine = entries
+    .filter((e) => e.personId === CURRENT_USER_ID)
+    .slice()
+    .sort((a, b) => (a.date === b.date ? (b.startMinutes ?? 0) - (a.startMinutes ?? 0) : b.date.localeCompare(a.date)))
+
+  const groups = new Map<string, RecentWorkGroup>()
+  for (const e of mine) {
+    const key = e.projectId ?? '__none__'
+    if (!groups.has(key)) {
+      if (groups.size >= 2) continue
+      groups.set(key, { projectId: e.projectId, project: projectLabel(e.projectId), tasksInProgress: 0, tasks: [] })
+    }
+    const group = groups.get(key)
+    if (!group) continue
+    if (group.tasks.length >= 4 || group.tasks.some((t) => t.description === e.description)) continue
+    group.tasks.push({ description: e.description, category: e.category, projectId: e.projectId })
+  }
+  for (const group of groups.values()) group.tasksInProgress = group.tasks.length
+  return [...groups.values()]
+}
 
 function greeting(hour: number) {
   if (hour < 12) return 'Good morning'
@@ -21,7 +63,7 @@ function greeting(hour: number) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.53)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+    <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
       {children}
     </div>
   )
@@ -30,7 +72,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function SmallLink({ to, children }: { to: string; children: React.ReactNode }) {
   return (
     <Link to={to} style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 12, fontWeight: 600 }}>
-      {children} <ChevronRightIcon size={12} color="#0f0f10" />
+      {children} <ChevronRightIcon size={12} color="var(--color-text-primary)" />
     </Link>
   )
 }
@@ -46,6 +88,26 @@ export default function Home() {
   const pendingDays = requests.filter((r) => r.status === 'Pending').reduce((sum, r) => sum + r.days, 0)
   const availablePto = Math.max(PTO_TOTAL_ACCRUED - PTO_TOTAL_USED - pendingDays, 0)
 
+  const timeEntries = useTimeEntries()
+  const recentWorks = useMemo(() => recentWorkGroups(timeEntries), [timeEntries])
+
+  const today = todayLocal()
+  const weekDays = useMemo(() => {
+    const start = weekStartFor(today)
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = addDays(start, i)
+      const mins = minutesForPersonDate(timeEntries, CURRENT_USER_ID, date)
+      const dow = new Date(date + 'T00:00:00').getDay()
+      return {
+        label: new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
+        date: date.slice(-2),
+        minutes: mins,
+        today: date === today,
+        isWeekend: dow === 0 || dow === 6,
+      }
+    })
+  }, [timeEntries, today])
+
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
   const secStr = now.toLocaleTimeString('en-US', { second: '2-digit' }).split(':').pop() ?? '00'
@@ -59,22 +121,24 @@ export default function Home() {
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12,
               paddingBottom: 16,
-              borderBottom: '1px solid rgba(0,0,0,0.08)',
+              borderBottom: '1px solid var(--color-border-default)',
               marginBottom: 20,
             }}
           >
             <div>
-              <div className="serif" style={{ fontSize: 24, letterSpacing: '-1.2px', color: '#0f0f10' }}>
+              <div className="serif" style={{ fontSize: 24, letterSpacing: '-1.2px', color: 'var(--color-text-primary)' }}>
                 {greeting(now.getHours())}, Pranath.
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
                 {dateStr} · Times shown in Asia/Colombo
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, justifyContent: 'flex-end' }}>
-                <span style={{ fontSize: 48, fontWeight: 600, lineHeight: 1 }}>{timeStr}</span>
+                <span className="home-clock" style={{ fontSize: 48, fontWeight: 600, lineHeight: 1 }}>{timeStr}</span>
                 <span style={{ fontSize: 14, fontWeight: 600, paddingBottom: 8 }}>{secStr}</span>
               </div>
             </div>
@@ -83,30 +147,35 @@ export default function Home() {
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             {/* Left column */}
             <div style={{ width: 880, maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ background: '#fafafa', border: '1px solid #ebebeb', borderRadius: 14 }}>
+              <div style={{ background: 'var(--color-background-subtle)', border: '1px solid var(--color-border-default)', borderRadius: 14 }}>
                 <div style={{ padding: '20px 20px 12px' }}>
                   <SectionLabel>Recent Works</SectionLabel>
                 </div>
+                {recentWorks.length === 0 && (
+                  <div style={{ padding: '4px 20px 20px', fontSize: 13, color: 'var(--color-text-secondary)' }}>
+                    No time logged yet — entries you track will show up here.
+                  </div>
+                )}
                 {recentWorks.map((work, i) => (
                   <div
-                    key={work.project}
+                    key={work.projectId ?? '__none__'}
                     style={{
                       padding: '16px 20px 17px',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 12,
-                      borderBottom: i < recentWorks.length - 1 ? '1px solid #e6e2da' : 'none',
+                      borderBottom: i < recentWorks.length - 1 ? '1px solid var(--color-border-default)' : 'none',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div>
                         <span style={{ fontSize: 14, fontWeight: 600 }}>{work.project}</span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.53)', marginLeft: 8 }}>
-                          {work.tasksInProgress} tasks in progress
+                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-secondary)', marginLeft: 8 }}>
+                          {work.tasksInProgress} recent {work.tasksInProgress === 1 ? 'task' : 'tasks'}
                         </span>
                       </div>
                       <Link
-                        to="/projects"
+                        to={work.projectId ? `/projects/${work.projectId}` : '/projects'}
                         style={{ background: '#2f2f33', color: '#fff', fontSize: 13, fontWeight: 600, padding: '5px 12px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 4 }}
                       >
                         <PlusIcon size={12} color="#fff" /> New Task
@@ -114,10 +183,18 @@ export default function Home() {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       {work.tasks.map((t) => (
-                        <div key={t.title} className="task-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 8px', borderRadius: 4 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4aa494', flexShrink: 0 }} />
-                          <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'rgba(0,0,0,0.8)' }}>{t.title}</span>
-                          <span className="tag">{t.tag}</span>
+                        <div key={t.description} className="task-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 8px', borderRadius: 4 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColor(t.category), flexShrink: 0 }} />
+                          <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.description}</span>
+                          <span className="tag">{t.category}</span>
+                          <button
+                            onClick={() => startTimer({ description: t.description, projectId: t.projectId, category: t.category })}
+                            aria-label={`Resume "${t.description}" as timer`}
+                            title="Resume as timer"
+                            style={{ width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--color-background-muted)' }}
+                          >
+                            <PlayIcon size={11} color="var(--color-text-primary)" />
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -126,7 +203,7 @@ export default function Home() {
               </div>
 
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 340px', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 21, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ flex: '1 1 340px', border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: 21, display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <SectionLabel>Events this week</SectionLabel>
                     <SmallLink to="/calendar">View calendar</SmallLink>
@@ -134,27 +211,27 @@ export default function Home() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {upcomingEvents.map((e) => (
                       <div key={e.title} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                        <div style={{ width: 40, background: '#f2f2f2', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: '5px 1px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                          <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.53)' }}>{e.month}</span>
+                        <div style={{ width: 40, background: 'var(--color-background-muted)', border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: '5px 1px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{e.month}</span>
                           <span style={{ background: '#2f2f33', color: '#fff', fontSize: 13, fontWeight: 500, borderRadius: 10, padding: '1px 7px' }}>{e.day}</span>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500 }}>
-                            {e.kind === 'birthday' ? <CakeIcon size={14} color="#0f0f10" /> : <FlagIcon size={14} color="#0f0f10" />}
+                            {e.kind === 'birthday' ? <CakeIcon size={14} color="var(--color-text-primary)" /> : <FlagIcon size={14} color="var(--color-text-primary)" />}
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.title}</span>
                           </div>
-                          <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.53)' }}>{e.subtitle}</div>
+                          <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{e.subtitle}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div style={{ flex: '1 1 240px', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 21, display: 'flex', flexDirection: 'column', gap: 14, justifyContent: 'space-between' }}>
+                <div style={{ flex: '1 1 240px', border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: 21, display: 'flex', flexDirection: 'column', gap: 14, justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <SectionLabel>Who's off</SectionLabel>
-                    <Link to="/people" style={{ background: '#f5f5f5', fontSize: 12, fontWeight: 600, padding: '4px 8px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 2 }}>
-                      All Teams <ChevronRightIcon size={12} color="#0f0f10" />
+                    <Link to="/people" style={{ background: 'var(--color-background-muted)', fontSize: 12, fontWeight: 600, padding: '4px 8px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 2 }}>
+                      All Teams <ChevronRightIcon size={12} color="var(--color-text-primary)" />
                     </Link>
                   </div>
                   <div style={{ display: 'flex' }}>
@@ -167,7 +244,7 @@ export default function Home() {
                           height: 36,
                           borderRadius: '50%',
                           background: '#ff4800',
-                          border: '3px solid #fff',
+                          border: '3px solid var(--color-background-page)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -178,7 +255,7 @@ export default function Home() {
                           flexShrink: 0,
                         }}
                       >
-                        {p.initials}
+                        {avatarContent(p)}
                       </div>
                     ))}
                   </div>
@@ -194,39 +271,83 @@ export default function Home() {
                   <SmallLink to="/time">Open Tracker</SmallLink>
                 </div>
 
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {weekDays.map((d) => (
-                    <div
-                      key={d.label}
-                      style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        padding: '9px 2px',
-                        borderRadius: 23,
-                        background: d.worked ? '#005c59' : '#fff',
-                        border: d.today ? '1px dashed #00736f' : '1px solid #ebebeb',
-                        boxShadow: d.today ? '0 4px 12px rgba(20,22,27,0.08)' : 'none',
-                      }}
-                    >
-                      <div style={{ fontSize: 10, fontWeight: 600, color: d.worked ? '#0f0f10' : 'rgba(0,0,0,0.53)', letterSpacing: '0.08em' }}>{d.label}</div>
-                      <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: '#0f0f10', marginTop: 2 }}>{d.date}</div>
-                    </div>
-                  ))}
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {weekDays.map((d) => {
+                    const fillPct = Math.min(d.minutes / DAILY_TARGET_MINUTES, 1) * 100
+                    const hasData = d.minutes > 0
+                    const deEmphasize = d.isWeekend && !hasData && !d.today
+                    return (
+                      <button
+                        key={d.label}
+                        style={{
+                          position: 'relative',
+                          overflow: 'hidden',
+                          flex: 1,
+                          height: 64,
+                          background: 'var(--color-background-page)',
+                          border: d.today ? '1.5px dashed #00736f' : '1px solid var(--color-border-default)',
+                          boxShadow: d.today ? '0 2px 4px rgba(20,22,27,0.05), 0 4px 12px rgba(20,22,27,0.08)' : 'none',
+                          borderRadius: 9999,
+                          padding: 3,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          opacity: deEmphasize ? 0.55 : 1,
+                          transition: 'opacity 0.2s ease',
+                        }}
+                      >
+                        {hasData && (
+                          <div
+                            className={d.today ? 'liquid-fill-wavy-top' : undefined}
+                            style={{
+                              position: 'absolute',
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              height: `${fillPct}%`,
+                              background: '#004543',
+                              transition: 'height 0.4s ease',
+                            }}
+                          />
+                        )}
+                        <div
+                          style={{
+                            position: 'relative',
+                            zIndex: 1,
+                            flex: 1,
+                            minHeight: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 1,
+                            borderRadius: 9999,
+                            background: 'rgba(255,255,255,0.7)',
+                            border: '1px solid rgba(0,0,0,0.06)',
+                            backdropFilter: 'blur(6px)',
+                            WebkitBackdropFilter: 'blur(6px)',
+                          }}
+                        >
+                          <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: hasData ? '#0f0f10' : 'rgba(0,0,0,0.53)' }}>{d.label}</span>
+                          <span className="mono" style={{ fontSize: 15, fontWeight: 500, color: '#0f0f10' }}>{d.date}</span>
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
 
                 <div>
                   <div>
-                    <span style={{ fontSize: 24, fontWeight: 500, color: '#262626' }}>{weeklyHoursWorked}</span>
-                    <span style={{ fontSize: 24, fontWeight: 500, color: '#737373' }}> / {weeklyHoursTarget} h</span>
+                    <span style={{ fontSize: 24, fontWeight: 500, color: 'var(--color-text-primary)' }}>{weeklyHoursWorked}</span>
+                    <span style={{ fontSize: 24, fontWeight: 500, color: 'var(--color-text-secondary)' }}> / {weeklyHoursTarget} h</span>
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.53)' }}>{weeklyBehindLabel}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{weeklyBehindLabel}</div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
                   {weekSummaries.map((w) => (
                     <div key={w.range} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 30, height: 30, borderRadius: 8, background: '#f5f5f5', border: '1px solid #ebebeb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <AlertFileIcon size={16} color="rgba(0,0,0,0.53)" />
+                      <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--color-background-muted)', border: '1px solid var(--color-border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <AlertFileIcon size={16} color="var(--color-text-secondary)" />
                       </div>
                       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: 12, fontWeight: 600 }}>{w.range}</span>
@@ -243,7 +364,7 @@ export default function Home() {
                           >
                             {w.hours} / {w.target} h
                           </span>
-                          <Link to="/time" style={{ fontSize: 12, fontWeight: 600, textDecoration: 'underline', color: 'rgba(0,0,0,0.53)' }}>View</Link>
+                          <Link to="/time" style={{ fontSize: 12, fontWeight: 600, textDecoration: 'underline', color: 'var(--color-text-secondary)' }}>View</Link>
                         </div>
                       </div>
                     </div>
@@ -251,34 +372,50 @@ export default function Home() {
                 </div>
               </div>
 
-              <div style={{ position: 'relative', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 20, justifyContent: 'space-between' }}>
-                <svg
-                  width="128"
-                  height="128"
-                  viewBox="0 0 128 128"
-                  style={{ position: 'absolute', right: -24, bottom: -24, opacity: 0.5, pointerEvents: 'none' }}
-                >
-                  <circle cx="64" cy="64" r="52" fill="none" stroke="#f5f5f5" strokeWidth="14" />
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="52"
-                    fill="none"
-                    stroke="#ff4800"
-                    strokeWidth="14"
-                    strokeLinecap="round"
-                    strokeDasharray={`${(availablePto / PTO_TOTAL_ACCRUED) * 2 * Math.PI * 52} ${2 * Math.PI * 52}`}
-                    transform="rotate(-90 64 64)"
-                  />
-                </svg>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+              <div style={{ border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <SectionLabel>Available PTO</SectionLabel>
                   <SmallLink to="/hr/leave">My Leave</SmallLink>
                 </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', position: 'relative' }}>
+                {(() => {
+                  const r = 44
+                  const circumference = 2 * Math.PI * r
+                  const usedLen = Math.min(PTO_TOTAL_USED / PTO_TOTAL_ACCRUED, 1) * circumference
+                  const pendingLen = Math.min(pendingDays / PTO_TOTAL_ACCRUED, 1 - PTO_TOTAL_USED / PTO_TOTAL_ACCRUED) * circumference
+                  return (
+                    <svg width="112" height="112" viewBox="0 0 112 112" style={{ alignSelf: 'center' }}>
+                      <circle cx="56" cy="56" r={r} fill="none" stroke="var(--color-border-default)" strokeWidth="12" />
+                      <circle
+                        cx="56"
+                        cy="56"
+                        r={r}
+                        fill="none"
+                        stroke="#004543"
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                        strokeDasharray={`${usedLen} ${circumference}`}
+                        transform="rotate(-90 56 56)"
+                      />
+                      <circle
+                        cx="56"
+                        cy="56"
+                        r={r}
+                        fill="none"
+                        stroke="#ff6d33"
+                        strokeWidth="12"
+                        strokeLinecap="round"
+                        strokeDasharray={`${pendingLen} ${circumference}`}
+                        strokeDashoffset={-usedLen}
+                        transform="rotate(-90 56 56)"
+                      />
+                      <circle cx="56" cy="56" r="30" fill="#004543" />
+                    </svg>
+                  )
+                })()}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
                   <div style={{ flex: 1 }}>
-                    <div className="serif" style={{ fontSize: 28, letterSpacing: '-1px' }}>{availablePto.toFixed(1)}d</div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.53)' }}>
+                    <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-1px' }}>{availablePto.toFixed(1)}d</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                       {PTO_TOTAL_ACCRUED}d accrued · {PTO_TOTAL_USED}d used
                       {pendingDays > 0 ? ` · ${pendingDays}d pending` : ''}
                     </div>

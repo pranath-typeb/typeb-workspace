@@ -13,7 +13,7 @@ export default function ComingSoon({ appIcon, appLabel, appHref, sidebar, title 
   return (
     <AppShell appIcon={appIcon} appLabel={appLabel} appHref={appHref} sidebar={sidebar}>
       <div className="page-title">{title}</div>
-      <div className="card" style={{ fontSize: 14, color: 'rgba(0,0,0,0.53)' }}>
+      <div className="card" style={{ fontSize: 14, color: 'var(--color-text-secondary)' }}>
         This screen isn't wired up yet in this build.
       </div>
     </AppShell>

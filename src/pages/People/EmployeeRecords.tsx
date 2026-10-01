@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PeopleSidebar from '../../components/PeopleSidebar'
 import { PeopleIcon, RefreshIcon } from '../../components/icons'
+import { avatarContent } from '../../components/Avatar'
 import { resyncAllPeople, usePeople, type Department } from '../../data/people'
 
 const departments: Department[] = ['Technology', 'Growth', 'Strategy', 'Operations', 'People']
@@ -30,7 +31,7 @@ export default function EmployeeRecords() {
 
   return (
     <AppShell
-      appIcon={<PeopleIcon size={16} color="rgba(0,0,0,0.53)" />}
+      appIcon={<PeopleIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="People"
       appHref="/people"
       sidebar={<PeopleSidebar active="records" />}
@@ -38,10 +39,10 @@ export default function EmployeeRecords() {
       <div className="page-title">Manage: Employee Records</div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-        <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', maxWidth: 640 }}>
+        <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', maxWidth: 640 }}>
           Nucleus-synced records. Placement fields (jurisdiction, department, …) write back to Nucleus; payroll exclusion is local to OS.
         </div>
-        <button className="btn-outline" onClick={resyncAllPeople}><RefreshIcon color="#0f0f10" /> Sync all</button>
+        <button className="btn-outline" onClick={resyncAllPeople}><RefreshIcon color="var(--color-text-primary)" /> Sync all</button>
       </div>
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -69,30 +70,30 @@ export default function EmployeeRecords() {
         </div>
       </div>
 
-      <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)' }}>Showing {filtered.length} of {people.length} employees</div>
+      <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Showing {filtered.length} of {people.length} employees</div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
         {filtered.map((p) => (
           <Link key={p.id} to={`/people/records/${p.id}`} className="card" style={{ display: 'block' }}>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <div className="avatar" style={{ width: 34, height: 34, fontSize: 11 }}>{p.initials}</div>
+              <div className="avatar" style={{ width: 34, height: 34, fontSize: 11 }}>{avatarContent(p)}</div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>{p.name}</div>
-                <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.email}</div>
               </div>
             </div>
             <div style={{ fontSize: 13, marginTop: 10 }}>
-              {p.jurisdiction ?? '—'} <span style={{ color: 'rgba(0,0,0,0.3)' }}>·</span> {p.employmentType ?? '—'}
+              {p.jurisdiction ?? '—'} <span style={{ color: 'var(--color-text-tertiary)' }}>·</span> {p.employmentType ?? '—'}
             </div>
             <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {!p.jurisdiction && <span className="badge b-ember">No jurisdiction</span>}
               {p.payrollExcluded && <span className="badge b-ember">No payroll</span>}
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', marginTop: 8 }}>Synced {p.syncedDaysAgo}d ago</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 8 }}>Synced {p.syncedDaysAgo}d ago</div>
           </Link>
         ))}
         {filtered.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', fontSize: 13, color: 'rgba(0,0,0,0.53)', padding: '24px 0' }}>No one matches those filters.</div>
+          <div style={{ gridColumn: '1 / -1', fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 0' }}>No one matches those filters.</div>
         )}
       </div>
     </AppShell>

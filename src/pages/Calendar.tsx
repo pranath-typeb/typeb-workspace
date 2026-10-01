@@ -81,18 +81,18 @@ export default function CompanyCalendar() {
       <div className="canvas">
         <div className="topbar">
           <div className="topbar-app">
-            <CalendarIcon size={16} color="rgba(0,0,0,0.53)" />
+            <CalendarIcon size={16} color="var(--color-text-secondary)" />
             <span className="topbar-app-label">Calendar</span>
           </div>
           <Link to="/" style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Close">
-            <ChevronLeftIcon color="rgba(0,0,0,0.53)" />
+            <ChevronLeftIcon color="var(--color-text-secondary)" />
           </Link>
         </div>
 
         <div style={{ padding: '24px 24px 140px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <div className="page-title" style={{ border: 'none', paddingBottom: 0 }}>Calendar</div>
-            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', marginTop: 2 }}>View birthdays, holidays, and main events</div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>View birthdays, holidays, and main events</div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
@@ -109,18 +109,18 @@ export default function CompanyCalendar() {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-              <div style={{ display: 'flex', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 8, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', border: '1px solid var(--color-border-subtle)', borderRadius: 8, overflow: 'hidden' }}>
                 <button
                   onClick={() => setView('Month')}
-                  style={{ width: 34, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: view === 'Month' ? '#171717' : '#fff' }}
+                  style={{ width: 34, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: view === 'Month' ? 'var(--color-background-inverse)' : 'var(--color-background-page)' }}
                 >
-                  <GridIcon size={15} color={view === 'Month' ? '#fff' : 'rgba(0,0,0,0.53)'} />
+                  <GridIcon size={15} color={view === 'Month' ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)'} />
                 </button>
                 <button
                   onClick={() => setView('List')}
-                  style={{ width: 34, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: view === 'List' ? '#171717' : '#fff' }}
+                  style={{ width: 34, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: view === 'List' ? 'var(--color-background-inverse)' : 'var(--color-background-page)' }}
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={view === 'List' ? '#fff' : 'rgba(0,0,0,0.53)'} strokeWidth="1.8">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={view === 'List' ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)'} strokeWidth="1.8">
                     <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
                     <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
                   </svg>
@@ -129,20 +129,20 @@ export default function CompanyCalendar() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 20, fontSize: 13, color: 'rgba(0,0,0,0.53)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 20, fontSize: 13, color: 'var(--color-text-secondary)', flexWrap: 'wrap' }}>
             {categories.map((c) => (
               <span key={c} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColor[c], display: 'inline-block' }} />
-                {c} <span style={{ background: '#ebebeb', borderRadius: 9999, padding: '1px 6px', fontSize: 11 }}>{counts[c] ?? 0}</span>
+                {c} <span style={{ background: 'var(--color-border-default)', borderRadius: 9999, padding: '1px 6px', fontSize: 11 }}>{counts[c] ?? 0}</span>
               </span>
             ))}
           </div>
 
           {view === 'Month' ? (
-            <div style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 14, overflow: 'hidden' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+            <div style={{ border: '1px solid var(--color-border-subtle)', borderRadius: 14, overflow: 'hidden' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--color-border-default)' }}>
                 {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((d) => (
-                  <div key={d} style={{ padding: 10, fontSize: 11, fontWeight: 600, color: 'rgba(0,0,0,0.53)' }}>{d}</div>
+                  <div key={d} style={{ padding: 10, fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{d}</div>
                 ))}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
@@ -150,7 +150,7 @@ export default function CompanyCalendar() {
                   const dayEvents = cell.inMonth ? allEvents.filter((e) => e.date === cell.date && (category === 'All' || e.category === category)) : []
                   const isToday = cell.date === today
                   return (
-                    <div key={i} style={{ minHeight: 96, padding: 8, fontSize: 13, fontWeight: 600, borderRight: '1px solid rgba(0,0,0,0.06)', borderBottom: '1px solid rgba(0,0,0,0.06)', color: cell.inMonth ? '#0f0f10' : 'rgba(0,0,0,0.25)' }}>
+                    <div key={i} style={{ minHeight: 96, padding: 8, fontSize: 13, fontWeight: 600, borderRight: '1px solid var(--color-border-default)', borderBottom: '1px solid var(--color-border-default)', color: cell.inMonth ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)' }}>
                       {isToday ? (
                         <span style={{ background: '#004543', color: '#fff', width: 22, height: 22, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{cell.label}</span>
                       ) : cell.label}
@@ -167,7 +167,7 @@ export default function CompanyCalendar() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {monthEvents.length === 0 ? (
-                <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.4)' }}>No events this month.</div>
+                <div style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>No events this month.</div>
               ) : (
                 Object.entries(
                   monthEvents.reduce<Record<string, CalendarEvent[]>>((acc, e) => {
@@ -179,9 +179,9 @@ export default function CompanyCalendar() {
                   return (
                     <div key={date} style={{ display: 'flex', gap: 20 }}>
                       <div style={{ width: 56, flexShrink: 0, textAlign: 'center' }}>
-                        <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(0,0,0,0.4)' }}>{d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</div>
-                        <div className="serif" style={{ fontSize: 24 }}>{d.getDate()}</div>
-                        <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>{d.toLocaleDateString('en-US', { month: 'short' })}</div>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-tertiary)' }}>{d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</div>
+                        <div style={{ fontSize: 24 }}>{d.getDate()}</div>
+                        <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>{d.toLocaleDateString('en-US', { month: 'short' })}</div>
                       </div>
                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {dayEvents.map((e) => (
@@ -190,7 +190,7 @@ export default function CompanyCalendar() {
                               <span className={`badge ${categoryBadgeClass[e.category]}`}>{e.category}</span>
                             </div>
                             <div style={{ fontWeight: 600, fontSize: 15 }}>{e.title}</div>
-                            {e.detail && <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', marginTop: 2 }}>{e.detail}</div>}
+                            {e.detail && <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>{e.detail}</div>}
                           </div>
                         ))}
                       </div>
