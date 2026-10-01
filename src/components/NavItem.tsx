@@ -12,7 +12,7 @@ interface NavItemProps {
 export function NavItem({ to, icon, label, active, badge }: NavItemProps) {
   return (
     <Link to={to} className={`${active ? 'navitem' : 'navitem-sm'}${badge ? ' has-badge' : ''}`} data-tooltip={label}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+      <span className="navitem-inner">
         {icon}
         <span className="navitem-label">{label}</span>
       </span>
