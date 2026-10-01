@@ -21,7 +21,7 @@ export function GridIcon({ size = 20, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="3" width="18" height="18" rx="2" />
-      <path d="M9 3v18" />
+      <path d="M9 3v18" strokeLinecap="butt" />
     </svg>
   )
 }
@@ -32,7 +32,7 @@ export function OrgChartIcon({ size = 20, color = 'currentColor' }: IconProps) {
       <circle cx="12" cy="5" r="3" />
       <circle cx="6" cy="19" r="3" />
       <circle cx="18" cy="19" r="3" />
-      <path d="M12 8v6M12 14l-6 2M12 14l6 2" />
+      <path d="M12 8v6M12 14l-6 2M12 14l6 2" strokeLinecap="butt" />
     </svg>
   )
 }
@@ -51,7 +51,7 @@ export function InsightsIcon({ size = 20, color = 'currentColor' }: IconProps) {
 export function RecordsIcon({ size = 20, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
       <polyline points="14 2 14 8 20 8" />
     </svg>
   )
@@ -192,7 +192,7 @@ export function PresentationIcon({ size = 16, color = 'currentColor' }: IconProp
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="12" rx="1" />
-      <path d="M12 16v4M8 20h8" />
+      <path d="M12 16v4M8 20h8" strokeLinecap="butt" />
     </svg>
   )
 }
@@ -324,7 +324,7 @@ export function DuplicateIcon({ size = 14, color = 'currentColor' }: IconProps) 
 export function AlertFileIcon({ size = 16, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
       <polyline points="14 2 14 8 20 8" />
       <path d="M12 11v3" />
       <circle cx="12" cy="17" r="0.5" fill={color} />
@@ -336,7 +336,7 @@ export function ProjectsIcon({ size = 20, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="7" width="18" height="13" rx="2" />
-      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" strokeLinecap="butt" />
     </svg>
   )
 }
@@ -355,7 +355,7 @@ export function StaffingIcon({ size = 20, color = 'currentColor' }: IconProps) {
 export function BuildingIcon({ size = 20, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 21V6a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v15M4 21h15M15 10h4a1 1 0 0 1 1 1v10" />
+      <path d="M4 21V6a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v15M4 21h15M15 10h4a1 1 0 0 1 1 1v10" strokeLinecap="butt" />
       <path d="M8 8h1M8 12h1M8 16h1M12 8h1M12 12h1M12 16h1" />
     </svg>
   )
@@ -428,7 +428,7 @@ export function ApprovalIcon({ size = 20, color = 'currentColor' }: IconProps) {
 export function PayrollFileIcon({ size = 20, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
       <polyline points="14 2 14 8 20 8" />
       <path d="M9 13h6M9 17h4" />
     </svg>
