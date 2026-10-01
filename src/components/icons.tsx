@@ -21,7 +21,7 @@ export function GridIcon({ size = 20, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="3" width="18" height="18" rx="2" />
-      <path d="M9 3v18" strokeLinecap="butt" />
+      <path d="M9 4v16" />
     </svg>
   )
 }
@@ -32,7 +32,8 @@ export function OrgChartIcon({ size = 20, color = 'currentColor' }: IconProps) {
       <circle cx="12" cy="5" r="3" />
       <circle cx="6" cy="19" r="3" />
       <circle cx="18" cy="19" r="3" />
-      <path d="M12 8v6M12 14l-6 2M12 14l6 2" strokeLinecap="butt" />
+      <path d="M6 16.3v-3.3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v3.3" />
+      <path d="M12 12V8.3" />
     </svg>
   )
 }
