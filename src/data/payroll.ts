@@ -34,6 +34,8 @@ export interface PayrollPeriod {
   personId: string
   label: string // "September 2026"
   cycle: string // "Aug 25 – Sep 24"
+  cycleStart?: string // YYYY-MM-DD — bounds used to pull in real timesheet entries for this period
+  cycleEnd?: string // YYYY-MM-DD
   grossPay: number
   actualHours: number
   targetHours: number
@@ -44,6 +46,18 @@ export interface PayrollPeriod {
   adjustments?: PayrollAdjustment[]
   notes?: string // admin-facing note, e.g. the reason an update was requested
   history?: PayrollHistoryEvent[]
+  workingDays?: number
+  holidays?: number
+  eligibleDays?: number // paid days once prorated for start/end-of-cycle joiners/leavers
+  ptoHours?: number // reconciled from approved leave, editable by the employee before submitting
+  unpaidHours?: number // UPTO — unpaid time off
+  timesheetConfirmed?: boolean
+  timesheetConfirmedAt?: string // ISO timestamp
+  timesheetConfirmedBy?: string // name — set when an admin confirms on the employee's behalf
+  invoiceNumber?: string
+  invoiceAmount?: number
+  invoiceIssuedAt?: string // YYYY-MM-DD
+  invoicePaidAt?: string // YYYY-MM-DD
 }
 
 // Falls back to grossPay as a single line when a period has no earnings breakdown on file.
@@ -69,14 +83,45 @@ const STORAGE_KEY = 'typeb-hr.payroll.v1'
 
 const seedPeriods: PayrollPeriod[] = [
   {
+    id: 'pp0',
+    personId: CURRENT_USER_ID,
+    label: 'October 2026',
+    cycle: 'Sep 25 – Oct 24',
+    cycleStart: '2026-09-25',
+    cycleEnd: '2026-10-24',
+    grossPay: 4200,
+    actualHours: 24,
+    targetHours: 152,
+    status: 'Timesheet pending',
+    workingDays: 22,
+    holidays: 1,
+    eligibleDays: 22,
+    ptoHours: 0,
+    unpaidHours: 0,
+    timesheetConfirmed: false,
+    earnings: { base: 3800, incentives: 250, bonus: 150 },
+    deductions: { providentFund: 200, salaryAdvance: 0, other: 0 },
+    adjustments: [],
+  },
+  {
     id: 'pp1',
     personId: CURRENT_USER_ID,
     label: 'September 2026',
     cycle: 'Aug 25 – Sep 24',
+    cycleStart: '2026-08-25',
+    cycleEnd: '2026-09-24',
     grossPay: 4200,
     actualHours: 152,
     targetHours: 152,
     status: 'Under review',
+    workingDays: 21,
+    holidays: 2,
+    eligibleDays: 21,
+    ptoHours: 0,
+    unpaidHours: 0,
+    timesheetConfirmed: true,
+    timesheetConfirmedAt: '2026-09-25T09:10:00.000Z',
+    timesheetConfirmedBy: 'Pranath',
     earnings: { base: 3800, incentives: 250, bonus: 150 },
     deductions: { providentFund: 200, salaryAdvance: 0, other: 0 },
     adjustments: [
@@ -89,11 +134,24 @@ const seedPeriods: PayrollPeriod[] = [
     personId: CURRENT_USER_ID,
     label: 'August 2026',
     cycle: 'Jul 25 – Aug 24',
+    cycleStart: '2026-07-25',
+    cycleEnd: '2026-08-24',
     grossPay: 4200,
     actualHours: 148,
     targetHours: 160,
     status: 'Approved',
     payDate: '2026-08-30',
+    workingDays: 21,
+    holidays: 0,
+    eligibleDays: 21,
+    ptoHours: 8,
+    unpaidHours: 0,
+    timesheetConfirmed: true,
+    timesheetConfirmedAt: '2026-08-25T09:00:00.000Z',
+    timesheetConfirmedBy: 'Pranath',
+    invoiceNumber: 'INV-2026-08-001',
+    invoiceAmount: 4200,
+    invoiceIssuedAt: '2026-08-25',
     earnings: { base: 3800, incentives: 250, bonus: 150 },
     deductions: { providentFund: 200, salaryAdvance: 0, other: 0 },
     adjustments: [],
@@ -103,11 +161,25 @@ const seedPeriods: PayrollPeriod[] = [
     personId: CURRENT_USER_ID,
     label: 'July 2026',
     cycle: 'Jun 25 – Jul 24',
+    cycleStart: '2026-06-25',
+    cycleEnd: '2026-07-24',
     grossPay: 4200,
     actualHours: 160,
     targetHours: 160,
     status: 'Paid out',
     payDate: '2026-07-31',
+    workingDays: 22,
+    holidays: 1,
+    eligibleDays: 22,
+    ptoHours: 0,
+    unpaidHours: 0,
+    timesheetConfirmed: true,
+    timesheetConfirmedAt: '2026-06-25T09:00:00.000Z',
+    timesheetConfirmedBy: 'Pranath',
+    invoiceNumber: 'INV-2026-07-001',
+    invoiceAmount: 4200,
+    invoiceIssuedAt: '2026-06-25',
+    invoicePaidAt: '2026-07-31',
     earnings: { base: 3800, incentives: 250, bonus: 150 },
     deductions: { providentFund: 200, salaryAdvance: 500, other: 0 },
     adjustments: [{ type: 'Travel', description: 'Client site visit reimbursement', date: '2026-07-14', amount: 60 }],
@@ -283,6 +355,24 @@ export function addAdjustment(id: string, adjustment: PayrollAdjustment) {
 
 export function removeAdjustment(id: string, index: number) {
   setState(periods.map((p) => (p.id === id ? { ...p, adjustments: (p.adjustments ?? []).filter((_, i) => i !== index) } : p)))
+}
+
+// Reconciles leave hours against the employee's own figures before they submit —
+// distinct from the Adjustments list, which is for one-off reimbursements.
+export function setLeaveHours(id: string, ptoHours: number, unpaidHours: number) {
+  setState(periods.map((p) => (p.id === id ? { ...p, ptoHours, unpaidHours } : p)))
+  showToast('Leave hours saved', 'success')
+}
+
+// A separate step from submitting: confirms the underlying timesheet entries are
+// correct and final, which gates the Submit/Re-submit payroll action.
+export function confirmTimesheet(id: string, confirmedBy: string) {
+  setState(
+    periods.map((p) =>
+      p.id === id ? { ...p, timesheetConfirmed: true, timesheetConfirmedAt: new Date().toISOString(), timesheetConfirmedBy: confirmedBy } : p,
+    ),
+  )
+  showToast('Timesheet confirmed — ready for payroll', 'success')
 }
 
 export function bulkApprove(ids: string[]) {

@@ -22,11 +22,20 @@ export default function MyPayroll() {
     <AppShell appIcon={<PayrollFileIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active="my-payroll" />}>
       <div className="page-title">My Payroll</div>
 
+      {current?.status === 'Timesheet pending' && (
+        <div style={{ background: 'var(--color-status-warning-bg)', border: '1px solid var(--color-status-warning-border)', borderRadius: 10, padding: '14px 16px' }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-status-warning-text)' }}>Submission due</div>
+          <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>
+            One period's pay cycle has ended and still needs to be submitted.
+          </div>
+        </div>
+      )}
+
       {current && (
         <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div>
             <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
-              {current.status === 'Timesheet pending' ? 'Submission due' : 'Current period'}
+              {current.status === 'Timesheet pending' ? 'Submission due' : current.status === 'Update needed' ? 'Needs your attention' : 'Current period'}
             </div>
             <div style={{ fontFamily: "'Fraunces', serif", fontSize: 24, letterSpacing: '-0.8px', marginTop: 4 }}>{current.label}</div>
             <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>{current.cycle}</div>
