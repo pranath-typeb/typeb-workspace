@@ -1589,6 +1589,30 @@ body[data-navpos='top'] .stage {
   background: transparent;
 }
 
+/* notifications list scrollbar — themed to match the dark dock popover instead
+   of the browser's default scrollbar */
+.bn-notif-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--nav-border-strong) transparent;
+}
+
+.bn-notif-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bn-notif-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bn-notif-list::-webkit-scrollbar-thumb {
+  background: var(--nav-border-strong);
+  border-radius: 9999px;
+}
+
+.bn-notif-list::-webkit-scrollbar-thumb:hover {
+  background: var(--nav-fg-faint);
+}
+
 /* timer popup */
 .bn-timer-popup {
   display: flex;

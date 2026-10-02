@@ -445,7 +445,7 @@ export default function BottomNav() {
                       </button>
                     )}
                   </div>
-                  <div style={{ maxHeight: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div className="bn-notif-list" style={{ maxHeight: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {notifications.map((n) => (
                       <div key={n.id} className="bn-notif-row">
                         <span className={`bn-notif-dot${unread.has(n.id) ? '' : ' read'}`} />
