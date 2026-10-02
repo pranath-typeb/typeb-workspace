@@ -218,6 +218,11 @@ a {
   padding: 1px;
   position: sticky;
   top: 70px;
+  /* Without an explicit value here, this sticky box and any position:absolute
+     content further down the page (e.g. tab toggles) both sit at the same
+     "positioned, z-index:auto" paint tier and the later one in the DOM wins —
+     which let page content paint over the collapsed sidebar's hover tooltips. */
+  z-index: 5;
   transition: width 0.22s ease;
 }
 
