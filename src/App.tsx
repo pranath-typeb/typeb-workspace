@@ -40,6 +40,7 @@ import BottomNav from './components/BottomNav'
 import ToastContainer from './components/ToastContainer'
 import ScrollToTopButton from './components/ScrollToTopButton'
 import TimerLiveWidget from './components/TimerLiveWidget'
+import ScreenRippleOverlay from './components/ScreenRippleOverlay'
 import { NavItem, NavGroupLabel, NavSep } from './components/NavItem'
 import { GridIcon, ClockIcon, LetterIcon, PolicyIcon, BenefitsIcon } from './components/icons'
 
@@ -134,6 +135,7 @@ export default function App() {
     {!isAuthRoute && <BottomNav />}
     {!isAuthRoute && <ScrollToTopButton />}
     {!isAuthRoute && <TimerLiveWidget />}
+    <ScreenRippleOverlay />
     <ToastContainer />
     </>
   )

@@ -1992,3 +1992,27 @@ body[data-navpos='top'] .stage {
 .timer-live-widget-btn-finish:hover {
   background: rgba(0, 224, 184, 0.3);
 }
+
+/* screen ripple — quick full-screen flash test for timer play/pause/stop clicks */
+.screen-ripple {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 0%, rgba(0, 224, 184, 0.25), rgba(0, 224, 184, 0) 62%);
+  animation: screen-ripple-pulse 0.45s ease-out;
+}
+
+@keyframes screen-ripple-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  28% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}

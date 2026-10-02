@@ -1,5 +1,6 @@
 import { CheckCircleIcon, PlayIcon, StopIcon, TimerActivityIcon } from './icons'
 import { stopAndSaveTimer, toggleTimerRunning, useTimerState } from '../data/timer'
+import { triggerScreenRipple } from '../data/screenRipple'
 
 function formatElapsed(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600)
@@ -30,7 +31,10 @@ export default function TimerLiveWidget() {
       <div className="timer-live-widget-actions">
         <button
           className="timer-live-widget-btn"
-          onClick={() => toggleTimerRunning()}
+          onClick={() => {
+            toggleTimerRunning()
+            triggerScreenRipple()
+          }}
           aria-label={timer.running ? 'Pause timer' : 'Resume timer'}
           title={timer.running ? 'Pause' : 'Resume'}
         >
@@ -38,7 +42,9 @@ export default function TimerLiveWidget() {
         </button>
         <button
           className="timer-live-widget-btn timer-live-widget-btn-finish"
-          onClick={() => stopAndSaveTimer()}
+          onClick={() => {
+            if (stopAndSaveTimer()) triggerScreenRipple()
+          }}
           aria-label="Stop and save"
           title="Stop & save"
         >
