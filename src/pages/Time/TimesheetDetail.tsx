@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
-import { ChevronLeftIcon, ChevronRightIcon, ClockIcon, CloseIcon, LockIcon } from '../../components/icons'
+import { ChevronLeftIcon, ClockIcon, CloseIcon, LockIcon } from '../../components/icons'
 import { avatarContent } from '../../components/Avatar'
 import { CURRENT_USER_ID, personById } from '../../data/people'
 import {
@@ -33,6 +33,12 @@ const statusBadge: Record<string, string> = {
   Pending: 'b-ember',
   Approved: 'b-pine',
   Rejected: 'b-danger',
+}
+
+const weekDotColor: Record<string, string> = {
+  Pending: 'var(--warn-fg)',
+  Approved: 'var(--brand-deep)',
+  Rejected: 'var(--danger-fg)',
 }
 
 const STAGE_LABEL: Record<ReviewStage, string> = { lm: 'Line Manager', hr: 'HR' }
@@ -78,6 +84,8 @@ export default function TimesheetDetail() {
   const byDay = days.map((d) => ({ date: d, entries: weekEntries.filter((e) => e.date === d) }))
   const daysWorked = byDay.filter((d) => d.entries.length > 0).length
   const maxDayMinutes = Math.max(1, ...byDay.map((d) => d.entries.reduce((s, e) => s + e.minutes, 0)))
+
+  const nearbyWeeks = useMemo(() => Array.from({ length: 5 }, (_, i) => addDays(weekStart, -14 + i * 7)), [weekStart])
 
   const byProject = useMemo(() => {
     const map = new Map<string, number>()
@@ -159,25 +167,7 @@ export default function TimesheetDetail() {
           <div className="avatar" style={{ width: 44, height: 44, fontSize: 14 }}>{avatarContent(person)}</div>
           <div>
             <div className="serif" style={{ fontSize: 20, letterSpacing: '-0.6px' }}>{isOwn ? 'Your timesheet' : person.name}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
-              <button
-                onClick={() => navigate(`/time/timesheets/${person.id}/${addDays(weekStart, -7)}`)}
-                aria-label="Previous week"
-                title="Previous week"
-                style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6 }}
-              >
-                <ChevronLeftIcon size={14} color="var(--color-text-secondary)" />
-              </button>
-              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', minWidth: 120, textAlign: 'center' }}>{formatWeekRange(weekStart)}</div>
-              <button
-                onClick={() => navigate(`/time/timesheets/${person.id}/${addDays(weekStart, 7)}`)}
-                aria-label="Next week"
-                title="Next week"
-                style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6 }}
-              >
-                <ChevronRightIcon size={14} color="var(--color-text-secondary)" />
-              </button>
-            </div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>{formatWeekRange(weekStart)}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -188,6 +178,35 @@ export default function TimesheetDetail() {
             </span>
           )}
         </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {nearbyWeeks.map((w) => {
+          const weekStatus = submissionFor(person.id, w)?.status ?? 'Not Submitted'
+          const active = w === weekStart
+          return (
+            <button
+              key={w}
+              onClick={() => navigate(`/time/timesheets/${person.id}/${w}`)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 14px',
+                borderRadius: 20,
+                fontSize: 12,
+                fontWeight: 600,
+                color: active ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
+                background: active ? 'var(--color-background-inverse)' : 'var(--color-background-muted)',
+              }}
+            >
+              {weekStatus !== 'Not Submitted' && (
+                <span style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: weekDotColor[weekStatus] }} />
+              )}
+              {formatWeekRange(w)}
+            </button>
+          )
+        })}
       </div>
 
       {submission && status !== 'Not Submitted' && (
