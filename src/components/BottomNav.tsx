@@ -32,6 +32,7 @@ import { showToast } from '../data/toast'
 import { useNavPinned, useNavPosition, type NavPosition } from '../data/navPosition'
 import { togglePinnedApp, usePinnedApps } from '../data/pinnedApps'
 import { setTimerBillable, setTimerCategory, setTimerDescription, setTimerProjectId, stopAndSaveTimer, toggleTimerRunning, useTimerState } from '../data/timer'
+import { triggerScreenRipple } from '../data/screenRipple'
 import { setTheme, useTheme, type Theme } from '../data/theme'
 
 interface AppDef {
@@ -215,7 +216,10 @@ export default function BottomNav() {
   }
 
   function stopAndSave() {
-    if (stopAndSaveTimer()) setTimerPopupOpen(false)
+    if (stopAndSaveTimer()) {
+      setTimerPopupOpen(false)
+      triggerScreenRipple()
+    }
   }
 
   function chooseTheme(next: Theme) {
@@ -312,6 +316,7 @@ export default function BottomNav() {
                   onClick={(e) => {
                     e.stopPropagation()
                     toggleTimerRunning()
+                    triggerScreenRipple()
                   }}
                 >
                   {running ? <StopIcon size={16} color="var(--nav-surface-fg)" /> : <PlayIcon size={16} color="var(--nav-surface-fg)" />}
@@ -326,7 +331,10 @@ export default function BottomNav() {
                         <span className="mono" style={{ fontSize: 22, fontWeight: 600, color: 'var(--nav-fg)' }}>{formatStopwatch(seconds)}</span>
                       </span>
                       <button
-                        onClick={() => toggleTimerRunning()}
+                        onClick={() => {
+                          toggleTimerRunning()
+                          triggerScreenRipple()
+                        }}
                         style={{ background: '#005c59', color: '#ebebeb', fontSize: 13, fontWeight: 600, padding: '6px 12px', borderRadius: 8 }}
                       >
                         {running ? 'Pause' : 'Resume'}

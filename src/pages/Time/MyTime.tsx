@@ -32,6 +32,7 @@ import {
   WEEKLY_TARGET_MINUTES,
 } from '../../data/timeEntries'
 import { setTimerBillable, setTimerCategory, setTimerDescription, setTimerProjectId, startTimer, stopAndSaveTimer, toggleTimerRunning, useTimerState } from '../../data/timer'
+import { triggerScreenRipple } from '../../data/screenRipple'
 
 let stagedIdCounter = 0
 function nextStagedId(): string {
@@ -196,6 +197,7 @@ export default function MyTime() {
     setMode('Timer')
     setTimerBillable(entry.billable ?? true)
     startTimer({ description: entry.description, projectId: entry.projectId, category: entry.category })
+    triggerScreenRipple()
   }
 
   function applyQuickDuration(mins: number) {
@@ -305,11 +307,24 @@ export default function MyTime() {
               )}
             </div>
             {timer.running ? (
-              <button className="btn-outline" style={{ borderRadius: 10 }} onClick={() => stopAndSaveTimer()}>
+              <button
+                className="btn-outline"
+                style={{ borderRadius: 10 }}
+                onClick={() => {
+                  if (stopAndSaveTimer()) triggerScreenRipple()
+                }}
+              >
                 <StopIcon size={14} /> Stop & save
               </button>
             ) : (
-              <button className="btn-dark" style={{ borderRadius: 10 }} onClick={() => toggleTimerRunning()}>
+              <button
+                className="btn-dark"
+                style={{ borderRadius: 10 }}
+                onClick={() => {
+                  toggleTimerRunning()
+                  triggerScreenRipple()
+                }}
+              >
                 <PlayIcon size={14} color="var(--color-text-inverse)" /> Start timer
               </button>
             )}
@@ -790,7 +805,14 @@ function EntryRow({
         </button>
         <button
           className="time-entry-action-btn"
-          onClick={() => (isRunningThis ? toggleTimerRunning() : onResume(entry))}
+          onClick={() => {
+            if (isRunningThis) {
+              toggleTimerRunning()
+              triggerScreenRipple()
+            } else {
+              onResume(entry)
+            }
+          }}
           aria-label={isRunningThis ? 'Pause timer' : 'Resume as timer'}
           title={isRunningThis ? 'Pause timer' : 'Resume timer'}
           style={isRunningThis ? { background: '#00736f' } : undefined}

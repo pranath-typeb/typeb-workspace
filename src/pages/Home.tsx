@@ -12,6 +12,7 @@ import {
 import { CURRENT_USER_ID } from '../data/people'
 import { addDays, categoryColor, minutesForPersonDate, projectLabel, todayLocal, useTimeEntries, weekStartFor, type TimeEntry } from '../data/timeEntries'
 import { startTimer, toggleTimerRunning, useTimerState } from '../data/timer'
+import { triggerScreenRipple } from '../data/screenRipple'
 import { AlertFileIcon, CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon, StopIcon, TimerActivityIcon } from '../components/icons'
 import { avatarContent } from '../components/Avatar'
 
@@ -190,7 +191,10 @@ export default function Home() {
                         </span>
                       </div>
                       <button
-                        onClick={() => startTimer({ description: '', projectId: work.projectId, category: 'Development' })}
+                        onClick={() => {
+                          startTimer({ description: '', projectId: work.projectId, category: 'Development' })
+                          triggerScreenRipple()
+                        }}
                         aria-label={`Start a new task timer for ${work.project}`}
                         title={`Start a new task timer for ${work.project}`}
                         style={{ background: '#2f2f33', color: '#fff', fontSize: 13, fontWeight: 600, padding: '5px 12px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 4 }}
@@ -220,9 +224,11 @@ export default function Home() {
                             {isRunningThis && <TimerActivityIcon size={13} color="#00736f" />}
                             <span className="tag">{t.category}</span>
                             <button
-                              onClick={() =>
-                                isRunningThis ? toggleTimerRunning() : startTimer({ description: t.description, projectId: t.projectId, category: t.category })
-                              }
+                              onClick={() => {
+                                if (isRunningThis) toggleTimerRunning()
+                                else startTimer({ description: t.description, projectId: t.projectId, category: t.category })
+                                triggerScreenRipple()
+                              }}
                               aria-label={isRunningThis ? `Pause "${t.description}"` : `Resume "${t.description}" as timer`}
                               title={isRunningThis ? 'Pause timer' : 'Resume as timer'}
                               style={{
