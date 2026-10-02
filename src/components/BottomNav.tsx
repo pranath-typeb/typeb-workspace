@@ -21,6 +21,7 @@ import {
   StopIcon,
   SunIcon,
   TagIcon,
+  TimerActivityIcon,
   WalletIcon,
 } from './icons'
 import { avatarContent } from './Avatar'
@@ -303,7 +304,7 @@ export default function BottomNav() {
                 data-tooltip="Timer"
                 onClick={() => setTimerPopupOpen((v) => !v)}
               >
-                <ClockIcon size={14} color="var(--nav-surface-fg)" />
+                {running ? <TimerActivityIcon size={14} color="var(--nav-surface-fg)" /> : <ClockIcon size={14} color="var(--nav-surface-fg)" />}
                 <span className="mono">{formatStopwatch(seconds)}</span>
                 <button
                   className="bn-timer-toggle"
@@ -320,7 +321,10 @@ export default function BottomNav() {
                 <div className="bn-popover bn-popover-up" style={popoverStyle(navPos, 'right', 'bottom')}>
                   <div className="bn-timer-popup">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span className="mono" style={{ fontSize: 22, fontWeight: 600, color: 'var(--nav-fg)' }}>{formatStopwatch(seconds)}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {running && <TimerActivityIcon size={16} color="#00b3a6" />}
+                        <span className="mono" style={{ fontSize: 22, fontWeight: 600, color: 'var(--nav-fg)' }}>{formatStopwatch(seconds)}</span>
+                      </span>
                       <button
                         onClick={() => toggleTimerRunning()}
                         style={{ background: '#005c59', color: '#ebebeb', fontSize: 13, fontWeight: 600, padding: '6px 12px', borderRadius: 8 }}

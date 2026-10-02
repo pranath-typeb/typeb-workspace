@@ -7,7 +7,7 @@ import ConfirmDialog from '../../components/ConfirmDialog'
 import DurationPicker from '../../components/DurationPicker'
 import SearchableSelect from '../../components/SearchableSelect'
 import TimeInput from '../../components/TimeInput'
-import { ChevronLeftIcon, ChevronRightIcon, CircleArrowRightIcon, ClockIcon, DollarSignIcon, DuplicateIcon, EditIcon, PlayIcon, StopIcon, TagIcon, TrashIcon } from '../../components/icons'
+import { ChevronLeftIcon, ChevronRightIcon, CircleArrowRightIcon, ClockIcon, DollarSignIcon, DuplicateIcon, EditIcon, PlayIcon, StopIcon, TagIcon, TimerActivityIcon, TrashIcon } from '../../components/icons'
 import { CURRENT_USER_ID } from '../../data/people'
 import { projectColor, useProjects } from '../../data/projects'
 import {
@@ -246,7 +246,10 @@ export default function MyTime() {
 
         {mode === 'Timer' ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 8, flexWrap: 'wrap' }}>
-            <div className="mono" style={{ fontSize: 24, fontWeight: 400, minWidth: 100 }}>{formatStopwatch(timer.seconds)}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 100 }}>
+              {timer.running && <TimerActivityIcon size={18} color="#00736f" />}
+              <span className="mono" style={{ fontSize: 24, fontWeight: 400 }}>{formatStopwatch(timer.seconds)}</span>
+            </div>
             <input
               className="input"
               style={{ flex: 1, minWidth: 160, borderRadius: 10 }}

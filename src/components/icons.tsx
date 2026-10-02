@@ -67,6 +67,22 @@ export function ClockIcon({ size = 20, color = 'currentColor' }: IconProps) {
   )
 }
 
+// A spinning "activity ring" of fading dashes — dropped in wherever the UI needs to
+// say "a timer is live right now" at a glance, independent of the ticking digits.
+const TIMER_ACTIVITY_DASHES = 8
+
+export function TimerActivityIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className="timer-activity-spin">
+      {Array.from({ length: TIMER_ACTIVITY_DASHES }, (_, i) => {
+        const angle = (i / TIMER_ACTIVITY_DASHES) * 360
+        const opacity = 1 - (i / TIMER_ACTIVITY_DASHES) * 0.82
+        return <rect key={i} x="10.75" y="1.5" width="2.5" height="6.5" rx="1.25" fill={color} opacity={opacity} transform={`rotate(${angle} 12 12)`} />
+      })}
+    </svg>
+  )
+}
+
 export function LetterIcon({ size = 20, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

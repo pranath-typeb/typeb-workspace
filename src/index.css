@@ -1364,6 +1364,19 @@ body[data-navpos='top'] .stage {
   color: var(--nav-surface-fg);
 }
 
+/* Spinning "a timer is live" ring — see TimerActivityIcon */
+@keyframes timer-activity-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.timer-activity-spin {
+  animation: timer-activity-spin 1.1s linear infinite;
+  transform-origin: center;
+  flex-shrink: 0;
+}
+
 /* Custom hover tooltips for nav bar controls — faster and consistently styled
    vs. the native title attribute, and adapts side based on where the nav bar sits. */
 .bottom-nav [data-tooltip] {
