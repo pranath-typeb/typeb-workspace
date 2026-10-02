@@ -31,7 +31,7 @@ export default function ClientDetail() {
   if (!clientName || clientProjects.length === 0) {
     return (
       <AppShell
-        appIcon={<ProjectsIcon size={16} color="rgba(0,0,0,0.53)" />}
+        appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
         appLabel="Projects"
         appHref="/projects"
         sidebar={
@@ -54,7 +54,7 @@ export default function ClientDetail() {
 
   return (
     <AppShell
-      appIcon={<ProjectsIcon size={16} color="rgba(0,0,0,0.53)" />}
+      appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="Projects"
       appHref="/projects"
       sidebar={
@@ -70,15 +70,15 @@ export default function ClientDetail() {
 
       <button
         onClick={() => navigate('/projects/clients')}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: 'rgba(0,0,0,0.53)' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: 'var(--color-text-secondary)' }}
       >
-        <ChevronLeftIcon color="rgba(0,0,0,0.53)" /> Clients
+        <ChevronLeftIcon color="var(--color-text-secondary)" /> Clients
       </button>
 
       <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 600 }}>{clientName}</div>
-          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginTop: 6 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 6 }}>
             {clientProjects.length} {clientProjects.length === 1 ? 'project' : 'projects'}
             {activeCount > 0 ? ` · ${activeCount} active` : ''}
           </div>
@@ -91,7 +91,7 @@ export default function ClientDetail() {
           </select>
           <div style={{ textAlign: 'right' }}>
             <div className="mono" style={{ fontSize: 24, fontWeight: 600 }}>{clientProjects.length}</div>
-            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>project{clientProjects.length === 1 ? '' : 's'}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>project{clientProjects.length === 1 ? '' : 's'}</div>
           </div>
         </div>
       </div>
@@ -111,14 +111,14 @@ export default function ClientDetail() {
           >
             <div>
               <div style={{ fontSize: 16, fontWeight: 600 }}>{p.name}</div>
-              <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', marginTop: 2 }}>{p.client}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>{p.client}</div>
             </div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               <span className={`badge ${statusBadge[p.status]}`} style={{ textTransform: 'uppercase', fontSize: 10 }}>{p.status}</span>
               {p.staffing && <span className="badge b-neutral" style={{ textTransform: 'uppercase', fontSize: 10 }}>Staffing</span>}
               {p.billable && <span className="badge b-neutral" style={{ textTransform: 'uppercase', fontSize: 10 }}>Billable</span>}
             </div>
-            <div style={{ borderTop: '1px solid #f5f5f5', marginTop: 'auto', paddingTop: 10, display: 'flex', gap: 16, fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>
+            <div style={{ borderTop: '1px solid var(--table-row-border)', marginTop: 'auto', paddingTop: 10, display: 'flex', gap: 16, fontSize: 12, color: 'var(--color-text-secondary)' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><StaffingIcon size={12} color="currentColor" />{p.teamIds.length}</span>
               <span>{p.hoursLogged}h</span>
             </div>

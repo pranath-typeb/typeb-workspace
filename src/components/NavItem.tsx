@@ -11,8 +11,8 @@ interface NavItemProps {
 
 export function NavItem({ to, icon, label, active, badge }: NavItemProps) {
   return (
-    <Link to={to} className={`${active ? 'navitem' : 'navitem-sm'}${badge ? ' has-badge' : ''}`} title={label}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+    <Link to={to} className={`${active ? 'navitem' : 'navitem-sm'}${badge ? ' has-badge' : ''}`} data-tooltip={label}>
+      <span className="navitem-inner">
         {icon}
         <span className="navitem-label">{label}</span>
       </span>
@@ -20,7 +20,7 @@ export function NavItem({ to, icon, label, active, badge }: NavItemProps) {
         <span
           className="mono navitem-badge"
           style={{
-            background: active ? '#99c7c5' : '#ebebeb',
+            background: active ? '#99c7c5' : 'var(--color-border-default)',
             color: active ? '#004543' : '#525252',
             fontSize: 10,
             fontWeight: 700,

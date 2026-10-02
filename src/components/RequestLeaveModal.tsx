@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { addLeaveRequest, type LeaveType } from '../data/leave'
+import { addLeaveRequest, updateLeaveRequest, type LeaveRequest, type LeaveType } from '../data/leave'
 import { CloseIcon } from './icons'
 
 interface RequestLeaveModalProps {
   onClose: () => void
   requestedBy: string
   defaultType?: LeaveType
+  editing?: LeaveRequest
 }
 
 const leaveTypes: LeaveType[] = ['PTO', 'Sick Leave', 'Unpaid Time Off', 'Accrued Public Holiday', 'LIEU']
@@ -15,16 +16,28 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')
 }
 
-export default function RequestLeaveModal({ onClose, requestedBy, defaultType = 'PTO' }: RequestLeaveModalProps) {
-  const [type, setType] = useState<LeaveType>(defaultType)
-  const [date, setDate] = useState('')
-  const [days, setDays] = useState(1)
+// Reverses formatDate's "14-Sep-2026" back into an <input type="date"> value, so editing
+// an existing request pre-fills the date picker instead of leaving it empty.
+function toInputDate(display: string): string {
+  const d = new Date(display.replace(/-/g, ' '))
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toISOString().slice(0, 10)
+}
+
+export default function RequestLeaveModal({ onClose, requestedBy, defaultType = 'PTO', editing }: RequestLeaveModalProps) {
+  const [type, setType] = useState<LeaveType>(editing?.type ?? defaultType)
+  const [date, setDate] = useState(editing ? toInputDate(editing.date) : '')
+  const [days, setDays] = useState(editing?.days ?? 1)
 
   const canSubmit = date.length > 0 && days > 0
 
   function submit() {
     if (!canSubmit) return
-    addLeaveRequest({ type, date: formatDate(date), requestedBy, days })
+    if (editing) {
+      updateLeaveRequest(editing.id, { type, date: formatDate(date), days })
+    } else {
+      addLeaveRequest({ type, date: formatDate(date), requestedBy, days })
+    }
     onClose()
   }
 
@@ -32,9 +45,9 @@ export default function RequestLeaveModal({ onClose, requestedBy, defaultType = 
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div className="serif" style={{ fontSize: 20, letterSpacing: '-0.6px' }}>Request leave</div>
+          <div className="serif" style={{ fontSize: 20, letterSpacing: '-0.6px' }}>{editing ? 'Edit leave request' : 'Request leave'}</div>
           <button onClick={onClose} aria-label="Close" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <CloseIcon color="rgba(0,0,0,0.53)" />
+            <CloseIcon color="var(--color-text-secondary)" />
           </button>
         </div>
 
@@ -67,7 +80,7 @@ export default function RequestLeaveModal({ onClose, requestedBy, defaultType = 
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 4 }}>
           <button className="btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn-dark" disabled={!canSubmit} onClick={submit}>Submit request</button>
+          <button className="btn-dark" disabled={!canSubmit} onClick={submit}>{editing ? 'Save changes' : 'Submit request'}</button>
         </div>
       </div>
     </div>

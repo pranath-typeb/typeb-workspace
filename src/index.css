@@ -1,11 +1,129 @@
+/* Design tokens — names and dark values mirror Figma "Design System v2" → Color collection (Light / Dark modes). */
 :root {
   color-scheme: light;
+
+  --color-background-page: #ffffff;
+  --color-background-subtle: #fafafa;
+  --color-background-muted: rgba(0, 0, 0, 0.04);
+  --color-background-inverse: #292929;
+  --color-background-elevated: #ffffff;
+
+  --color-text-primary: #0f0f10;
+  --color-text-secondary: #787878;
+  --color-text-tertiary: #a1a1a1;
+  --color-text-inverse: #fafafa;
+
+  --color-border-default: rgba(0, 0, 0, 0.08);
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
+
+  --color-state-hover: rgba(0, 0, 0, 0.05);
+  --color-overlay-scrim: rgba(15, 15, 16, 0.4);
+  --color-control-on: #292929;
+
+  --color-status-warning-bg: #fff4ec;
+  --color-status-warning-border: #ffdacc;
+  --color-status-warning-text: #cc3a00;
+
+  /* app-local (not in the design system) */
+  --bg-outer: #f0f0f0;
+  --accent-bg-hover: #3d3d3d;
+  --table-row-border: rgba(0, 0, 0, 0.05);
+  --muted-chip-fg: #404040;
+  --neutral-badge-bg: rgba(0, 0, 0, 0.05);
+  --neutral-badge-fg: #292929;
+  --hover-bg-soft: rgba(0, 0, 0, 0.03);
+  --daycard-fill-partial: rgba(0, 0, 0, 0.14);
+
+  /* bottom nav dock — intentionally INVERTED from the page theme (dark bar on a light page) */
+  --nav-bg: #0a0a0a;
+  --nav-glass-bg: rgba(8, 8, 8, 0.86);
+  --nav-glass-border: rgba(255, 255, 255, 0.1);
+  --nav-glass-highlight: rgba(255, 255, 255, 0.06);
+  --nav-border: #262626;
+  --nav-border-strong: #333333;
+  --nav-fg: #fafafa;
+  --nav-fg-muted: #b6b6b6;
+  --nav-fg-subtle: rgba(255, 255, 255, 0.55);
+  --nav-fg-faint: rgba(255, 255, 255, 0.4);
+  --nav-fg-faint-2: rgba(255, 255, 255, 0.35);
+  --nav-hover: #171717;
+  --nav-hover-strong: #262626;
+  --nav-surface: #fafafa;
+  --nav-surface-fg: #0f0f10;
+  --nav-surface-hover: rgba(0, 0, 0, 0.08);
+  --nav-popover-bg: #171717;
+  --nav-popover-border: #262626;
+  --nav-tile-bg: #1c1c1c;
+  --nav-tile-hover: #262626;
+  --nav-tile-icon-bg: #262626;
+  --nav-input-bg: #111111;
+  --nav-input-border: #333333;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-background-page: #0f0f10;
+  --color-background-subtle: #171717;
+  --color-background-muted: rgba(255, 255, 255, 0.06);
+  --color-background-inverse: #ffffff;
+  --color-background-elevated: #1c1c1f;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #d4d4d4;
+  --color-text-tertiary: #737373;
+  --color-text-inverse: #0f0f10;
+
+  --color-border-default: rgba(255, 255, 255, 0.1);
+  --color-border-subtle: rgba(255, 255, 255, 0.07);
+
+  --color-state-hover: rgba(255, 255, 255, 0.08);
+  --color-overlay-scrim: rgba(0, 0, 0, 0.6);
+  --color-control-on: #66aba9;
+
+  --color-status-warning-bg: #2a140c;
+  --color-status-warning-border: #5c2a17;
+  --color-status-warning-text: #ff9b73;
+
+  --bg-outer: #0a0a0a;
+  --accent-bg-hover: #e5e5e5;
+  --table-row-border: rgba(255, 255, 255, 0.06);
+  --muted-chip-fg: #d4d4d4;
+  --neutral-badge-bg: rgba(255, 255, 255, 0.08);
+  --neutral-badge-fg: #ffffff;
+  --hover-bg-soft: rgba(255, 255, 255, 0.04);
+  --daycard-fill-partial: rgba(255, 255, 255, 0.18);
+
+  /* bottom nav dock — inverted to a light bar on a dark page */
+  --nav-bg: #ffffff;
+  --nav-glass-bg: rgba(255, 255, 255, 0.86);
+  --nav-glass-border: rgba(0, 0, 0, 0.08);
+  --nav-glass-highlight: rgba(255, 255, 255, 0.8);
+  --nav-border: #e5e5e5;
+  --nav-border-strong: #d4d4d4;
+  --nav-fg: #0f0f10;
+  --nav-fg-muted: #595959;
+  --nav-fg-subtle: rgba(0, 0, 0, 0.55);
+  --nav-fg-faint: rgba(0, 0, 0, 0.4);
+  --nav-fg-faint-2: rgba(0, 0, 0, 0.35);
+  --nav-hover: #f0f0f0;
+  --nav-hover-strong: #e5e5e5;
+  --nav-surface: #171717;
+  --nav-surface-fg: #fafafa;
+  --nav-surface-hover: rgba(255, 255, 255, 0.14);
+  --nav-popover-bg: #ffffff;
+  --nav-popover-border: #e5e5e5;
+  --nav-tile-bg: #f5f5f5;
+  --nav-tile-hover: #ebebeb;
+  --nav-tile-icon-bg: #ebebeb;
+  --nav-input-bg: #f5f5f5;
+  --nav-input-border: #d4d4d4;
 }
 
 html, body {
   margin: 0;
   height: 100%;
-  background: #f0f0f0;
+  background: var(--bg-outer);
 }
 
 * {
@@ -14,7 +132,7 @@ html, body {
 
 body {
   font-family: 'Manrope', sans-serif;
-  color: #0f0f10;
+  color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -46,25 +164,29 @@ a {
 .stage {
   width: 100%;
   min-height: 100vh;
-  background: #ffffff;
+  background: var(--color-background-page);
   display: flex;
   justify-content: center;
 }
 
 .canvas {
   width: 100%;
-  background: #ffffff;
-  overflow: hidden;
+  background: var(--color-background-page);
   flex-shrink: 0;
 }
 
 .topbar {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--color-background-page);
+  border-bottom: 1px solid var(--color-border-default);
   height: 50px;
   display: flex;
   align-items: center;
   padding: 0 10px;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .topbar-app {
@@ -78,7 +200,7 @@ a {
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.42px;
-  color: rgba(0, 0, 0, 0.53);
+  color: var(--color-text-secondary);
 }
 
 .body-row {
@@ -92,11 +214,18 @@ a {
 .sidebar {
   width: 240px;
   flex-shrink: 0;
-  background: #fafafa;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--color-background-subtle);
+  border: 1px solid var(--color-border-default);
   border-radius: 10px;
   padding: 1px;
-  position: relative;
+  position: sticky;
+  top: 70px;
+  /* Without an explicit value here, this sticky box and any position:absolute
+     content further down the page (e.g. tab toggles) both sit at the same
+     "positioned, z-index:auto" paint tier and the later one in the DOM wins —
+     which let page content paint over the collapsed sidebar's hover tooltips. */
+  z-index: 5;
+  transition: width 0.22s ease;
 }
 
 .sidebar-inner {
@@ -106,6 +235,14 @@ a {
   gap: 2px;
   max-height: calc(100vh - 160px);
   overflow-y: auto;
+  transition: padding 0.22s ease;
+}
+
+/* Collapsed rail has few enough items it never needs to scroll — switch to
+   visible overflow so the hover tooltips can pop out past the icon rail
+   instead of being clipped by the scroll container. */
+.sidebar-collapsed .sidebar-inner {
+  overflow: visible;
 }
 
 .navitem, .navitem-sm {
@@ -117,19 +254,56 @@ a {
   border-radius: 10px;
   font-size: 14px;
   white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease, width 0.22s ease, padding 0.22s ease;
+}
+
+.navitem-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  transition: gap 0.2s ease;
+}
+
+.sidebar-collapsed .navitem-inner {
+  gap: 0;
+}
+
+.navitem-label {
+  display: inline-block;
+  overflow: hidden;
+  max-width: 160px;
+  opacity: 1;
+  transition: max-width 0.2s ease, opacity 0.12s ease;
+}
+
+.navgroup-label,
+.navsep {
+  overflow: hidden;
+  opacity: 1;
+  max-height: 24px;
+  transition: max-height 0.2s ease, opacity 0.12s ease, margin 0.2s ease;
+}
+
+.navitem:active, .navitem-sm:active {
+  transform: scale(0.97);
 }
 
 .navitem {
   font-weight: 600;
   letter-spacing: -0.42px;
-  background: #171717;
-  color: #fafafa;
+  background: var(--color-background-inverse);
+  color: var(--color-text-inverse);
+}
+
+.navitem svg:not([stroke="none"]) {
+  stroke: var(--color-text-inverse);
 }
 
 .navitem-sm {
   font-weight: 500;
   letter-spacing: -0.28px;
-  color: rgba(0, 0, 0, 0.53);
+  color: var(--color-text-secondary);
 }
 
 .navitem.has-badge,
@@ -138,7 +312,7 @@ a {
 }
 
 .navitem-sm:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--color-state-hover);
 }
 
 .navgroup-label {
@@ -147,13 +321,13 @@ a {
   font-weight: 600;
   letter-spacing: 0.8px;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.53);
+  color: var(--color-text-secondary);
   margin: 6px 0 6px;
 }
 
 .navsep {
   height: 1px;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--color-border-default);
   width: 100%;
   margin: 8px 0;
 }
@@ -165,15 +339,19 @@ a {
   width: 32px;
   height: 32px;
   border-radius: 100px;
-  background: #171717;
+  background: var(--color-background-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 6px rgba(20, 22, 27, 0.08), 0 2px 2px rgba(20, 22, 27, 0.05);
 }
 
+.sidebar-fab svg:not([stroke="none"]) {
+  stroke: var(--color-text-inverse);
+}
+
 .sidebar-fab:hover {
-  background: #262626;
+  background: var(--accent-bg-hover);
 }
 
 /* collapsed sidebar: narrow icon-only rail, not fully hidden */
@@ -186,10 +364,16 @@ a {
   align-items: center;
 }
 
-.sidebar-collapsed .navitem-label,
+.sidebar-collapsed .navitem-label {
+  max-width: 0;
+  opacity: 0;
+}
+
 .sidebar-collapsed .navgroup-label,
 .sidebar-collapsed .navsep {
-  display: none;
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
 }
 
 .sidebar-collapsed .navitem,
@@ -209,6 +393,40 @@ a {
   text-align: center;
 }
 
+/* Custom tooltips for collapsed sidebar icons — same idea as the bottom nav's
+   data-tooltip, popped out to the right since the sidebar always docks left. */
+.sidebar-collapsed [data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 10px);
+  display: flex;
+  align-items: center;
+  height: 22px;
+  transform: translateY(-50%) translateX(-2px);
+  background: #1a1a1a;
+  color: #fafafa;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  padding: 0 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 60;
+}
+
+.sidebar-collapsed [data-tooltip]:hover::after,
+.sidebar-collapsed [data-tooltip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
 /* content */
 .content {
   flex: 1;
@@ -219,22 +437,24 @@ a {
 }
 
 .page-title {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--color-border-default);
   padding-bottom: 16px;
   font-family: 'Fraunces', serif;
   font-size: 24px;
   letter-spacing: -1.2px;
-  color: #0f0f10;
+  color: var(--color-text-primary);
 }
 
 .card {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 14px;
   padding: 20px;
+  background: var(--color-background-page);
 }
 
 .stat {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-background-page);
   border-radius: 14px;
   padding: 16px 18px;
 }
@@ -254,21 +474,25 @@ a {
 .b-pine { background: #cce3e2; color: #004543; }
 .b-ember { background: #ffdacc; color: #cc3a00; }
 .b-danger { background: #ff6d33; color: #0f0f10; }
-.b-neutral { background: #ebebeb; color: #171717; }
+.b-neutral { background: var(--neutral-badge-bg); color: var(--neutral-badge-fg); }
 
 .th2 {
   text-align: left;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.53);
+  color: var(--color-text-secondary);
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 .td2 {
   padding: 14px 12px;
   font-size: 14px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--table-row-border);
+}
+
+.row-hover:hover {
+  background: var(--color-state-hover);
 }
 
 table {
@@ -278,16 +502,24 @@ table {
 
 .input {
   height: 36px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
   padding: 0 12px;
   font-size: 14px;
   font-family: 'Manrope', sans-serif;
-  color: #0f0f10;
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
-  background: #fff;
+  background: var(--color-background-page);
   width: 100%;
+}
+
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+textarea.input {
+  outline: none;
 }
 
 input.input, select.input {
@@ -295,20 +527,33 @@ input.input, select.input {
 }
 
 input.input:focus, select.input:focus {
-  border-color: rgba(0, 0, 0, 0.3);
+  border-color: var(--color-text-tertiary);
 }
 
 .btn-dark {
   height: 36px;
   padding: 0 16px;
-  background: #171717;
-  color: #fafafa;
+  background: var(--color-background-inverse);
+  color: var(--color-text-inverse);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-dark:not(:disabled):hover {
+  background: var(--accent-bg-hover);
+}
+
+.btn-dark:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+.btn-dark svg:not([stroke="none"]) {
+  stroke: var(--color-text-inverse);
 }
 
 .btn-dark:disabled {
@@ -317,33 +562,105 @@ input.input:focus, select.input:focus {
 }
 
 .btn-outline {
-  height: 32px;
-  padding: 0 14px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: #0f0f10;
+  color: var(--color-text-primary);
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #fff;
+  background: var(--color-background-page);
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-outline:not(:disabled):hover {
+  background: var(--color-state-hover);
+}
+
+.btn-outline:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+.btn-outline:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-danger-text {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c53030;
+}
+
+.duration-pill {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--color-background-muted);
+  color: var(--muted-chip-fg);
+  border: 1px solid var(--color-border-default);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.duration-pill.active {
+  background: var(--color-background-inverse);
+  color: var(--color-text-inverse);
+  border-color: var(--color-background-inverse);
 }
 
 .tag {
-  background: #f5f5f5;
-  border: 1px solid #ececee;
+  background: var(--color-background-muted);
+  border: 1px solid var(--color-border-default);
   border-radius: 4px;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.53);
+  color: var(--color-text-secondary);
   padding: 3px 7px;
   white-space: nowrap;
 }
 
 .task-row:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--hover-bg-soft);
+}
+
+/* hover-reveal action icons in a table row (leave requests, letter history, etc.) */
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+tr:hover .row-actions {
+  opacity: 1;
+}
+
+.row-action-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.row-action-btn:hover {
+  background: var(--color-state-hover);
 }
 
 .avatar {
@@ -360,21 +677,170 @@ input.input:focus, select.input:focus {
   flex-shrink: 0;
 }
 
+/* app search overlay — deliberately hardcoded to the Figma light spec, not the app's
+   --color-* theme tokens, so it always looks the same regardless of light/dark mode. */
+.search-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #5f636c;
+  padding: 8px 10px 4px;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 35.5px;
+  padding: 0 10px;
+  border-radius: 10px;
+  width: 100%;
+  text-align: left;
+  color: #1b1b1f;
+}
+
+.search-row:hover {
+  background: #f5f5f5;
+}
+
+.search-row-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1b1b1f;
+  letter-spacing: -0.42px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-row-desc {
+  font-size: 12px;
+  color: rgba(0, 0, 17, 0.53);
+  letter-spacing: -0.12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* All-apps overlay tiles — same "always light, hardcoded" treatment as the search
+   overlay above, since this is its sibling surface (opened from the same nav icon row). */
+.app-overlay-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100px;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #ebebeb;
+  border-radius: 12px;
+  color: #1b1b1f;
+}
+
+.app-overlay-tile:hover {
+  background: #fafafa;
+}
+
+.app-overlay-tile-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f5f5f5;
+  border: 1px solid #ebebeb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-overlay-tile-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1b1b1f;
+  letter-spacing: -0.42px;
+}
+
+.app-overlay-tile-pin {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  opacity: 0;
+}
+
+.app-overlay-tile:hover .app-overlay-tile-pin {
+  opacity: 1;
+}
+
+.app-overlay-tile-pin:hover {
+  background: #ebebeb;
+}
+
 /* modal */
+@keyframes backdrop-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes surface-pop-in {
+  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Liquid fill wave — day-card "today" indicator. Applied directly to the fill div
+   itself (not a separately-colored overlay), using the wave shape as an alpha MASK.
+   Since a mask just reveals/hides the element's own existing background, the wavy
+   top edge is always exactly the same color as the flat body beneath it — one
+   continuous shape, not two mismatched layers. It also scales naturally: the mask
+   stretches to the fill div's full height, so the wave crest stays proportionate
+   whether the fill is a thin sliver or nearly the whole card. */
+@keyframes wavy-mask-drift {
+  from { mask-position: 0 0; -webkit-mask-position: 0 0; }
+  to { mask-position: -100px 0; -webkit-mask-position: -100px 0; }
+}
+
+.liquid-fill-wavy-top {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 8 Q 12.5 0 25 8 T 50 8 T 75 8 T 100 8 V100 H0 Z' fill='white'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 8 Q 12.5 0 25 8 T 50 8 T 75 8 T 100 8 V100 H0 Z' fill='white'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: 100px 100%;
+  mask-size: 100px 100%;
+  -webkit-mask-position: 0 0;
+  mask-position: 0 0;
+  animation: wavy-mask-drift 3s linear infinite;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 15, 16, 0.4);
+  background: var(--color-overlay-scrim);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
+  animation: backdrop-fade-in 0.15s ease;
+}
+
+/* Search overlay gets its own lighter, frosted-glass backdrop instead of the
+   standard dark scrim — the page behind blurs and stays faintly visible. */
+.search-backdrop {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .modal {
   width: 480px;
   max-width: calc(100vw - 32px);
-  background: #fff;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--color-background-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 14px;
   padding: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
@@ -383,10 +849,139 @@ input.input:focus, select.input:focus {
   gap: 16px;
 }
 
+/* Every direct child of a modal backdrop (.modal itself, or the plain divs the Search
+   and All-apps overlays use) pops in the same way, so backdrop-launched surfaces feel
+   consistent across the app. */
+.modal-backdrop > div {
+  animation: surface-pop-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .field-label {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.53);
+  color: var(--color-text-secondary);
   margin-bottom: 6px;
+}
+
+/* printable documents (payslips, and other downloadable reports) */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .doc-page {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+  }
+}
+
+/* time entry rows (My Time day list) — actions reveal on hover */
+.time-entry-row {
+  transition: background 0.15s ease;
+}
+
+.time-entry-row:hover {
+  background: var(--color-state-hover);
+}
+
+/* week day-jump rail (My Time) — subtle glow ring on hover, layered via box-shadow
+   so it never fights the inline active/today background colors. */
+.week-nav-dot:hover {
+  box-shadow: 0 0 0 4px var(--color-state-hover);
+}
+
+.time-entry-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: width 0.15s ease, opacity 0.1s ease;
+}
+
+.time-entry-row:hover .time-entry-actions {
+  width: 112px;
+  opacity: 1;
+}
+
+.time-entry-action-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.time-entry-action-btn:hover {
+  background: var(--color-state-hover);
+}
+
+.time-entry-action-btn-danger {
+  background: rgba(197, 48, 48, 0.1);
+}
+
+.time-entry-action-btn-danger:hover {
+  background: rgba(197, 48, 48, 0.18);
+}
+
+/* calendar week-grid entry blocks */
+.cal-entry-block {
+  cursor: grab;
+}
+
+.cal-entry-block:active {
+  cursor: grabbing;
+}
+
+.cal-resize-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ns-resize;
+}
+
+.cal-resize-grip {
+  width: 22px;
+  height: 3px;
+  border-radius: 999px;
+  opacity: 0;
+  transform: scaleX(0.6);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.cal-entry-block:hover .cal-resize-grip {
+  opacity: 0.9;
+  transform: scaleX(1);
+}
+
+.cal-resize-handle:hover .cal-resize-grip {
+  opacity: 1;
+}
+
+.cal-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.cal-popover {
+  position: absolute;
+  z-index: 61;
+  width: 300px;
+  background: var(--color-background-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* bottom nav */
@@ -407,14 +1002,132 @@ input.input:focus, select.input:focus {
   pointer-events: auto;
 }
 
+/* Mobile responsiveness: the brand/left segment and the actions/right segment
+   should never get squeezed — only the pinned-apps row in the middle gives way,
+   scrolling horizontally instead of forcing every segment to crowd together or
+   overlap on a narrow screen. Flex items default to min-width:auto (refuse to
+   shrink below their content), so this needs an explicit min-width:0 override. */
+.bn-segment-left,
+.bn-segment-right {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.bn-segment-center {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.bn-bar-center {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.bn-bar-center::-webkit-scrollbar {
+  display: none;
+}
+
+/* auto-hide (Settings → Appearance → Pin nav bar off): the bar slides off its
+   docked edge and only slides back in when the cursor hits the hot edge or
+   the bar itself (e.g. while a popover is open). */
+.bottom-nav.auto-hide {
+  transition: transform 0.22s ease;
+  transform: translateY(100%);
+}
+
+.bottom-nav.auto-hide.pos-top {
+  transform: translateY(-100%);
+}
+
+.bottom-nav.auto-hide.pos-left {
+  transform: translateX(-100%);
+}
+
+.bottom-nav.auto-hide.pos-right {
+  transform: translateX(100%);
+}
+
+.bottom-nav.auto-hide.revealed {
+  transform: translate(0, 0);
+}
+
+.bn-hot-edge {
+  position: fixed;
+  z-index: 39;
+  pointer-events: auto;
+}
+
+.bn-hot-edge-bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 10px;
+}
+
+.bn-hot-edge-top {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 10px;
+}
+
+.bn-hot-edge-left {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 10px;
+}
+
+.bn-hot-edge-right {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+}
+
 .bn-bar {
-  background: #0a0a0a;
+  background: var(--nav-bg);
   height: 56px;
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 0 12px;
   box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* Glassmorphism: frosted, translucent dock instead of a flat opaque bar. Falls
+   back to the solid --nav-bg above when backdrop-filter isn't supported, so the
+   bar is never see-through-and-illegible on an older browser. */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .bn-bar {
+    background: var(--nav-glass-bg);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--nav-glass-border);
+    box-shadow:
+      0 -6px 20px rgba(0, 0, 0, 0.16),
+      inset 0 1px 0 var(--nav-glass-highlight);
+  }
+
+  .bottom-nav.pos-top .bn-bar {
+    box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.16),
+      inset 0 -1px 0 var(--nav-glass-highlight);
+  }
+
+  .pos-left .bn-bar {
+    box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.16),
+      inset -1px 0 0 var(--nav-glass-highlight);
+  }
+
+  .pos-right .bn-bar {
+    box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.16),
+      inset 1px 0 0 var(--nav-glass-highlight);
+  }
 }
 
 .bn-bar-left {
@@ -430,13 +1143,159 @@ input.input:focus, select.input:focus {
   border-top-left-radius: 20px;
 }
 
+/* nav position variants (Settings → Appearance → Nav bar position) */
+.bottom-nav.pos-top {
+  top: 0;
+  bottom: auto;
+  align-items: flex-start;
+}
+
+.bottom-nav.pos-top .bn-bar {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.bottom-nav.pos-top .bn-bar-left {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 20px;
+}
+
+.bottom-nav.pos-top .bn-bar-center {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.bottom-nav.pos-top .bn-bar-right {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 20px;
+}
+
+.bottom-nav.pos-left,
+.bottom-nav.pos-right {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: auto;
+  width: auto;
+  height: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.bottom-nav.pos-right {
+  left: auto;
+  right: 0;
+}
+
+.pos-left .bn-bar,
+.pos-right .bn-bar {
+  flex-direction: column;
+  height: auto;
+  width: auto;
+  min-width: 56px;
+  padding: 12px 10px;
+  border-radius: 0;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* Docked left/right, the pinned-apps segment can run out of vertical room
+   instead — same shrink-and-scroll treatment, rotated 90°. */
+.pos-left .bn-bar-center,
+.pos-right .bn-bar-center {
+  overflow-x: visible;
+  overflow-y: auto;
+}
+
+/* Square off the corners touching the screen edge the bar is docked to, and only
+   round the corner(s) floating away from every touched edge — same "grows out of
+   the edge" treatment the top/bottom positions already use, rotated 90°. */
+.pos-left .bn-bar-left {
+  border-radius: 0 0 16px 0;
+}
+.pos-left .bn-bar-center {
+  border-radius: 0 16px 16px 0;
+}
+.pos-left .bn-bar-right {
+  border-radius: 0 16px 0 0;
+}
+
+.pos-right .bn-bar-left {
+  border-radius: 0 0 0 16px;
+}
+.pos-right .bn-bar-center {
+  border-radius: 16px 0 0 16px;
+}
+.pos-right .bn-bar-right {
+  border-radius: 16px 0 0 0;
+}
+
+.pos-left .bn-brand,
+.pos-right .bn-brand {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+  margin-right: 0;
+  margin-bottom: 4px;
+}
+
+.pos-left .bn-brand-text,
+.pos-right .bn-brand-text {
+  display: none;
+}
+
+.pos-left .bn-app-item,
+.pos-right .bn-app-item {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+}
+
+.pos-left .bn-app-item-label,
+.pos-right .bn-app-item-label {
+  display: none;
+}
+
+.pos-left .bn-timer,
+.pos-right .bn-timer {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+}
+
+.pos-left .bn-timer .mono,
+.pos-right .bn-timer .mono {
+  display: none;
+}
+
+.pos-left .bn-timer-toggle,
+.pos-right .bn-timer-toggle {
+  display: none;
+}
+
+body[data-navpos='left'] .stage {
+  padding-left: 76px;
+}
+
+body[data-navpos='right'] .stage {
+  padding-right: 76px;
+}
+
+body[data-navpos='top'] .stage {
+  padding-top: 72px;
+}
+
 .bn-brand {
   display: flex;
   align-items: center;
   gap: 8px;
   height: 36px;
   padding: 0 10px;
-  border: 1px solid #262626;
+  border: 1px solid var(--nav-border);
   border-radius: 10px;
   margin-right: 4px;
 }
@@ -455,7 +1314,7 @@ input.input:focus, select.input:focus {
 }
 
 .bn-brand-text {
-  color: #fafafa;
+  color: var(--nav-fg);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.42px;
@@ -465,31 +1324,73 @@ input.input:focus, select.input:focus {
 .bn-icon-btn {
   width: 36px;
   height: 36px;
-  border: 1px solid #262626;
+  border: 1px solid var(--nav-border);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
 .bn-icon-btn:hover {
-  background: #171717;
+  background: var(--nav-hover);
 }
 
-.bn-app-active {
-  background: #fafafa;
+.bn-icon-btn:active {
+  transform: scale(0.92);
+}
+
+/* Center nav segment's app icons — a single element per app whose active/inactive
+   state is a class toggle, not a swapped element, so the icon-only pill can smoothly
+   morph into the labeled active pill (and back) instead of snapping between the two. */
+.bn-app-item {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 7px 10px;
+  height: 36px;
+  padding: 0 10px;
+  gap: 0px;
   border-radius: 10px;
+  border: 1px solid transparent;
+  color: var(--nav-fg-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, gap 0.25s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.bn-app-item:not(.active) {
+  border-color: var(--nav-border);
+}
+
+.bn-app-item:not(.active):hover {
+  background: var(--nav-hover);
+}
+
+.bn-app-item:active {
+  transform: scale(0.94);
+}
+
+.bn-app-item.active {
+  background: var(--nav-surface);
+  color: var(--nav-surface-fg);
+  gap: 6px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.08);
+}
+
+.bn-app-item-label {
+  display: inline-block;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
   font-size: 14px;
   font-weight: 600;
-  color: #0f0f10;
   letter-spacing: -0.42px;
-  white-space: nowrap;
-  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.08));
+  transition: max-width 0.25s ease, opacity 0.15s ease;
+}
+
+.bn-app-item.active .bn-app-item-label {
+  max-width: 160px;
+  opacity: 1;
 }
 
 .bn-timer {
@@ -498,19 +1399,113 @@ input.input:focus, select.input:focus {
   gap: 8px;
   height: 36px;
   padding: 0 10px;
-  background: #fafafa;
+  background: var(--nav-surface);
   border-radius: 10px;
   filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.08));
   font-size: 14px;
-  color: #171717;
+  color: var(--nav-surface-fg);
+}
+
+/* "A timer is live" pixel matrix — see TimerActivityIcon. Each cell fades in and
+   back out on its own delay, so the 3×3 grid reads as a diagonal wave sweeping
+   through, not a single spinning loader. */
+@keyframes timer-activity-pulse {
+  0%, 100% {
+    opacity: 0.18;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.timer-activity-cell {
+  animation: timer-activity-pulse 1.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Custom hover tooltips for nav bar controls — faster and consistently styled
+   vs. the native title attribute, and adapts side based on where the nav bar sits. */
+.bottom-nav [data-tooltip] {
+  position: relative;
+}
+
+.bottom-nav [data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(2px);
+  background: #1a1a1a;
+  color: #fafafa;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 60;
+}
+
+.bottom-nav [data-tooltip]:hover::after,
+.bottom-nav [data-tooltip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.bottom-nav.pos-top [data-tooltip]::after {
+  bottom: auto;
+  top: calc(100% + 10px);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.bottom-nav.pos-top [data-tooltip]:hover::after,
+.bottom-nav.pos-top [data-tooltip]:focus-visible::after {
+  transform: translateX(-50%) translateY(0);
+}
+
+.bottom-nav.pos-left [data-tooltip]::after {
+  bottom: auto;
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%) translateX(-2px);
+}
+
+.bottom-nav.pos-right [data-tooltip]::after {
+  bottom: auto;
+  top: 50%;
+  left: auto;
+  right: calc(100% + 10px);
+  transform: translateY(-50%) translateX(2px);
+}
+
+.bottom-nav.pos-left [data-tooltip]:hover::after,
+.bottom-nav.pos-left [data-tooltip]:focus-visible::after,
+.bottom-nav.pos-right [data-tooltip]:hover::after,
+.bottom-nav.pos-right [data-tooltip]:focus-visible::after {
+  transform: translateY(-50%) translateX(0);
 }
 
 .bn-timer-toggle {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.bn-timer-toggle:hover {
+  background: var(--nav-surface-hover);
 }
 
 .bn-avatar {
@@ -529,12 +1524,13 @@ input.input:focus, select.input:focus {
 
 .bn-popover {
   position: absolute;
-  background: #171717;
-  border: 1px solid #262626;
+  background: var(--nav-popover-bg);
+  border: 1px solid var(--nav-popover-border);
   border-radius: 12px;
   min-width: 180px;
   padding: 6px;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+  animation: surface-pop-in 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bn-popover-up {
@@ -546,7 +1542,7 @@ input.input:focus, select.input:focus {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--nav-fg-faint);
   padding: 6px 8px 4px;
 }
 
@@ -558,79 +1554,15 @@ input.input:focus, select.input:focus {
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: #fafafa;
+  color: var(--nav-fg);
+  transition: background-color 0.15s ease;
 }
 
 .bn-popover-row:hover {
-  background: #262626;
+  background: var(--nav-hover-strong);
 }
 
 /* app switcher grid */
-.bn-app-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  padding: 4px;
-}
-
-.bn-app-tile {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  border-radius: 10px;
-  background: #1c1c1c;
-  border: 1px solid #262626;
-  width: 84px;
-}
-
-.bn-app-tile:hover {
-  background: #262626;
-}
-
-.bn-app-tile-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: #262626;
-  border: 1px solid #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bn-app-tile-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #fafafa;
-}
-
-.bn-popover-input {
-  width: 100%;
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #111;
-  color: #fafafa;
-  font-size: 13px;
-  padding: 0 10px;
-  margin-bottom: 8px;
-  font-family: 'Manrope', sans-serif;
-}
-
-.bn-popover-input::placeholder {
-  color: rgba(255, 255, 255, 0.35);
-}
-
-.bn-popover-hint {
-  text-align: center;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
-  padding-top: 8px;
-  margin-top: 4px;
-  border-top: 1px solid #262626;
-}
-
 /* notifications */
 .bn-notif-row {
   display: flex;
@@ -641,7 +1573,7 @@ input.input:focus, select.input:focus {
 }
 
 .bn-notif-row:hover {
-  background: #262626;
+  background: var(--nav-hover-strong);
 }
 
 .bn-notif-dot {
@@ -668,7 +1600,7 @@ input.input:focus, select.input:focus {
 .bn-timer-field-label {
   font-size: 12px;
   font-weight: 600;
-  color: #fafafa;
+  color: var(--nav-fg);
   margin-bottom: 4px;
   display: block;
 }
@@ -677,16 +1609,47 @@ input.input:focus, select.input:focus {
   width: 100%;
   height: 36px;
   border-radius: 8px;
-  border: 1px solid #333;
-  background: #111;
-  color: #fafafa;
+  border: 1px solid var(--nav-input-border);
+  background: var(--nav-input-bg);
+  color: var(--nav-fg);
   font-size: 13px;
   padding: 0 10px;
   font-family: 'Manrope', sans-serif;
 }
 
 .bn-timer-input::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--nav-fg-faint-2);
+}
+
+.bn-feedback-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.bn-feedback-textarea {
+  width: 100%;
+  min-height: 90px;
+  border-radius: 16px;
+  border: 1px solid var(--nav-input-border);
+  background: var(--nav-input-bg);
+  color: var(--nav-fg);
+  font-size: 14px;
+  font-family: 'Manrope', sans-serif;
+  padding: 10px 12px;
+  resize: vertical;
+  outline: none;
+  transition: box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.bn-feedback-textarea::placeholder {
+  color: var(--nav-fg-faint-2);
+}
+
+.bn-feedback-textarea:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--nav-popover-bg), 0 0 0 4px var(--nav-fg);
 }
 
 /* profile dropdown */
@@ -695,7 +1658,7 @@ input.input:focus, select.input:focus {
   align-items: center;
   gap: 10px;
   padding: 8px;
-  border-bottom: 1px solid #262626;
+  border-bottom: 1px solid var(--nav-border);
   margin-bottom: 6px;
 }
 
@@ -713,23 +1676,346 @@ input.input:focus, select.input:focus {
   gap: 4px;
   height: 26px;
   border-radius: 9999px;
-  border: 1px solid #333;
+  border: 1px solid var(--nav-border-strong);
   font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--nav-fg-subtle);
 }
 
 .bn-theme-pill.active {
-  background: #262626;
-  color: #fafafa;
-  border-color: #404040;
+  background: var(--nav-hover-strong);
+  color: var(--nav-fg);
+  border-color: var(--nav-border-strong);
 }
 
-/* dark theme shell (preview only — dims the surrounding matte; page content stays light for now) */
-:root[data-theme='dark'] body {
-  background: #0a0a0a;
+/* settings toggle switch */
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 36px;
+  height: 20px;
+  border-radius: 20px;
+  background: var(--color-border-subtle);
+  flex-shrink: 0;
+  transition: background 0.15s ease;
 }
 
-:root[data-theme='dark'] .stage {
-  background: #050505;
+.switch.on {
+  background: var(--color-control-on);
+}
+
+.switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.switch.on .switch-knob {
+  transform: translateX(16px);
+}
+
+.switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+}
+
+.settings-row + .settings-row {
+  border-top: 1px solid var(--color-border-default);
+}
+
+.btn-dark svg[stroke="none"] {
+  fill: var(--color-text-inverse);
+}
+
+/* ==========================================================================
+   Mobile responsiveness — app shell (AppShell sidebar), bottom nav, tables.
+   ========================================================================== */
+
+.sidebar-backdrop {
+  display: none;
+}
+
+/* Any card wrapping a <table> scrolls horizontally instead of clipping on
+   narrow screens — tables aren't designed to reflow into a stacked layout. */
+@media (max-width: 768px) {
+  .card:has(> table) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .card:has(> table) table {
+    min-width: 640px;
+  }
+
+  .body-row {
+    padding: 16px 12px 100px;
+    gap: 12px;
+  }
+
+  /* Sidebar becomes a floating drawer instead of pushing content into a sliver. */
+  .sidebar:not(.sidebar-collapsed) {
+    position: fixed;
+    top: 62px;
+    left: 12px;
+    bottom: 96px;
+    z-index: 45;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.32);
+    z-index: 44;
+  }
+
+  .content {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Bottom nav: shrink and drop the least essential bits so it fits a phone width. */
+  .bn-bar {
+    height: 46px;
+    padding: 0 6px;
+    gap: 2px;
+  }
+
+  .bn-brand {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+    margin-right: 0;
+  }
+
+  .bn-brand-text {
+    display: none;
+  }
+
+  .bn-icon-btn,
+  .bn-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .bn-app-item {
+    padding: 0 8px;
+  }
+
+  .bn-app-item-label {
+    display: none;
+  }
+
+  .bn-bar-center {
+    max-width: 46vw;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .bn-bar-center::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bn-timer .mono {
+    display: none;
+  }
+
+  .bn-timer {
+    padding: 0 6px;
+  }
+
+  .bn-popover {
+    max-width: calc(100vw - 24px);
+  }
+
+  .home-clock {
+    font-size: 32px !important;
+  }
+
+  /* Calendar week-grid: fixed-width day columns + horizontal scroll instead of
+     squeezing 7 columns until the day headers overlap illegibly. */
+  .cal-scroll-wrap {
+    overflow-x: auto !important;
+  }
+
+  .cal-header-row,
+  .cal-grid-row {
+    min-width: 686px;
+  }
+
+  .cal-day-col {
+    flex: 0 0 90px !important;
+    min-width: 90px !important;
+  }
+}
+
+/* scroll to top */
+.scroll-to-top-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 86px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-text-primary);
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  z-index: 38;
+  opacity: 0;
+  transform: translateY(12px) scale(0.85);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.scroll-to-top-btn.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.scroll-to-top-btn:hover {
+  background: var(--color-text-secondary);
+}
+
+/* timer live widget — floating "Dynamic Island"-style pill, top-center of every page */
+.timer-live-widget {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--nav-bg);
+  border: 1px solid var(--nav-border);
+  border-radius: 999px;
+  padding: 7px 8px 7px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  max-width: min(420px, calc(100vw - 32px));
+  transition: box-shadow 0.2s ease, padding 0.18s ease;
+}
+
+.timer-live-widget.is-paused {
+  opacity: 0.82;
+}
+
+.timer-live-widget:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.timer-live-widget-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.timer-live-widget-time {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nav-fg);
+  flex-shrink: 0;
+}
+
+.timer-live-widget-desc {
+  font-size: 12px;
+  color: var(--nav-fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.timer-live-widget-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--nav-fg-faint);
+  flex-shrink: 0;
+}
+
+.timer-live-widget-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  margin-left: 0;
+  transition: width 0.18s ease, opacity 0.12s ease, margin-left 0.18s ease;
+}
+
+.timer-live-widget:hover .timer-live-widget-actions {
+  width: 60px;
+  opacity: 1;
+  margin-left: 4px;
+}
+
+.timer-live-widget-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--nav-hover);
+}
+
+.timer-live-widget-btn:hover {
+  background: var(--nav-hover-strong);
+}
+
+.timer-live-widget-btn-finish {
+  background: rgba(0, 224, 184, 0.18);
+}
+
+.timer-live-widget-btn-finish:hover {
+  background: rgba(0, 224, 184, 0.3);
+}
+
+/* screen ripple — quick full-screen flash test for timer play/pause/stop clicks */
+.screen-ripple {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 0%, rgba(0, 224, 184, 0.55) 0%, rgba(0, 224, 184, 0.22) 45%, rgba(0, 224, 184, 0) 75%);
+  animation: screen-ripple-pulse 0.55s ease-out;
+}
+
+@keyframes screen-ripple-pulse {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }

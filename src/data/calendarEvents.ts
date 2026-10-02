@@ -42,4 +42,10 @@ export const staticEvents: CalendarEvent[] = [
   { id: 'ce6', date: '2026-09-24', title: 'Company All-Hands', category: 'Main Event', detail: 'Quarterly update · 4:00 PM' },
   { id: 'ce7', date: '2026-09-14', title: "Aruna Randika's birthday", category: 'Birthday' },
   { id: 'ce8', date: '2026-09-17', title: "Randunu Dimeshan's birthday", category: 'Birthday' },
+  { id: 'ce9', date: '2026-10-03', title: 'Thanksgiving Day', category: 'Public Holiday', detail: '🇩🇪 Germany' },
+  { id: 'ce10', date: '2026-10-09', title: 'Hangul Day', category: 'Public Holiday', detail: '🇰🇷 South Korea' },
+  { id: 'ce11', date: '2026-10-12', title: "Ben Okafor's work anniversary", category: 'Main Event', detail: '5 years at Type B' },
+  { id: 'ce12', date: '2026-11-01', title: 'All Saints Day', category: 'Public Holiday', detail: '🇫🇷 France' },
+  { id: 'ce13', date: '2026-09-22', title: "Isabela Costa's birthday", category: 'Birthday' },
+  { id: 'ce14', date: '2026-10-15', title: 'All-Hands: Q4 Kickoff', category: 'Main Event', detail: 'Company update · 4:00 PM' },
 ]

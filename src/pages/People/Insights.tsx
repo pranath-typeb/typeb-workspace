@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PeopleSidebar from '../../components/PeopleSidebar'
 import { PeopleIcon } from '../../components/icons'
+import { avatarContent } from '../../components/Avatar'
 import { people, localTimeFor } from '../../data/people'
 
 function daysAgo(dateStr: string): number {
@@ -61,7 +62,7 @@ export default function Insights() {
 
   return (
     <AppShell
-      appIcon={<PeopleIcon size={16} color="rgba(0,0,0,0.53)" />}
+      appIcon={<PeopleIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="People"
       appHref="/people"
       sidebar={<PeopleSidebar active="insights" />}
@@ -71,16 +72,16 @@ export default function Insights() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <div className="card">
           <div style={{ fontWeight: 700, fontSize: 15 }}>New joiners</div>
-          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginBottom: 10 }}>Started in the last 30 days</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 10 }}>Started in the last 30 days</div>
           {newJoiners.length === 0 ? (
-            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.4)' }}>Nobody joined in the last 30 days.</div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>Nobody joined in the last 30 days.</div>
           ) : (
             newJoiners.map((p) => (
-              <Link key={p.id} to={`/people/${p.id}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: '1px solid #f5f5f5' }}>
-                <div className="avatar" style={{ width: 30, height: 30, fontSize: 11 }}>{p.initials}</div>
+              <Link key={p.id} to={`/people/${p.id}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: '1px solid var(--table-row-border)' }}>
+                <div className="avatar" style={{ width: 30, height: 30, fontSize: 11 }}>{avatarContent(p)}</div>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{p.name}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>{p.title || p.email}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{p.title || p.email}</div>
                 </div>
               </Link>
             ))
@@ -89,20 +90,20 @@ export default function Insights() {
 
         <div className="card">
           <div style={{ fontWeight: 700, fontSize: 15 }}>Work anniversaries</div>
-          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginBottom: 6 }}>Coming up in the next 30 days</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Coming up in the next 30 days</div>
           {anniversaries.length === 0 ? (
-            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.4)' }}>No anniversaries in the next 30 days.</div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>No anniversaries in the next 30 days.</div>
           ) : (
             anniversaries.map(({ person, anniversary }) => (
-              <Link key={person.id} to={`/people/${person.id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: '1px solid #f5f5f5' }}>
+              <Link key={person.id} to={`/people/${person.id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: '1px solid var(--table-row-border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div className="avatar" style={{ width: 30, height: 30, fontSize: 11 }}>{person.initials}</div>
+                  <div className="avatar" style={{ width: 30, height: 30, fontSize: 11 }}>{avatarContent(person)}</div>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600 }}>{person.name}</div>
-                    <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>{person.title || person.email}</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{person.title || person.email}</div>
                   </div>
                 </div>
-                <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                   {anniversary.years} {anniversary.years === 1 ? 'yr' : 'yrs'} · {new Date(person.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </div>
               </Link>
@@ -112,25 +113,25 @@ export default function Insights() {
 
         <div className="card">
           <div style={{ fontWeight: 700, fontSize: 15 }}>Where everyone is</div>
-          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginBottom: 6 }}>{byTimezone.length} timezones</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>{byTimezone.length} timezones</div>
           {byTimezone.map(({ tz, count }) => (
-            <div key={tz} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: '1px solid #f5f5f5' }}>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{tz} <span style={{ fontWeight: 400, color: 'rgba(0,0,0,0.53)' }}>· {localTimeFor(tz)}</span></div>
-              <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)' }}>{count}</div>
+            <div key={tz} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: '1px solid var(--table-row-border)' }}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{tz} <span style={{ fontWeight: 400, color: 'var(--color-text-secondary)' }}>· {localTimeFor(tz)}</span></div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{count}</div>
             </div>
           ))}
         </div>
 
         <div className="card">
           <div style={{ fontWeight: 700, fontSize: 15 }}>Headcount by department</div>
-          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginBottom: 12 }}>{people.length} people</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 12 }}>{people.length} people</div>
           {byDepartment.map(({ dept, count, pct }) => (
             <div key={dept} style={{ marginBottom: 10 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
                 <span>{dept}</span>
-                <span style={{ color: 'rgba(0,0,0,0.53)' }}>{count}</span>
+                <span style={{ color: 'var(--color-text-secondary)' }}>{count}</span>
               </div>
-              <div style={{ height: 6, background: '#ebebeb', borderRadius: 9999, overflow: 'hidden' }}>
+              <div style={{ height: 6, background: 'var(--color-border-default)', borderRadius: 9999, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${pct}%`, background: '#004543' }} />
               </div>
             </div>

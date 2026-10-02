@@ -4,6 +4,7 @@ import { useProjects } from '../data/projects'
 import type { Person } from '../data/people'
 import { todayLocal } from '../data/timeEntries'
 import { CloseIcon } from './icons'
+import SearchableSelect from './SearchableSelect'
 
 interface CommitHoursModalProps {
   person: Person
@@ -39,20 +40,20 @@ export default function CommitHoursModal({ person, onClose }: CommitHoursModalPr
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div className="serif" style={{ fontSize: 20, letterSpacing: '-0.6px' }}>Commit hours</div>
-            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', marginTop: 2 }}>{person.name}</div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>{person.name}</div>
           </div>
           <button onClick={onClose} aria-label="Close" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <CloseIcon color="rgba(0,0,0,0.53)" />
+            <CloseIcon color="var(--color-text-secondary)" />
           </button>
         </div>
 
         <div>
           <div className="field-label">Project *</div>
-          <select className="input" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>{p.name} — {p.client}</option>
-            ))}
-          </select>
+          <SearchableSelect
+            value={projectId}
+            onChange={setProjectId}
+            options={projects.map((p) => ({ value: p.id, label: `${p.name} — ${p.client}` }))}
+          />
         </div>
 
         <div style={{ display: 'flex', gap: 12 }}>
@@ -69,7 +70,7 @@ export default function CommitHoursModal({ person, onClose }: CommitHoursModalPr
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <input type="checkbox" id="open-ended" checked={openEnded} onChange={(e) => setOpenEnded(e.target.checked)} />
           <label htmlFor="open-ended" style={{ fontSize: 14 }}>Open-ended</label>
-          <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)' }}>No end date — continues until closed.</span>
+          <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>No end date — continues until closed.</span>
         </div>
 
         <div>

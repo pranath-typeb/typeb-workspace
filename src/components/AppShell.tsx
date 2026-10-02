@@ -10,8 +10,14 @@ interface AppShellProps {
   children: ReactNode
 }
 
+// Sidebar starts collapsed to an icon rail on phones/small tablets so it doesn't
+// eat most of the screen on first render — desktop still starts expanded.
+function isNarrowViewport(): boolean {
+  return typeof window !== 'undefined' && window.innerWidth < 768
+}
+
 export default function AppShell({ appIcon, appLabel, appHref, sidebar, children }: AppShellProps) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(isNarrowViewport)
 
   return (
     <section className="stage">
@@ -26,11 +32,12 @@ export default function AppShell({ appIcon, appLabel, appHref, sidebar, children
             style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             aria-label="Close"
           >
-            <CloseIcon color="rgba(0,0,0,0.53)" />
+            <CloseIcon color="var(--color-text-secondary)" />
           </Link>
         </div>
 
         <div className="body-row">
+          {!collapsed && <div className="sidebar-backdrop" onClick={() => setCollapsed(true)} />}
           <div className={`sidebar${collapsed ? ' sidebar-collapsed' : ''}`} style={{ alignSelf: 'flex-start' }}>
             <div className="sidebar-inner">{sidebar}</div>
             <button

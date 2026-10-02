@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavGroupLabel, NavItem } from '../../components/NavItem'
 import { BuildingIcon, ProjectsIcon, StaffingIcon } from '../../components/icons'
+import { avatarContent } from '../../components/Avatar'
 import { people, personById, type Department, type EmploymentType } from '../../data/people'
 import { useProjects } from '../../data/projects'
 import { allocationStatus, committedHoursFor, removeAssignment, useAssignments } from '../../data/staffing'
@@ -210,7 +211,7 @@ export default function Staffing() {
 
   return (
     <AppShell
-      appIcon={<ProjectsIcon size={16} color="rgba(0,0,0,0.53)" />}
+      appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="Projects"
       appHref="/projects"
       sidebar={
@@ -239,20 +240,20 @@ export default function Staffing() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <SegmentedToggle value={scope} options={['Direct', 'Indirect']} onChange={(v) => setScope(v as Scope)} />
-          <button className="btn-outline" onClick={() => setGroupByManager((v) => !v)} style={groupByManager ? { background: '#171717', color: '#fff', borderColor: '#171717' } : undefined}>
+          <button className="btn-outline" onClick={() => setGroupByManager((v) => !v)} style={groupByManager ? { background: 'var(--color-background-inverse)', color: 'var(--color-text-inverse)', borderColor: 'var(--color-background-inverse)' } : undefined}>
             Group by manager
           </button>
         </div>
       </div>
 
-      <div style={{ display: 'flex', border: '1px solid #ececee', borderRadius: 14, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
         {[
           { label: 'Capacity', value: `${totalCapacity}h`, sub: `Total hours this ${granularity.toLowerCase().replace('ly', '')}` },
           { label: 'Committed', value: `${totalCommitted}h`, sub: 'Assigned to projects' },
           { label: 'Unassigned', value: `${Math.max(totalCapacity - totalCommitted, 0)}h`, sub: 'Not yet staffed' },
           { label: 'Logged', value: '0h', sub: 'Actual time recorded' },
         ].map((s, i, arr) => (
-          <div key={s.label} style={{ flex: 1, padding: '16px 20px', borderRight: i < arr.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none' }}>
+          <div key={s.label} style={{ flex: 1, padding: '16px 20px', borderRight: i < arr.length - 1 ? '1px solid var(--color-border-subtle)' : 'none' }}>
             <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: '#5f636c' }}>{s.label}</div>
             <div style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.48px', marginTop: 8 }}>{s.value}</div>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#5f636c' }}>{s.sub}</div>
@@ -260,7 +261,7 @@ export default function Staffing() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid #ebebeb' }}>
+      <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid var(--color-border-default)' }}>
         {(Object.keys(counts) as FilterTab[]).map((t) => (
           <button
             key={t}
@@ -269,15 +270,15 @@ export default function Staffing() {
               paddingBottom: 10,
               fontSize: 14,
               fontWeight: t === tab ? 600 : 500,
-              color: t === tab ? '#0f0f10' : 'rgba(0,0,0,0.53)',
-              borderBottom: t === tab ? '2px solid #171717' : '2px solid transparent',
+              color: t === tab ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+              borderBottom: t === tab ? '2px solid var(--color-text-primary)' : '2px solid transparent',
               display: 'flex',
               alignItems: 'center',
               gap: 6,
             }}
           >
             {t}
-            <span className="mono" style={{ background: t === tab ? '#171717' : '#ebebeb', color: t === tab ? '#fff' : '#525252', borderRadius: 9999, fontSize: 11, padding: '1px 7px' }}>
+            <span className="mono" style={{ background: t === tab ? 'var(--color-background-inverse)' : 'var(--color-background-muted)', color: t === tab ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)', borderRadius: 9999, fontSize: 11, padding: '1px 7px' }}>
               {counts[t]}
             </span>
           </button>
@@ -322,7 +323,7 @@ export default function Staffing() {
           {groups.map((g) => (
             <div key={g.manager ?? 'all'} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {groupByManager && (
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(0,0,0,0.53)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {g.manager} <span className="mono" style={{ color: 'rgba(0,0,0,0.35)' }}>({g.rows.length})</span>
                 </div>
               )}
@@ -333,10 +334,10 @@ export default function Staffing() {
                   <div key={r.person.id} className="card">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <Link to={`/people/${r.person.id}`} className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>{r.person.initials}</Link>
+                        <Link to={`/people/${r.person.id}`} className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>{avatarContent(r.person)}</Link>
                         <div>
                           <Link to={`/people/${r.person.id}`} style={{ fontSize: 15, fontWeight: 600 }}>{r.person.name}</Link>
-                          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>{r.person.title || 'No title'} · {r.person.department ?? '—'}</div>
+                          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{r.person.title || 'No title'} · {r.person.department ?? '—'}</div>
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -346,7 +347,7 @@ export default function Staffing() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-                      <div style={{ flex: 1, height: 8, background: '#f5f5f5', borderRadius: 9999, overflow: 'hidden' }}>
+                      <div style={{ flex: 1, height: 8, background: 'var(--color-background-muted)', borderRadius: 9999, overflow: 'hidden' }}>
                         <div
                           style={{
                             width: `${Math.min(metric === 'Allocated hours' ? r.pct : availablePct, 100)}%`,
@@ -355,11 +356,11 @@ export default function Staffing() {
                           }}
                         />
                       </div>
-                      <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
                         {metric === 'Allocated hours' ? `${r.pct}%` : `${availablePct}% free`}
                       </span>
                     </div>
-                    <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginBottom: 14 }}>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 14 }}>
                       {metric === 'Allocated hours'
                         ? `${r.committed}h committed of ${range.capacity}h`
                         : `${availableHours}h available of ${range.capacity}h`}
@@ -372,12 +373,12 @@ export default function Staffing() {
                     </div>
 
                     {r.assignments.length > 0 && (
-                      <div style={{ borderTop: '1px solid #f5f5f5' }}>
+                      <div style={{ borderTop: '1px solid var(--table-row-border)' }}>
                         {r.assignments.map((a) => (
-                          <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f5f5f5' }}>
+                          <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--table-row-border)' }}>
                             <div>
                               <Link to={`/projects/${a.projectId}`} style={{ fontSize: 14, fontWeight: 600 }}>{projectName(a.projectId)}</Link>
-                              <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>
+                              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                                 {a.hoursPerWeek}h/wk · {new Date(a.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} {a.openEnded ? '→' : ''}
                               </div>
                             </div>
@@ -395,27 +396,27 @@ export default function Staffing() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', padding: '24px 0' }}>No one matches those filters.</div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 0' }}>No one matches those filters.</div>
           )}
         </div>
       ) : (
-        <div style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 14, overflow: 'auto' }}>
+        <div style={{ border: '1px solid var(--color-border-subtle)', borderRadius: 14, overflow: 'auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: `220px repeat(${weeks.length}, 1fr)`, minWidth: 220 + weeks.length * 90 }}>
             <div />
             {weeks.map((w) => (
-              <div key={w.start} style={{ fontSize: 11, fontWeight: 600, color: 'rgba(0,0,0,0.53)', textAlign: 'center', padding: '10px 6px' }}>{w.label}</div>
+              <div key={w.start} style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textAlign: 'center', padding: '10px 6px' }}>{w.label}</div>
             ))}
             {groups.flatMap((g) => g.rows).map((r) => (
               <Fragment key={r.person.id}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderTop: '1px solid #f5f5f5' }}>
-                  <div className="avatar" style={{ width: 28, height: 28, fontSize: 10, flexShrink: 0 }}>{r.person.initials}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderTop: '1px solid var(--table-row-border)' }}>
+                  <div className="avatar" style={{ width: 28, height: 28, fontSize: 10, flexShrink: 0 }}>{avatarContent(r.person)}</div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.person.name}</div>
-                    <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.53)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.person.title || '—'}</div>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.person.title || '—'}</div>
                   </div>
                 </div>
                 {weeks.map((w) => (
-                  <div key={`${r.person.id}-${w.start}`} style={{ padding: '8px 6px', borderTop: '1px solid #f5f5f5', display: 'flex', alignItems: 'center' }}>
+                  <div key={`${r.person.id}-${w.start}`} style={{ padding: '8px 6px', borderTop: '1px solid var(--table-row-border)', display: 'flex', alignItems: 'center' }}>
                     <div style={{ ...cellStyle(r.pct, isCurrentColumn(w.start)), width: '100%' }}>{r.pct}%</div>
                   </div>
                 ))}
@@ -423,7 +424,7 @@ export default function Staffing() {
             ))}
           </div>
           {filtered.length === 0 && (
-            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', padding: '24px 16px' }}>No one matches those filters.</div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 16px' }}>No one matches those filters.</div>
           )}
         </div>
       )}
@@ -436,7 +437,7 @@ export default function Staffing() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase', color: 'rgba(0,0,0,0.53)' }}>{label}</div>
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>{label}</div>
       <div className="mono" style={{ fontSize: 16, fontWeight: 600 }}>{value}</div>
     </div>
   )
@@ -444,7 +445,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function SegmentedToggle({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
   return (
-    <div style={{ display: 'flex', background: '#f5f5f5', borderRadius: 10, padding: 2 }}>
+    <div style={{ display: 'flex', background: 'var(--color-background-muted)', borderRadius: 10, padding: 2 }}>
       {options.map((opt) => (
         <button
           key={opt}
@@ -455,8 +456,8 @@ function SegmentedToggle({ value, options, onChange }: { value: string; options:
             fontWeight: 600,
             borderRadius: 8,
             whiteSpace: 'nowrap',
-            background: value === opt ? '#171717' : 'transparent',
-            color: value === opt ? '#fff' : 'rgba(0,0,0,0.53)',
+            background: value === opt ? 'var(--color-background-inverse)' : 'transparent',
+            color: value === opt ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
           }}
         >
           {opt}

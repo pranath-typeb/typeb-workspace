@@ -44,7 +44,7 @@ export default function EmployeeRecordDetail() {
   if (!person) {
     return (
       <AppShell
-        appIcon={<PeopleIcon size={16} color="rgba(0,0,0,0.53)" />}
+        appIcon={<PeopleIcon size={16} color="var(--color-text-secondary)" />}
         appLabel="People"
         appHref="/people"
         sidebar={<PeopleSidebar active="records" />}
@@ -80,7 +80,7 @@ export default function EmployeeRecordDetail() {
 
   return (
     <AppShell
-      appIcon={<PeopleIcon size={16} color="rgba(0,0,0,0.53)" />}
+      appIcon={<PeopleIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="People"
       appHref="/people"
       sidebar={<PeopleSidebar active="records" />}
@@ -89,26 +89,26 @@ export default function EmployeeRecordDetail() {
 
       <button
         onClick={() => navigate('/people/records')}
-        style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.53)' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}
       >
-        <ChevronLeftIcon color="rgba(0,0,0,0.53)" /> Directory
+        <ChevronLeftIcon color="var(--color-text-secondary)" /> Directory
       </button>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div className="serif" style={{ fontSize: 22, letterSpacing: '-0.8px' }}>{person.name}</div>
-          <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', marginTop: 2 }}>{person.email}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>{person.email}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span className="badge b-ember">Synced {person.syncedDaysAgo}d ago</span>
-          <button className="btn-outline" onClick={() => resyncPerson(person.id)}><RefreshIcon color="#0f0f10" /> Re-sync</button>
+          <button className="btn-outline" onClick={() => resyncPerson(person.id)}><RefreshIcon color="var(--color-text-primary)" /> Re-sync</button>
         </div>
       </div>
 
-      <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
         {chain.map((p, i) => (
           <span key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {i > 0 && <span style={{ color: 'rgba(0,0,0,0.3)' }}>›</span>}
+            {i > 0 && <span style={{ color: 'var(--color-text-tertiary)' }}>›</span>}
             {i === chain.length - 1 ? <b>{p.name}</b> : p.name}
           </span>
         ))}
@@ -117,8 +117,8 @@ export default function EmployeeRecordDetail() {
         </Link>
       </div>
 
-      <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-        <div style={{ paddingBottom: 10, fontSize: 14, fontWeight: 600, borderBottom: '2px solid #171717' }}>Placement</div>
+      <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid var(--color-border-default)' }}>
+        <div style={{ paddingBottom: 10, fontSize: 14, fontWeight: 600, borderBottom: '2px solid var(--color-text-primary)' }}>Placement</div>
       </div>
 
       <div className="card">
@@ -126,7 +126,7 @@ export default function EmployeeRecordDetail() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 24px' }}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Manager</div>
-            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginBottom: 6 }}>Sets this person's position in the org chart</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Sets this person's position in the org chart</div>
             <select className="input" value={managerId} onChange={(e) => markDirty(setManagerId)(e.target.value)}>
               <option value="">No manager</option>
               {people.filter((p) => p.id !== person.id).map((p) => (
@@ -146,7 +146,7 @@ export default function EmployeeRecordDetail() {
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Jurisdiction</div>
-            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginBottom: 6 }}>Drives holiday applicability in payroll</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Drives holiday applicability in payroll</div>
             <input className="input" value={jurisdiction} onChange={(e) => markDirty(setJurisdiction)(e.target.value)} placeholder="e.g. Sri Lanka" />
           </div>
           <div>
@@ -162,7 +162,7 @@ export default function EmployeeRecordDetail() {
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Timezone</div>
             <div style={{ height: 20 }} />
-            <div className="input" style={{ color: 'rgba(0,0,0,0.53)' }}>{person.timezone}</div>
+            <div className="input" style={{ color: 'var(--color-text-secondary)' }}>{person.timezone}</div>
           </div>
         </div>
 
@@ -175,7 +175,7 @@ export default function EmployeeRecordDetail() {
           />
           <label htmlFor="payroll-excluded" style={{ fontSize: 14 }}>External (contractor / partner) — excluded from payroll</label>
         </div>
-        <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)', marginTop: 6 }}>Compensation is managed in the HR app.</div>
+        <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 6 }}>Compensation is managed in the HR app.</div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
           <button className="btn-dark" disabled={!dirty} onClick={save}>Save changes</button>
