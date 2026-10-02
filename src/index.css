@@ -1721,6 +1721,11 @@ body[data-navpos='top'] .stage {
   transform: translateX(16px);
 }
 
+.switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .settings-row {
   display: flex;
   align-items: center;

@@ -26,6 +26,11 @@ export type ReviewStage = 'lm' | 'hr'
 export interface SubmissionHistoryEntry {
   label: string
   at: string // ISO timestamp
+  // Tags the entries that drive the recall-request state machine below — the
+  // *last* history entry of this kind tells you whether a recall is currently
+  // pending, so no separate field (and no schema change) is needed.
+  kind?: 'recall-requested' | 'recall-approved' | 'recall-denied'
+  reason?: string
 }
 
 export interface WeekSubmission {
@@ -2668,6 +2673,68 @@ export function nextReviewStage(s: WeekSubmission): ReviewStage | null {
   if (s.lmStatus === 'Pending') return 'lm'
   if (s.hrStatus === 'Pending') return 'hr'
   return null
+}
+
+// Once a week is submitted (or fully approved) its entries are locked — the owner
+// can no longer edit them directly and has to request a recall instead.
+export function isLockedStatus(status: SubmissionStatus): boolean {
+  return status === 'Pending' || status === 'Approved'
+}
+
+export interface PendingRecallRequest {
+  reason: string
+  at: string
+}
+
+// The history log is append-only, so the *last* recall-flavored entry tells you
+// the current state: a trailing 'recall-requested' with nothing after it means a
+// request is still awaiting a decision; approved/denied — or none at all — means
+// there's nothing pending right now.
+export function pendingRecallRequest(s: WeekSubmission): PendingRecallRequest | null {
+  const last = s.history[s.history.length - 1]
+  if (last?.kind === 'recall-requested') return { reason: last.reason ?? '', at: last.at }
+  return null
+}
+
+export function requestRecall(id: string, reason: string) {
+  const sub = submissions.find((s) => s.id === id)
+  if (!sub) return
+  const now = new Date().toISOString()
+  const updated: WeekSubmission = {
+    ...sub,
+    history: [...sub.history, { label: `Recall requested — ${reason}`, at: now, kind: 'recall-requested', reason }],
+  }
+  setSubmissions(submissions.map((s) => (s.id === id ? updated : s)))
+  syncSubmissionUpsert(updated)
+  showToast('Recall requested — waiting on approval', 'info')
+}
+
+export function respondToRecall(id: string, decision: 'Approved' | 'Denied', reviewerName: string) {
+  const sub = submissions.find((s) => s.id === id)
+  if (!sub) return
+  const now = new Date().toISOString()
+  const historyEntry: SubmissionHistoryEntry =
+    decision === 'Approved'
+      ? { label: `Recall approved by ${reviewerName} — timesheet reopened for edits`, at: now, kind: 'recall-approved' }
+      : { label: `Recall denied by ${reviewerName}`, at: now, kind: 'recall-denied' }
+  const updated: WeekSubmission =
+    decision === 'Approved'
+      ? {
+          ...sub,
+          status: 'Not Submitted',
+          lmStatus: 'Pending',
+          lmBy: undefined,
+          lmAt: undefined,
+          hrStatus: 'Pending',
+          hrBy: undefined,
+          hrAt: undefined,
+          comment: undefined,
+          history: [...sub.history, historyEntry],
+        }
+      : { ...sub, history: [...sub.history, historyEntry] }
+  setSubmissions(submissions.map((s) => (s.id === id ? updated : s)))
+  syncSubmissionUpsert(updated)
+  showToast(decision === 'Approved' ? 'Recall approved — timesheet reopened for edits' : 'Recall request denied', decision === 'Approved' ? 'success' : 'danger')
 }
 
 export function submitWeek(personId: string, weekStart: string) {

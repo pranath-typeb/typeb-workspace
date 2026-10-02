@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
-import { ChevronLeftIcon, ClockIcon, CloseIcon } from '../../components/icons'
+import { ChevronLeftIcon, ChevronRightIcon, ClockIcon, CloseIcon, LockIcon } from '../../components/icons'
 import { avatarContent } from '../../components/Avatar'
 import { CURRENT_USER_ID, personById } from '../../data/people'
 import {
@@ -11,8 +11,12 @@ import {
   formatMinutes,
   formatTimeRange,
   formatWeekRange,
+  isLockedStatus,
   nextReviewStage,
+  pendingRecallRequest,
   projectLabel,
+  requestRecall,
+  respondToRecall,
   reviewSubmission,
   submissionFor,
   submitWeek,
@@ -45,6 +49,8 @@ export default function TimesheetDetail() {
   useSubmissions() // subscribe so this view re-renders after approve/reject/submit
   const [rejecting, setRejecting] = useState(false)
   const [comment, setComment] = useState('')
+  const [recalling, setRecalling] = useState(false)
+  const [recallReason, setRecallReason] = useState('')
 
   const person = personId ? personById(personId) : undefined
   const reviewer = personById(CURRENT_USER_ID)!
@@ -95,8 +101,12 @@ export default function TimesheetDetail() {
   }, [weekEntries, assignments, person.id])
 
   const stage = submission ? nextReviewStage(submission) : null
-  const canReview = !isOwn && stage !== null
+  const locked = isLockedStatus(status)
+  const recallReq = submission ? pendingRecallRequest(submission) : null
+  const canReview = !isOwn && stage !== null && !recallReq
   const canSubmit = isOwn && (status === 'Not Submitted' || status === 'Rejected') && totalMinutes > 0
+  const canRequestRecall = isOwn && locked && !recallReq
+  const canHandleRecall = !isOwn && recallReq !== null
 
   function approve() {
     if (!submission || !stage) return
@@ -118,6 +128,23 @@ export default function TimesheetDetail() {
     navigate(-1)
   }
 
+  function confirmRequestRecall() {
+    if (!submission) return
+    requestRecall(submission.id, recallReason.trim())
+    setRecalling(false)
+    setRecallReason('')
+  }
+
+  function approveRecall() {
+    if (!submission) return
+    respondToRecall(submission.id, 'Approved', reviewer.name)
+  }
+
+  function denyRecall() {
+    if (!submission) return
+    respondToRecall(submission.id, 'Denied', reviewer.name)
+  }
+
   return (
     <AppShell appIcon={<ClockIcon size={16} color="var(--color-text-secondary)" />} appLabel="Time" appHref="/time" sidebar={<TimeSidebar active={isOwn ? 'timesheets' : 'approvals'} />}>
       <button
@@ -132,7 +159,25 @@ export default function TimesheetDetail() {
           <div className="avatar" style={{ width: 44, height: 44, fontSize: 14 }}>{avatarContent(person)}</div>
           <div>
             <div className="serif" style={{ fontSize: 20, letterSpacing: '-0.6px' }}>{isOwn ? 'Your timesheet' : person.name}</div>
-            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{formatWeekRange(weekStart)}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+              <button
+                onClick={() => navigate(`/time/timesheets/${person.id}/${addDays(weekStart, -7)}`)}
+                aria-label="Previous week"
+                title="Previous week"
+                style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6 }}
+              >
+                <ChevronLeftIcon size={14} color="var(--color-text-secondary)" />
+              </button>
+              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', minWidth: 120, textAlign: 'center' }}>{formatWeekRange(weekStart)}</div>
+              <button
+                onClick={() => navigate(`/time/timesheets/${person.id}/${addDays(weekStart, 7)}`)}
+                aria-label="Next week"
+                title="Next week"
+                style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 6 }}
+              >
+                <ChevronRightIcon size={14} color="var(--color-text-secondary)" />
+              </button>
+            </div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -149,6 +194,36 @@ export default function TimesheetDetail() {
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           <ApprovalChip label="Line Manager" status={submission.lmStatus} by={submission.lmBy} at={submission.lmAt} />
           <ApprovalChip label="HR" status={submission.hrStatus} by={submission.hrBy} at={submission.hrAt} />
+        </div>
+      )}
+
+      {locked && (
+        <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', background: 'var(--color-background-muted)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <LockIcon size={16} color="var(--color-text-secondary)" />
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>
+                {recallReq ? 'Recall requested' : status === 'Approved' ? 'This week is locked — approved' : 'This week is locked — submitted for review'}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 }}>
+                {recallReq
+                  ? `“${recallReq.reason}”`
+                  : 'Entries can’t be edited while a submission is in review or approved. Request a recall if something needs fixing.'}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            {canRequestRecall && (
+              <button className="btn-outline" onClick={() => setRecalling(true)}>Request recall</button>
+            )}
+            {isOwn && recallReq && <span className="badge b-ember" style={{ fontSize: 11 }}>Awaiting approval</span>}
+            {canHandleRecall && (
+              <>
+                <button className="btn-outline" onClick={denyRecall}>Deny recall</button>
+                <button className="btn-dark" onClick={approveRecall}>Approve recall</button>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -231,7 +306,9 @@ export default function TimesheetDetail() {
 
       <div>
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Entries</div>
-        <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 10 }}>Toggle billable if it's wrong — the change is recorded in the history below.</div>
+        <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 10 }}>
+          {locked ? 'Locked — request a recall to make changes.' : "Toggle billable if it's wrong — the change is recorded in the history below."}
+        </div>
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <table>
             <thead>
@@ -258,6 +335,7 @@ export default function TimesheetDetail() {
                       type="button"
                       role="switch"
                       aria-checked={e.billable !== false}
+                      disabled={locked}
                       className={`switch${e.billable !== false ? ' on' : ''}`}
                       onClick={() => updateEntry(e.id, { billable: e.billable === false })}
                     >
@@ -336,6 +414,39 @@ export default function TimesheetDetail() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 4 }}>
               <button className="btn-outline" onClick={() => setRejecting(false)}>Cancel</button>
               <button className="btn-dark" disabled={!comment.trim()} onClick={confirmReject}>Reject timesheet</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {recalling && (
+        <div className="modal-backdrop" onClick={() => setRecalling(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div className="serif" style={{ fontSize: 20, letterSpacing: '-0.6px' }}>Request recall</div>
+                <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>{person.name} · {formatWeekRange(weekStart)}</div>
+              </div>
+              <button onClick={() => setRecalling(false)} aria-label="Close" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CloseIcon color="var(--color-text-secondary)" />
+              </button>
+            </div>
+
+            <div>
+              <div className="field-label">Reason *</div>
+              <textarea
+                className="input"
+                style={{ height: 90, alignItems: 'flex-start', paddingTop: 10, resize: 'vertical' }}
+                value={recallReason}
+                onChange={(e) => setRecallReason(e.target.value)}
+                placeholder="Why does this week need to be reopened?"
+                autoFocus
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 4 }}>
+              <button className="btn-outline" onClick={() => setRecalling(false)}>Cancel</button>
+              <button className="btn-dark" disabled={!recallReason.trim()} onClick={confirmRequestRecall}>Request recall</button>
             </div>
           </div>
         </div>
