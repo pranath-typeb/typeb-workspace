@@ -995,6 +995,33 @@ tr:hover .row-actions {
   pointer-events: auto;
 }
 
+/* Mobile responsiveness: the brand/left segment and the actions/right segment
+   should never get squeezed — only the pinned-apps row in the middle gives way,
+   scrolling horizontally instead of forcing every segment to crowd together or
+   overlap on a narrow screen. Flex items default to min-width:auto (refuse to
+   shrink below their content), so this needs an explicit min-width:0 override. */
+.bn-segment-left,
+.bn-segment-right {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.bn-segment-center {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.bn-bar-center {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.bn-bar-center::-webkit-scrollbar {
+  display: none;
+}
+
 /* auto-hide (Settings → Appearance → Pin nav bar off): the bar slides off its
    docked edge and only slides back in when the cursor hits the hot edge or
    the bar itself (e.g. while a popover is open). */
@@ -1164,6 +1191,14 @@ tr:hover .row-actions {
   padding: 12px 10px;
   border-radius: 0;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* Docked left/right, the pinned-apps segment can run out of vertical room
+   instead — same shrink-and-scroll treatment, rotated 90°. */
+.pos-left .bn-bar-center,
+.pos-right .bn-bar-center {
+  overflow-x: visible;
+  overflow-y: auto;
 }
 
 /* Square off the corners touching the screen edge the bar is docked to, and only
