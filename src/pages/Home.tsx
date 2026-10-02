@@ -11,8 +11,8 @@ import {
 } from '../data/dashboard'
 import { CURRENT_USER_ID } from '../data/people'
 import { addDays, categoryColor, minutesForPersonDate, projectLabel, todayLocal, useTimeEntries, weekStartFor, type TimeEntry } from '../data/timeEntries'
-import { startTimer } from '../data/timer'
-import { AlertFileIcon, CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon } from '../components/icons'
+import { startTimer, toggleTimerRunning, useTimerState } from '../data/timer'
+import { AlertFileIcon, CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon, StopIcon, TimerActivityIcon } from '../components/icons'
 import { avatarContent } from '../components/Avatar'
 
 const DAILY_TARGET_MINUTES = 480
@@ -84,6 +84,7 @@ export default function Home() {
     return () => clearInterval(t)
   }, [])
 
+  const timer = useTimerState()
   const requests = useLeaveRequests()
   const pendingDays = requests.filter((r) => r.status === 'Pending').reduce((sum, r) => sum + r.days, 0)
   const availablePto = Math.max(PTO_TOTAL_ACCRUED - PTO_TOTAL_USED - pendingDays, 0)
@@ -198,21 +199,48 @@ export default function Home() {
                       </button>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      {work.tasks.map((t) => (
-                        <div key={t.description} className="task-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 8px', borderRadius: 4 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColor(t.category), flexShrink: 0 }} />
-                          <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.description}</span>
-                          <span className="tag">{t.category}</span>
-                          <button
-                            onClick={() => startTimer({ description: t.description, projectId: t.projectId, category: t.category })}
-                            aria-label={`Resume "${t.description}" as timer`}
-                            title="Resume as timer"
-                            style={{ width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--color-background-muted)' }}
+                      {work.tasks.map((t) => {
+                        const isRunningThis =
+                          timer.running && timer.description === t.description && (timer.projectId || null) === (t.projectId ?? null)
+                        return (
+                          <div
+                            key={t.description}
+                            className="task-row"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 12,
+                              padding: '6px 8px',
+                              borderRadius: 4,
+                              background: isRunningThis ? 'rgba(0, 115, 111, 0.08)' : undefined,
+                            }}
                           >
-                            <PlayIcon size={11} color="var(--color-text-primary)" />
-                          </button>
-                        </div>
-                      ))}
+                            <span style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColor(t.category), flexShrink: 0 }} />
+                            <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.description}</span>
+                            {isRunningThis && <TimerActivityIcon size={13} color="#00736f" />}
+                            <span className="tag">{t.category}</span>
+                            <button
+                              onClick={() =>
+                                isRunningThis ? toggleTimerRunning() : startTimer({ description: t.description, projectId: t.projectId, category: t.category })
+                              }
+                              aria-label={isRunningThis ? `Pause "${t.description}"` : `Resume "${t.description}" as timer`}
+                              title={isRunningThis ? 'Pause timer' : 'Resume as timer'}
+                              style={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                background: isRunningThis ? '#00736f' : 'var(--color-background-muted)',
+                              }}
+                            >
+                              {isRunningThis ? <StopIcon size={10} color="#fff" /> : <PlayIcon size={11} color="var(--color-text-primary)" />}
+                            </button>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 ))}
