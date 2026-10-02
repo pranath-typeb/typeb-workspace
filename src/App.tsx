@@ -38,6 +38,7 @@ import ResetPassword from './pages/Auth/ResetPassword'
 import Settings from './pages/Settings'
 import BottomNav from './components/BottomNav'
 import ToastContainer from './components/ToastContainer'
+import ScrollToTopButton from './components/ScrollToTopButton'
 import { NavItem, NavGroupLabel, NavSep } from './components/NavItem'
 import { GridIcon, ClockIcon, LetterIcon, PolicyIcon, BenefitsIcon } from './components/icons'
 
@@ -130,6 +131,7 @@ export default function App() {
       <Route path="*" element={<Home />} />
     </Routes>
     {!isAuthRoute && <BottomNav />}
+    {!isAuthRoute && <ScrollToTopButton />}
     <ToastContainer />
     </>
   )
