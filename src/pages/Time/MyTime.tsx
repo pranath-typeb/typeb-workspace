@@ -746,8 +746,23 @@ function EntryRow({
   onResume: (entry: TimeEntry) => void
   onDelete: (entry: TimeEntry) => void
 }) {
+  const timer = useTimerState()
+  const isRunningThis =
+    timer.running && timer.description === entry.description && (timer.projectId || '') === (entry.projectId || '')
+
   return (
-    <div className="time-entry-row" style={{ display: 'flex', gap: 14, alignItems: 'center', padding: '10px 14px', border: '1px solid var(--color-border-default)', borderRadius: 10 }}>
+    <div
+      className="time-entry-row"
+      style={{
+        display: 'flex',
+        gap: 14,
+        alignItems: 'center',
+        padding: '10px 14px',
+        border: '1px solid var(--color-border-default)',
+        borderRadius: 10,
+        background: isRunningThis ? 'rgba(0, 115, 111, 0.08)' : undefined,
+      }}
+    >
       {entry.startMinutes !== undefined && (
         <div className="mono" style={{ width: 130, textAlign: 'right', fontSize: 11, color: 'var(--color-text-secondary)', flexShrink: 0 }}>
           {formatTimeRange(entry.startMinutes, entry.minutes)}
@@ -761,6 +776,7 @@ function EntryRow({
           {entry.billable === false && <span className="badge b-neutral" style={{ marginLeft: 6, fontSize: 9, padding: '0 6px', height: 16 }}>Non-billable</span>}
         </div>
       </div>
+      {isRunningThis && <TimerActivityIcon size={13} color="#00736f" />}
       <div className="mono" style={{ fontSize: 13, fontWeight: 500, flexShrink: 0 }}>{formatMinutes(entry.minutes)}</div>
       <div className="time-entry-actions">
         <button className="time-entry-action-btn time-entry-action-btn-danger" onClick={() => onDelete(entry)} aria-label="Delete entry" title="Delete">
@@ -772,8 +788,14 @@ function EntryRow({
         <button className="time-entry-action-btn" onClick={() => onDuplicate(entry)} aria-label="Duplicate entry" title="Duplicate">
           <DuplicateIcon size={13} color="var(--color-text-tertiary)" />
         </button>
-        <button className="time-entry-action-btn" onClick={() => onResume(entry)} aria-label="Resume as timer" title="Resume timer">
-          <PlayIcon size={12} color="var(--color-text-tertiary)" />
+        <button
+          className="time-entry-action-btn"
+          onClick={() => (isRunningThis ? toggleTimerRunning() : onResume(entry))}
+          aria-label={isRunningThis ? 'Pause timer' : 'Resume as timer'}
+          title={isRunningThis ? 'Pause timer' : 'Resume timer'}
+          style={isRunningThis ? { background: '#00736f' } : undefined}
+        >
+          {isRunningThis ? <StopIcon size={10} color="#fff" /> : <PlayIcon size={12} color="var(--color-text-tertiary)" />}
         </button>
       </div>
     </div>
