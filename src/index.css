@@ -1894,3 +1894,101 @@ body[data-navpos='top'] .stage {
 .scroll-to-top-btn:hover {
   background: var(--color-text-secondary);
 }
+
+/* timer live widget — floating "Dynamic Island"-style pill, top-center of every page */
+.timer-live-widget {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--nav-bg);
+  border: 1px solid var(--nav-border);
+  border-radius: 999px;
+  padding: 7px 8px 7px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  max-width: min(420px, calc(100vw - 32px));
+  transition: box-shadow 0.2s ease, padding 0.18s ease;
+}
+
+.timer-live-widget.is-paused {
+  opacity: 0.82;
+}
+
+.timer-live-widget:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.timer-live-widget-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.timer-live-widget-time {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nav-fg);
+  flex-shrink: 0;
+}
+
+.timer-live-widget-desc {
+  font-size: 12px;
+  color: var(--nav-fg-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.timer-live-widget-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--nav-fg-faint);
+  flex-shrink: 0;
+}
+
+.timer-live-widget-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  margin-left: 0;
+  transition: width 0.18s ease, opacity 0.12s ease, margin-left 0.18s ease;
+}
+
+.timer-live-widget:hover .timer-live-widget-actions {
+  width: 60px;
+  opacity: 1;
+  margin-left: 4px;
+}
+
+.timer-live-widget-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--nav-hover);
+}
+
+.timer-live-widget-btn:hover {
+  background: var(--nav-hover-strong);
+}
+
+.timer-live-widget-btn-finish {
+  background: rgba(0, 224, 184, 0.18);
+}
+
+.timer-live-widget-btn-finish:hover {
+  background: rgba(0, 224, 184, 0.3);
+}
