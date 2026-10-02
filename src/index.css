@@ -1492,11 +1492,18 @@ body[data-navpos='top'] .stage {
 }
 
 .bn-timer-toggle {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.bn-timer-toggle:hover {
+  background: var(--nav-hover-strong);
 }
 
 .bn-avatar {

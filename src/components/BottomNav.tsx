@@ -314,7 +314,7 @@ export default function BottomNav() {
                     toggleTimerRunning()
                   }}
                 >
-                  {running ? <StopIcon size={13} color="var(--nav-surface-fg)" /> : <PlayIcon size={13} color="var(--nav-surface-fg)" />}
+                  {running ? <StopIcon size={16} color="var(--nav-surface-fg)" /> : <PlayIcon size={16} color="var(--nav-surface-fg)" />}
                 </button>
               </div>
               {timerPopupOpen && (
