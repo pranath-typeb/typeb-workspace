@@ -218,7 +218,7 @@ export default function TimesheetDetail() {
 
       {locked && (
         <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', background: 'var(--color-background-muted)' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <LockIcon size={16} color="var(--color-text-secondary)" />
             <div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>
