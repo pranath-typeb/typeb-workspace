@@ -69,16 +69,33 @@ export function ClockIcon({ size = 20, color = 'currentColor' }: IconProps) {
 
 // A spinning "activity ring" of fading dashes — dropped in wherever the UI needs to
 // say "a timer is live right now" at a glance, independent of the ticking digits.
-const TIMER_ACTIVITY_DASHES = 8
+// 3×3 pixel matrix — cells pulse in a diagonal wave (top-left → bottom-right) rather
+// than a single ring spinning, so it reads as "live data ticking" instead of a loader.
+const TIMER_MATRIX_CELL = 5
+const TIMER_MATRIX_GAP = 2
+const TIMER_MATRIX_START = (24 - (TIMER_MATRIX_CELL * 3 + TIMER_MATRIX_GAP * 2)) / 2
 
 export function TimerActivityIcon({ size = 16, color = 'currentColor' }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" className="timer-activity-spin">
-      {Array.from({ length: TIMER_ACTIVITY_DASHES }, (_, i) => {
-        const angle = (i / TIMER_ACTIVITY_DASHES) * 360
-        const opacity = 1 - (i / TIMER_ACTIVITY_DASHES) * 0.82
-        return <rect key={i} x="10.75" y="1.5" width="2.5" height="6.5" rx="1.25" fill={color} opacity={opacity} transform={`rotate(${angle} 12 12)`} />
-      })}
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      {Array.from({ length: 3 }, (_, row) =>
+        Array.from({ length: 3 }, (_, col) => {
+          const delay = (row + col) * 0.14
+          return (
+            <rect
+              key={`${row}-${col}`}
+              className="timer-activity-cell"
+              style={{ animationDelay: `${delay}s` }}
+              x={TIMER_MATRIX_START + col * (TIMER_MATRIX_CELL + TIMER_MATRIX_GAP)}
+              y={TIMER_MATRIX_START + row * (TIMER_MATRIX_CELL + TIMER_MATRIX_GAP)}
+              width={TIMER_MATRIX_CELL}
+              height={TIMER_MATRIX_CELL}
+              rx={1.4}
+              fill={color}
+            />
+          )
+        }),
+      )}
     </svg>
   )
 }
