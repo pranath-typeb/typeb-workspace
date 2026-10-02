@@ -54,12 +54,12 @@ function WeekCard({
   return (
     <div
       className="card task-row"
-      style={{ minWidth: 190, flexShrink: 0, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10 }}
+      style={{ width: 212, flexShrink: 0, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10 }}
       onClick={onClick}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-        <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{formatWeekRange(weekStart)}</div>
-        <span className={`badge ${statusBadge[status]}`} style={{ fontSize: 9, flexShrink: 0 }}>{status}</span>
+        <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>{formatWeekRange(weekStart)}</div>
+        <span className={`badge ${statusBadge[status]}`} style={{ fontSize: 9, flexShrink: 0, whiteSpace: 'nowrap' }}>{status}</span>
       </div>
       <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.6px' }}>{formatMinutes(minutes)}</div>
       <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 32 }}>
