@@ -277,8 +277,8 @@ export function MessageIcon({ size = 16, color = 'currentColor' }: IconProps) {
 
 export function PlayIcon({ size = 14, color = 'currentColor' }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
-      <path d="M8 5v14l11-7z" />
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      <path d="M8 5v14l11-7z" fill={color} stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   )
 }
