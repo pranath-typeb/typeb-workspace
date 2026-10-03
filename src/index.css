@@ -1867,6 +1867,17 @@ body[data-navpos='top'] .stage {
     padding: 0 6px;
   }
 
+  /* Settings and Feedback are duplicated inside the avatar's profile menu —
+     drop the standalone icon buttons so the right segment never collides
+     with the center/left segments on a phone-width screen. */
+  .bn-compact-hide {
+    display: none;
+  }
+
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   .bn-popover {
     max-width: calc(100vw - 24px);
   }

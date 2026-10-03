@@ -406,7 +406,7 @@ export default function BottomNav() {
               )}
             </div>
 
-            <Link to="/settings" className="bn-icon-btn" aria-label="Settings" data-tooltip="Settings">
+            <Link to="/settings" className="bn-icon-btn bn-compact-hide" aria-label="Settings" data-tooltip="Settings">
               <SettingsGearIcon size={16} color="var(--nav-fg-muted)" />
             </Link>
 
@@ -461,7 +461,7 @@ export default function BottomNav() {
               )}
             </div>
 
-            <div ref={feedbackRef} style={{ position: 'relative' }}>
+            <div ref={feedbackRef} className="bn-compact-hide" style={{ position: 'relative' }}>
               <button
                 className="bn-icon-btn"
                 aria-label="Feedback"
