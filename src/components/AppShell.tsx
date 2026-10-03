@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { CloseIcon, PlusIcon } from './icons'
 
@@ -18,6 +18,15 @@ function isNarrowViewport(): boolean {
 
 export default function AppShell({ appIcon, appLabel, appHref, sidebar, children }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(isNarrowViewport)
+  const sidebarRef = useRef<HTMLDivElement>(null)
+
+  // On phones the sidebar is a horizontal chip strip — bring the active section into view.
+  useEffect(() => {
+    if (!window.matchMedia('(max-width: 640px)').matches) return
+    const strip = sidebarRef.current?.querySelector<HTMLElement>('.sidebar-inner')
+    const active = strip?.querySelector<HTMLElement>('.navitem')
+    if (strip && active) strip.scrollLeft = Math.max(0, active.offsetLeft - strip.clientWidth / 2 + active.offsetWidth / 2)
+  }, [])
 
   return (
     <section className="stage">
@@ -38,7 +47,7 @@ export default function AppShell({ appIcon, appLabel, appHref, sidebar, children
 
         <div className="body-row">
           {!collapsed && <div className="sidebar-backdrop" onClick={() => setCollapsed(true)} />}
-          <div className={`sidebar${collapsed ? ' sidebar-collapsed' : ''}`} style={{ alignSelf: 'flex-start' }}>
+          <div ref={sidebarRef} className={`sidebar${collapsed ? ' sidebar-collapsed' : ''}`} style={{ alignSelf: 'flex-start' }}>
             <div className="sidebar-inner">{sidebar}</div>
             <button
               className="sidebar-fab"

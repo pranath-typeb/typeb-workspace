@@ -16,6 +16,8 @@ import {
   PinIcon,
   PlayIcon,
   PresentationIcon,
+  TargetIcon,
+  TrophyIcon,
   SearchIcon,
   SettingsGearIcon,
   StopIcon,
@@ -34,6 +36,7 @@ import { togglePinnedApp, usePinnedApps } from '../data/pinnedApps'
 import { setTimerBillable, setTimerCategory, setTimerDescription, setTimerProjectId, stopAndSaveTimer, toggleTimerRunning, useTimerState } from '../data/timer'
 import { triggerScreenRipple } from '../data/screenRipple'
 import { setTheme, useTheme, type Theme } from '../data/theme'
+import MobileNav from './MobileNav'
 
 interface AppDef {
   key: string
@@ -51,6 +54,8 @@ const apps: AppDef[] = [
   { key: 'projects', label: 'Projects', description: 'Delivery and staffing', to: '/projects', icon: (c) => <PresentationIcon size={16} color={c} /> },
   { key: 'people', label: 'People', description: 'Directory and org', to: '/people', icon: (c) => <PeopleIcon size={16} color={c} /> },
   { key: 'calendar', label: 'Calendar', description: 'Company-wide', to: '/calendar', icon: (c) => <CalendarIcon size={16} color={c} /> },
+  { key: 'focus', label: 'Focus', description: 'Timer, sounds and breaks', to: '/focus', icon: (c) => <TargetIcon size={16} color={c} /> },
+  { key: 'challenges', label: 'Challenges', description: 'Team step competitions', to: '/challenges', icon: (c) => <TrophyIcon size={16} color={c} /> },
   { key: 'analytics', label: 'Analytics', description: 'Capacity and utilisation', to: '/analytics', icon: (c) => <ChartIcon size={16} color={c} /> },
 ]
 
@@ -79,6 +84,8 @@ function activeAppKey(pathname: string): string {
   if (pathname.startsWith('/projects')) return 'projects'
   if (pathname.startsWith('/calendar')) return 'calendar'
   if (pathname.startsWith('/analytics')) return 'analytics'
+  if (pathname.startsWith('/focus')) return 'focus'
+  if (pathname.startsWith('/challenges')) return 'challenges'
   return ''
 }
 
@@ -385,7 +392,7 @@ export default function BottomNav() {
                         <DollarSignIcon size={16} color="#ebebeb" />
                       </button>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, borderTop: '1px solid #262626', paddingTop: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, borderTop: '1px solid var(--nav-border)', paddingTop: 10 }}>
                       <Link
                         to="/time"
                         onClick={() => setTimerPopupOpen(false)}
@@ -430,7 +437,7 @@ export default function BottomNav() {
                       height: 8,
                       borderRadius: '50%',
                       background: '#ff4800',
-                      border: '2px solid #0a0a0a',
+                      border: '2px solid var(--nav-bg)',
                     }}
                   />
                 )}
@@ -556,7 +563,7 @@ export default function BottomNav() {
                     <LogOutIcon size={16} color="var(--nav-fg-muted)" /> Sign out
                   </button>
 
-                  <div style={{ borderTop: '1px solid #262626', marginTop: 6, paddingTop: 10 }}>
+                  <div style={{ borderTop: '1px solid var(--nav-border)', marginTop: 6, paddingTop: 10 }}>
                     <div className="bn-popover-title" style={{ padding: '0 8px 6px' }}>Theme</div>
                     <div className="bn-theme-row">
                       <button className={`bn-theme-pill${theme === 'light' ? ' active' : ''}`} onClick={() => chooseTheme('light')}>
@@ -576,6 +583,16 @@ export default function BottomNav() {
           </div>
         </div>
       </nav>
+
+      <MobileNav
+        apps={apps}
+        pinnedKeys={pinnedApps}
+        activeKey={active}
+        notifications={notifications}
+        unread={unread}
+        onMarkAllRead={markAllRead}
+        onOpenSearch={() => setSearchOpen(true)}
+      />
 
       {appSwitcherOpen && (
         <div

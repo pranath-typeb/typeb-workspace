@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLeaveRequests, PTO_TOTAL_ACCRUED, PTO_TOTAL_USED } from '../data/leave'
 import {
   upcomingEvents,
-  whoIsOff,
   weeklyHoursWorked,
   weeklyHoursTarget,
   weeklyBehindLabel,
@@ -14,7 +13,9 @@ import { addDays, categoryColor, minutesForPersonDate, projectLabel, todayLocal,
 import { startTimer, toggleTimerRunning, useTimerState } from '../data/timer'
 import { triggerScreenRipple } from '../data/screenRipple'
 import { AlertFileIcon, CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon, StopIcon, TimerActivityIcon } from '../components/icons'
-import { avatarContent } from '../components/Avatar'
+import WellbeingRow from '../components/WellbeingRow'
+import QuickActions from '../components/QuickActions'
+import WhoIsOff from '../components/WhoIsOff'
 
 const DAILY_TARGET_MINUTES = 480
 
@@ -160,10 +161,12 @@ export default function Home() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            {/* Left column */}
-            <div style={{ flex: '1 1 480px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ background: 'var(--color-background-subtle)', border: '1px solid var(--color-border-default)', borderRadius: 14 }}>
+          <QuickActions />
+
+          <div className="dash">
+            {/* Main column: the work */}
+            <div className="dash-col">
+              <div style={{ order: 2, background: 'var(--color-background-subtle)', border: '1px solid var(--color-border-default)', borderRadius: 14 }}>
                 <div style={{ padding: '20px 20px 12px' }}>
                   <SectionLabel>Recent Works</SectionLabel>
                 </div>
@@ -252,70 +255,16 @@ export default function Home() {
                 ))}
               </div>
 
-              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                <div style={{ flex: '1 1 340px', border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: 21, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <SectionLabel>Events this week</SectionLabel>
-                    <SmallLink to="/calendar">View calendar</SmallLink>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {upcomingEvents.map((e) => (
-                      <div key={e.title} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                        <div style={{ width: 40, background: 'var(--color-background-muted)', border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: '5px 1px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{e.month}</span>
-                          <span style={{ background: '#2f2f33', color: '#fff', fontSize: 13, fontWeight: 500, borderRadius: 10, padding: '1px 7px' }}>{e.day}</span>
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500 }}>
-                            {e.kind === 'birthday' ? <CakeIcon size={14} color="var(--color-text-primary)" /> : <FlagIcon size={14} color="var(--color-text-primary)" />}
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.title}</span>
-                          </div>
-                          <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{e.subtitle}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
-                <div style={{ flex: '1 1 240px', border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: 21, display: 'flex', flexDirection: 'column', gap: 14, justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <SectionLabel>Who's off</SectionLabel>
-                    <Link to="/people" style={{ background: 'var(--color-background-muted)', fontSize: 12, fontWeight: 600, padding: '4px 8px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 2 }}>
-                      All Teams <ChevronRightIcon size={12} color="var(--color-text-primary)" />
-                    </Link>
-                  </div>
-                  <div style={{ display: 'flex' }}>
-                    {whoIsOff.map((p, i) => (
-                      <div
-                        key={p.initials}
-                        title={p.name}
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: '50%',
-                          background: '#ff4800',
-                          border: '3px solid var(--color-background-page)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#fff',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          marginLeft: i === 0 ? 0 : -10,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {avatarContent(p)}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className="dash-wellbeing" style={{ order: 3 }}>
+                <SectionLabel>Wellbeing</SectionLabel>
+                <WellbeingRow />
               </div>
             </div>
 
-            {/* Right column */}
-            <div style={{ width: 420, maxWidth: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16, alignSelf: 'stretch' }}>
-              <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Side column: your time & people */}
+            <div className="dash-col">
+              <div className="card" style={{ order: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <SectionLabel>This week</SectionLabel>
                   <SmallLink to="/time">Open Tracker</SmallLink>
@@ -335,7 +284,7 @@ export default function Home() {
                           flex: 1,
                           height: 64,
                           background: 'var(--color-background-page)',
-                          border: d.today ? '1.5px dashed #00736f' : '1px solid var(--color-border-default)',
+                          border: d.today ? '1.5px dashed var(--brand-mid)' : '1px solid var(--color-border-default)',
                           boxShadow: d.today ? '0 2px 4px rgba(20,22,27,0.05), 0 4px 12px rgba(20,22,27,0.08)' : 'none',
                           borderRadius: 9999,
                           padding: 3,
@@ -354,7 +303,7 @@ export default function Home() {
                               right: 0,
                               bottom: 0,
                               height: `${fillPct}%`,
-                              background: '#004543',
+                              background: 'var(--brand-deep)',
                               transition: 'height 0.4s ease',
                             }}
                           />
@@ -404,7 +353,7 @@ export default function Home() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <span
                             style={{
-                              background: w.onTrack ? '#004543' : '#ff4800',
+                              background: w.onTrack ? 'var(--brand-deep)' : '#ff4800',
                               color: '#f5f5f5',
                               fontSize: 12,
                               fontWeight: 600,
@@ -422,9 +371,9 @@ export default function Home() {
                 </div>
               </div>
 
-              <div style={{ border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'space-between' }}>
+              <div className="dash-card" style={{ order: 4, border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <SectionLabel>Available PTO</SectionLabel>
+                  <SectionLabel>Time off</SectionLabel>
                   <SmallLink to="/hr/leave">My Leave</SmallLink>
                 </div>
                 {(() => {
@@ -440,7 +389,7 @@ export default function Home() {
                         cy="56"
                         r={r}
                         fill="none"
-                        stroke="#004543"
+                        stroke="var(--brand-text)"
                         strokeWidth="12"
                         strokeLinecap="round"
                         strokeDasharray={`${usedLen} ${circumference}`}
@@ -458,7 +407,7 @@ export default function Home() {
                         strokeDashoffset={-usedLen}
                         transform="rotate(-90 56 56)"
                       />
-                      <circle cx="56" cy="56" r="30" fill="#004543" />
+                      <circle cx="56" cy="56" r="30" fill="var(--brand-deep)" />
                     </svg>
                   )
                 })()}
@@ -472,7 +421,35 @@ export default function Home() {
                   </div>
                   <Link to="/hr/leave" className="btn-dark">Request Leave</Link>
                 </div>
+                <div style={{ borderTop: '1px solid var(--color-border-subtle)', paddingTop: 14 }}>
+                  <WhoIsOff />
+                </div>
               </div>
+
+                <div className="dash-card" style={{ order: 5, border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: 21, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <SectionLabel>Events this week</SectionLabel>
+                    <SmallLink to="/calendar">View calendar</SmallLink>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {upcomingEvents.map((e) => (
+                      <div key={e.title} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <div style={{ width: 40, background: 'var(--color-background-muted)', border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: '5px 1px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{e.month}</span>
+                          <span style={{ background: '#2f2f33', color: '#fff', fontSize: 13, fontWeight: 500, borderRadius: 10, padding: '1px 7px' }}>{e.day}</span>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500 }}>
+                            {e.kind === 'birthday' ? <CakeIcon size={14} color="var(--color-text-primary)" /> : <FlagIcon size={14} color="var(--color-text-primary)" />}
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.title}</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{e.subtitle}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
             </div>
           </div>
         </div>

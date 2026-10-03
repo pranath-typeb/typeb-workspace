@@ -38,7 +38,7 @@ export default function LetterPreview() {
   const tenureStart = fmtDateShort(person.startDate)
 
   return (
-    <section className="stage" style={{ background: 'var(--muted-chip-bg, #f5f5f5)' }}>
+    <section className="stage" style={{ background: 'var(--color-background-subtle)' }}>
       <div style={{ width: '100%', maxWidth: 680, padding: '24px 16px 60px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button

@@ -4,6 +4,7 @@ import { addLetterRequest, LETTER_TYPES, type LetterType } from '../data/letters
 import { usePayrollPeriods } from '../data/payroll'
 import { showToast } from '../data/toast'
 import { CloseIcon } from './icons'
+import { Select } from './SearchableSelect'
 
 interface RequestLetterModalProps {
   onClose: () => void
@@ -57,11 +58,11 @@ export default function RequestLetterModal({ onClose, requestedBy, defaultType =
 
         <div>
           <div className="field-label">Letter type</div>
-          <select className="input" value={type} onChange={(e) => setType(e.target.value as LetterType)}>
+          <Select className="input" value={type} onChange={(e) => setType(e.target.value as LetterType)}>
             {LETTER_TYPES.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {isPayslip ? (

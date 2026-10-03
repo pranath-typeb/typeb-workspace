@@ -52,7 +52,7 @@ export default function ProjectDetail() {
       sidebar={
         <>
           <NavGroupLabel label="General" />
-          <NavItem to="/projects" icon={<ProjectsIcon color="#fafafa" />} label="Projects" active />
+          <NavItem to="/projects" icon={<ProjectsIcon color="var(--color-text-inverse)" />} label="Projects" active />
           <NavItem to="/projects/staffing" icon={<StaffingIcon />} label="Staffing" />
           <NavItem to="/projects/clients" icon={<BuildingIcon />} label="Clients" />
         </>
@@ -83,9 +83,9 @@ export default function ProjectDetail() {
               </button>
               <button
                 onClick={handleDelete}
-                style={{ height: 36, padding: '0 14px', borderRadius: 10, fontSize: 14, fontWeight: 600, background: '#ffe0e0', color: '#c53030', display: 'flex', alignItems: 'center', gap: 6 }}
+                style={{ height: 36, padding: '0 14px', borderRadius: 10, fontSize: 14, fontWeight: 600, background: 'var(--danger-bg)', color: 'var(--danger-fg)', display: 'flex', alignItems: 'center', gap: 6 }}
               >
-                <TrashIcon color="#c53030" /> Delete
+                <TrashIcon color="var(--danger-fg)" /> Delete
               </button>
             </div>
           </div>

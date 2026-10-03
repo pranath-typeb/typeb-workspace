@@ -11,9 +11,9 @@ export default function PayrollSidebar({ active }: { active: PayrollSection }) {
   return (
     <>
       <NavGroupLabel label="General" />
-      <NavItem to="/payroll" icon={<PayrollFileIcon color={active === 'dashboard' ? '#fafafa' : undefined} />} label="Dashboard" active={active === 'dashboard'} />
-      <NavItem to="/payroll/reviews" icon={<PayrollFileIcon color={active === 'reviews' ? '#fafafa' : undefined} />} label="Reviews" active={active === 'reviews'} badge={needsAttention} />
-      <NavItem to="/payroll/my" icon={<PayrollFileIcon color={active === 'my-payroll' ? '#fafafa' : undefined} />} label="My Payroll" active={active === 'my-payroll'} />
+      <NavItem to="/payroll" icon={<PayrollFileIcon color={active === 'dashboard' ? 'var(--color-text-inverse)' : undefined} />} label="Dashboard" active={active === 'dashboard'} />
+      <NavItem to="/payroll/reviews" icon={<PayrollFileIcon color={active === 'reviews' ? 'var(--color-text-inverse)' : undefined} />} label="Reviews" active={active === 'reviews'} badge={needsAttention} />
+      <NavItem to="/payroll/my" icon={<PayrollFileIcon color={active === 'my-payroll' ? 'var(--color-text-inverse)' : undefined} />} label="My Payroll" active={active === 'my-payroll'} />
     </>
   )
 }

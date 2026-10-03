@@ -13,7 +13,7 @@ export interface CalendarEvent {
 
 export const categoryColor: Record<EventCategory, string> = {
   Birthday: '#c084fc',
-  'Public Holiday': '#004543',
+  'Public Holiday': '#1f8a85',
   'Main Event': '#ff6d33',
   'Employee Leave': '#3b82f6',
 }

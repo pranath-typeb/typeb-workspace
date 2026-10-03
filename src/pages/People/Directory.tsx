@@ -5,6 +5,7 @@ import PeopleSidebar from '../../components/PeopleSidebar'
 import { PeopleIcon } from '../../components/icons'
 import { avatarContent } from '../../components/Avatar'
 import { people, deptBadgeClass, localTimeFor, type Department } from '../../data/people'
+import { Select } from '../../components/SearchableSelect'
 
 const departments: Department[] = ['Technology', 'Growth', 'Strategy', 'Operations', 'People']
 
@@ -47,12 +48,12 @@ export default function Directory() {
         </div>
         <div>
           <div className="field-label">Department</div>
-          <select className="input" style={{ width: 160 }} value={dept} onChange={(e) => setDept(e.target.value as 'All' | Department)}>
+          <Select className="input" style={{ width: 160 }} value={dept} onChange={(e) => setDept(e.target.value as 'All' | Department)}>
             <option value="All">All</option>
             {departments.map((d) => (
               <option key={d} value={d}>{d}</option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 

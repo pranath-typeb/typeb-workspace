@@ -17,6 +17,7 @@ export default function ConfirmDialog({ title, message, confirmLabel = 'Confirm'
           <button className="btn-outline" onClick={onCancel}>Cancel</button>
           <button
             className="btn-dark"
+            data-destructive={danger ? '' : undefined}
             style={danger ? { background: '#c53030' } : undefined}
             onClick={onConfirm}
           >

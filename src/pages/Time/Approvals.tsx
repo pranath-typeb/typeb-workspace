@@ -17,6 +17,7 @@ import {
   type ReviewStage,
   type WeekSubmission,
 } from '../../data/timeEntries'
+import { Select } from '../../components/SearchableSelect'
 
 type Tab = 'Awaiting me' | 'Pending' | 'Approved' | 'Rejected' | 'All'
 
@@ -184,16 +185,16 @@ export default function Approvals() {
         </div>
         <div style={{ flex: 1, minWidth: 160 }}>
           <div className="field-label">Department</div>
-          <select className="input" value={deptFilter} onChange={(e) => setDeptFilter(e.target.value as Department | 'All')}>
+          <Select className="input" value={deptFilter} onChange={(e) => setDeptFilter(e.target.value as Department | 'All')}>
             <option value="All">Any</option>
             {DEPARTMENTS.map((d) => (
               <option key={d} value={d}>{d}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div style={{ flex: 1, minWidth: 180 }}>
           <div className="field-label">Timesheet period</div>
-          <select
+          <Select
             className="input"
             value={effectiveWeekFilter}
             onChange={(e) => {
@@ -205,7 +206,7 @@ export default function Approvals() {
             {weeks.map((w) => (
               <option key={w} value={w}>{formatWeekRange(w)}</option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 

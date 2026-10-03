@@ -21,7 +21,7 @@ export function NavItem({ to, icon, label, active, badge }: NavItemProps) {
           className="mono navitem-badge"
           style={{
             background: active ? '#99c7c5' : 'var(--color-border-default)',
-            color: active ? '#004543' : '#525252',
+            color: active ? '#004543' : 'var(--color-text-secondary)',
             fontSize: 10,
             fontWeight: 700,
             padding: '1px 6px',

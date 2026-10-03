@@ -64,7 +64,7 @@ function WeekCard({
       <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.6px' }}>{formatMinutes(minutes)}</div>
       <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 32 }}>
         {dayMinutes.map((m, i) => (
-          <div key={i} style={{ flex: 1, borderRadius: 2, background: m > 0 ? '#3a8f8c' : 'var(--color-border-default)', height: Math.max(3, (m / max) * 32) }} />
+          <div key={i} style={{ flex: 1, borderRadius: 2, background: m > 0 ? 'var(--brand-bar)' : 'var(--color-border-default)', height: Math.max(3, (m / max) * 32) }} />
         ))}
       </div>
     </div>
@@ -249,11 +249,11 @@ function TimesheetRow({
           {formatMinutes(minutes)} / {formatMinutes(WEEKLY_TARGET_MINUTES)}
         </div>
         <div style={{ height: 4, background: 'var(--color-border-default)', borderRadius: 9999, overflow: 'hidden', marginTop: 8, maxWidth: 220 }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: status === 'Rejected' ? '#ff6d33' : '#004543' }} />
+          <div style={{ height: '100%', width: `${pct}%`, background: status === 'Rejected' ? '#ff6d33' : 'var(--brand-deep)' }} />
         </div>
       </div>
       {status === 'Rejected' && submission?.comment && (
-        <div style={{ fontSize: 12, color: '#c53030', maxWidth: 220, flexShrink: 0 }}>{submission.comment}</div>
+        <div style={{ fontSize: 12, color: 'var(--danger-fg)', maxWidth: 220, flexShrink: 0 }}>{submission.comment}</div>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         <span className={`badge ${statusBadge[status]}`}>{status}</span>

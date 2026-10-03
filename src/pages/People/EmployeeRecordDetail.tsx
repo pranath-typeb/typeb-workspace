@@ -4,6 +4,7 @@ import AppShell from '../../components/AppShell'
 import PeopleSidebar from '../../components/PeopleSidebar'
 import { ChevronLeftIcon, OrgChartIcon, PeopleIcon, RefreshIcon } from '../../components/icons'
 import { people, resyncPerson, updatePerson, usePeople, type Department, type EmploymentType } from '../../data/people'
+import { Select } from '../../components/SearchableSelect'
 
 const departments: Department[] = ['Technology', 'Growth', 'Strategy', 'Operations', 'People']
 const employmentTypes: EmploymentType[] = ['full_time', 'part_time', 'contract']
@@ -112,8 +113,8 @@ export default function EmployeeRecordDetail() {
             {i === chain.length - 1 ? <b>{p.name}</b> : p.name}
           </span>
         ))}
-        <Link to="/people/org-chart" style={{ marginLeft: 8, color: '#004543', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-          <OrgChartIcon size={13} color="#004543" /> View in org chart
+        <Link to="/people/org-chart" style={{ marginLeft: 8, color: 'var(--brand-text)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <OrgChartIcon size={13} color="var(--brand-text)" /> View in org chart
         </Link>
       </div>
 
@@ -127,22 +128,22 @@ export default function EmployeeRecordDetail() {
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Manager</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Sets this person's position in the org chart</div>
-            <select className="input" value={managerId} onChange={(e) => markDirty(setManagerId)(e.target.value)}>
+            <Select className="input" value={managerId} onChange={(e) => markDirty(setManagerId)(e.target.value)}>
               <option value="">No manager</option>
               {people.filter((p) => p.id !== person.id).map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Department</div>
             <div style={{ height: 20 }} />
-            <select className="input" value={department} onChange={(e) => markDirty(setDepartment)(e.target.value as Department | '')}>
+            <Select className="input" value={department} onChange={(e) => markDirty(setDepartment)(e.target.value as Department | '')}>
               <option value="">No department</option>
               {departments.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Jurisdiction</div>
@@ -152,12 +153,12 @@ export default function EmployeeRecordDetail() {
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Employment type</div>
             <div style={{ height: 20 }} />
-            <select className="input" value={employmentType} onChange={(e) => markDirty(setEmploymentType)(e.target.value as EmploymentType | '')}>
+            <Select className="input" value={employmentType} onChange={(e) => markDirty(setEmploymentType)(e.target.value as EmploymentType | '')}>
               <option value="">Unset</option>
               {employmentTypes.map((t) => (
                 <option key={t} value={t}>{t.replace('_', ' ')}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Timezone</div>

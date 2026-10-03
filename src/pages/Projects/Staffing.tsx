@@ -9,6 +9,7 @@ import { useProjects } from '../../data/projects'
 import { allocationStatus, committedHoursFor, removeAssignment, useAssignments } from '../../data/staffing'
 import { addDays, formatWeekRange, todayLocal, weekStartFor } from '../../data/timeEntries'
 import CommitHoursModal from '../../components/CommitHoursModal'
+import { Select } from '../../components/SearchableSelect'
 
 type FilterTab = 'Everyone' | 'Over-allocated' | 'At capacity' | 'Has room' | 'Unassigned'
 type Granularity = 'Weekly' | 'Monthly' | 'Yearly'
@@ -185,16 +186,16 @@ export default function Staffing() {
   }
 
   function cellStyle(pct: number, current: boolean) {
-    let background = '#cce3e2'
-    let color = '#004543'
+    let background = 'var(--brand-soft-bg)'
+    let color = 'var(--brand-deep)'
     if (pct > 100) {
       background = '#171717'
       color = '#fff'
     } else if (pct >= 95) {
-      background = '#00736f'
+      background = 'var(--brand-mid)'
       color = '#fff'
     } else if (pct > 0) {
-      background = '#3a8f8c'
+      background = 'var(--brand-bar)'
       color = '#fff'
     }
     return {
@@ -218,7 +219,7 @@ export default function Staffing() {
         <>
           <NavGroupLabel label="General" />
           <NavItem to="/projects" icon={<ProjectsIcon />} label="Projects" />
-          <NavItem to="/projects/staffing" icon={<StaffingIcon color="#fafafa" />} label="Staffing" active />
+          <NavItem to="/projects/staffing" icon={<StaffingIcon color="var(--color-text-inverse)" />} label="Staffing" active />
           <NavItem to="/projects/clients" icon={<BuildingIcon />} label="Clients" />
         </>
       }
@@ -246,7 +247,7 @@ export default function Staffing() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
+      <div className="stat-strip" style={{ display: 'flex', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
         {[
           { label: 'Capacity', value: `${totalCapacity}h`, sub: `Total hours this ${granularity.toLowerCase().replace('ly', '')}` },
           { label: 'Committed', value: `${totalCommitted}h`, sub: 'Assigned to projects' },
@@ -254,14 +255,14 @@ export default function Staffing() {
           { label: 'Logged', value: '0h', sub: 'Actual time recorded' },
         ].map((s, i, arr) => (
           <div key={s.label} style={{ flex: 1, padding: '16px 20px', borderRight: i < arr.length - 1 ? '1px solid var(--color-border-subtle)' : 'none' }}>
-            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: '#5f636c' }}>{s.label}</div>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--muted-label)' }}>{s.label}</div>
             <div style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.48px', marginTop: 8 }}>{s.value}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#5f636c' }}>{s.sub}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-label)' }}>{s.sub}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid var(--color-border-default)' }}>
+      <div className="scroll-x" style={{ display: 'flex', gap: 24, borderBottom: '1px solid var(--color-border-default)' }}>
         {(Object.keys(counts) as FilterTab[]).map((t) => (
           <button
             key={t}
@@ -292,29 +293,29 @@ export default function Staffing() {
         </div>
         <div style={{ flex: 1, minWidth: 140 }}>
           <div className="field-label">Department</div>
-          <select className="input" value={dept} onChange={(e) => setDept(e.target.value as 'All' | Department)}>
+          <Select className="input" value={dept} onChange={(e) => setDept(e.target.value as 'All' | Department)}>
             <option value="All">Any</option>
             {departments.map((d) => (
               <option key={d} value={d}>{d}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div style={{ flex: 1, minWidth: 140 }}>
           <div className="field-label">Employment</div>
-          <select className="input" value={employment} onChange={(e) => setEmployment(e.target.value as 'All' | EmploymentType)}>
+          <Select className="input" value={employment} onChange={(e) => setEmployment(e.target.value as 'All' | EmploymentType)}>
             <option value="All">Any</option>
             {employmentTypes.map((t) => (
               <option key={t} value={t}>{employmentLabel[t]}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div style={{ flex: 1, minWidth: 180 }}>
           <div className="field-label">Sort by</div>
-          <select className="input" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
+          <Select className="input" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
             {sortOptions.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -324,7 +325,7 @@ export default function Staffing() {
             <div key={g.manager ?? 'all'} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {groupByManager && (
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {g.manager} <span className="mono" style={{ color: 'rgba(0,0,0,0.35)' }}>({g.rows.length})</span>
+                  {g.manager} <span className="mono" style={{ color: 'var(--color-text-tertiary)' }}>({g.rows.length})</span>
                 </div>
               )}
               {g.rows.map((r) => {
@@ -352,7 +353,7 @@ export default function Staffing() {
                           style={{
                             width: `${Math.min(metric === 'Allocated hours' ? r.pct : availablePct, 100)}%`,
                             height: '100%',
-                            background: metric === 'Allocated hours' ? (r.pct > 100 ? '#ff6d33' : '#004543') : '#00736f',
+                            background: metric === 'Allocated hours' ? (r.pct > 100 ? '#ff6d33' : 'var(--brand-deep)') : 'var(--brand-mid)',
                           }}
                         />
                       </div>
@@ -384,7 +385,7 @@ export default function Staffing() {
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                               <span className="mono" style={{ fontSize: 14, fontWeight: 600 }}>{Math.round(a.hoursPerWeek * range.multiplier)}h</span>
-                              <button onClick={() => removeAssignment(a.id)} style={{ fontSize: 12, fontWeight: 600, color: '#c53030' }}>Remove</button>
+                              <button onClick={() => removeAssignment(a.id)} style={{ fontSize: 12, fontWeight: 600, color: 'var(--danger-fg)' }}>Remove</button>
                             </div>
                           </div>
                         ))}

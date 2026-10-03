@@ -100,7 +100,7 @@ export default function MyTeam() {
                 <OrgChartIcon size={32} color="var(--color-text-tertiary)" />
               </div>
               <div style={{ fontSize: 14 }}>You have no direct reports.</div>
-              <Link to="/people/org-chart" style={{ fontSize: 13, color: '#004543', fontWeight: 600, marginTop: 6, display: 'inline-block' }}>Find yourself in the org chart</Link>
+              <Link to="/people/org-chart" style={{ fontSize: 13, color: 'var(--brand-text)', fontWeight: 600, marginTop: 6, display: 'inline-block' }}>Find yourself in the org chart</Link>
             </div>
           )}
         </>
@@ -112,7 +112,7 @@ export default function MyTeam() {
                 <ProjectsIcon size={32} color="var(--color-text-tertiary)" />
               </div>
               <div style={{ fontSize: 14 }}>You're not staffed on any projects yet.</div>
-              <Link to="/projects" style={{ fontSize: 13, color: '#004543', fontWeight: 600, marginTop: 6, display: 'inline-block' }}>Browse projects</Link>
+              <Link to="/projects" style={{ fontSize: 13, color: 'var(--brand-text)', fontWeight: 600, marginTop: 6, display: 'inline-block' }}>Browse projects</Link>
             </div>
           ) : (
             projectTeammates.myProjects.map((proj) => {

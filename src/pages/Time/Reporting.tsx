@@ -23,6 +23,7 @@ import {
   weekStartFor,
   WEEKLY_TARGET_MINUTES,
 } from '../../data/timeEntries'
+import { Select } from '../../components/SearchableSelect'
 
 type View = 'mine' | 'team'
 
@@ -221,7 +222,7 @@ export default function Reporting() {
                     <div
                       className="mono"
                       title={formatMinutes(t.minutes)}
-                      style={{ width: 28, borderRadius: '6px 6px 2px 2px', background: t.minutes >= WEEKLY_TARGET_MINUTES ? '#004543' : '#3a8f8c', height: Math.max(4, (t.minutes / maxTrend) * 120) }}
+                      style={{ width: 28, borderRadius: '6px 6px 2px 2px', background: t.minutes >= WEEKLY_TARGET_MINUTES ? 'var(--brand-deep)' : 'var(--brand-bar)', height: Math.max(4, (t.minutes / maxTrend) * 120) }}
                     />
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', textAlign: 'center' }}>{formatWeekRange(t.weekStart)}</div>
@@ -248,7 +249,7 @@ export default function Reporting() {
                         <span className="mono" style={{ color: 'var(--color-text-secondary)' }}>{formatMinutes(row.minutes)}</span>
                       </div>
                       <div style={{ height: 6, background: 'var(--color-border-default)', borderRadius: 9999, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${row.pct}%`, background: isUnassigned ? NO_PROJECT_COLOR : '#004543' }} />
+                        <div style={{ height: '100%', width: `${row.pct}%`, background: isUnassigned ? NO_PROJECT_COLOR : 'var(--brand-deep)' }} />
                       </div>
                     </div>
                   )
@@ -289,11 +290,11 @@ export default function Reporting() {
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <div>
               <div className="field-label">Week</div>
-              <select className="input" style={{ width: 220 }} value={teamWeek} onChange={(e) => setTeamWeek(e.target.value)}>
+              <Select className="input" style={{ width: 220 }} value={teamWeek} onChange={(e) => setTeamWeek(e.target.value)}>
                 {teamWeekOptions.map((w) => (
                   <option key={w} value={w}>{formatWeekRange(w)}</option>
                 ))}
-              </select>
+              </Select>
             </div>
             <button className="btn-outline" onClick={exportTeam}>
               <DownloadIcon size={14} color="var(--color-text-primary)" /> Export CSV
@@ -344,7 +345,7 @@ export default function Reporting() {
                       <td className="td2">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <div style={{ width: 60, height: 6, background: 'var(--color-border-default)', borderRadius: 9999, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${Math.min(100, r.pct)}%`, background: r.pct > 100 ? '#ff6d33' : '#004543' }} />
+                            <div style={{ height: '100%', width: `${Math.min(100, r.pct)}%`, background: r.pct > 100 ? '#ff6d33' : 'var(--brand-deep)' }} />
                           </div>
                           <span className="mono" style={{ fontSize: 12 }}>{r.pct}%</span>
                         </div>
@@ -378,12 +379,12 @@ export default function Reporting() {
 
             <div>
               <div className="field-label">Assign all to</div>
-              <select className="input" value={assignProjectId} onChange={(e) => setAssignProjectId(e.target.value)}>
+              <Select className="input" value={assignProjectId} onChange={(e) => setAssignProjectId(e.target.value)}>
                 <option value="">Choose a project…</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>{p.name} — {p.client}</option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 4 }}>

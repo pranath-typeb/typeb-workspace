@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { PROJECT_COLOR_PALETTE, updateProject, type BillingType, type Project, type ProjectStatus } from '../data/projects'
 import { people } from '../data/people'
 import { CloseIcon } from './icons'
-import SearchableSelect from './SearchableSelect'
+import SearchableSelect, { Select } from './SearchableSelect'
 
 interface EditProjectModalProps {
   project: Project
@@ -113,22 +113,22 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
           </div>
           <div style={{ flex: 1 }}>
             <div className="field-label">Project type *</div>
-            <select className="input" value={billing} onChange={(e) => setBilling(e.target.value as BillingType)}>
+            <Select className="input" value={billing} onChange={(e) => setBilling(e.target.value as BillingType)}>
               {billingTypes.map((b) => (
                 <option key={b} value={b}>{b}</option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <div style={{ flex: 1 }}>
             <div className="field-label">Project status *</div>
-            <select className="input" value={status} onChange={(e) => setStatus(e.target.value as ProjectStatus)}>
+            <Select className="input" value={status} onChange={(e) => setStatus(e.target.value as ProjectStatus)}>
               {statuses.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, height: 36, marginTop: 20, cursor: 'pointer' }}>
             <span

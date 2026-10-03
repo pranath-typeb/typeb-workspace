@@ -248,7 +248,7 @@ export default function TimesheetDetail() {
 
       {submission?.status === 'Rejected' && submission.comment && (
         <div className="card" style={{ borderColor: '#ffb199', background: '#fff4f0' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#c53030', marginBottom: 4 }}>Rejection note</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--danger-fg)', marginBottom: 4 }}>Rejection note</div>
           <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.7)' }}>{submission.comment}</div>
         </div>
       )}
@@ -294,7 +294,7 @@ export default function TimesheetDetail() {
                 </div>
                 <div style={{ height: 6, background: 'var(--color-border-default)', borderRadius: 9999, overflow: 'hidden' }}>
                   {row.pct !== null && (
-                    <div style={{ height: '100%', width: `${Math.min(row.pct, 100)}%`, background: row.pct > 100 ? '#cc3a00' : '#004543' }} />
+                    <div style={{ height: '100%', width: `${Math.min(row.pct, 100)}%`, background: row.pct > 100 ? 'var(--warn-fg)' : 'var(--brand-deep)' }} />
                   )}
                 </div>
               </div>
@@ -313,7 +313,7 @@ export default function TimesheetDetail() {
                   <div
                     className="mono"
                     title={formatMinutes(mins)}
-                    style={{ width: '100%', maxWidth: 26, borderRadius: '4px 4px 2px 2px', background: mins > 0 ? '#3a8f8c' : 'var(--color-border-default)', height: Math.max(3, (mins / maxDayMinutes) * 76) }}
+                    style={{ width: '100%', maxWidth: 26, borderRadius: '4px 4px 2px 2px', background: mins > 0 ? 'var(--brand-bar)' : 'var(--color-border-default)', height: Math.max(3, (mins / maxDayMinutes) * 76) }}
                   />
                   <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>{label}</div>
                 </div>

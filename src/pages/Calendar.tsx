@@ -4,6 +4,7 @@ import { CalendarIcon, ChevronLeftIcon, GridIcon } from '../components/icons'
 import { todayLocal } from '../data/timeEntries'
 import { useLeaveRequests } from '../data/leave'
 import { categoryBadgeClass, categoryColor, parseLeaveDisplayDate, useCalendarEvents, type CalendarEvent, type EventCategory } from '../data/calendarEvents'
+import { Select } from '../components/SearchableSelect'
 
 const categories: EventCategory[] = ['Birthday', 'Public Holiday', 'Main Event', 'Employee Leave']
 
@@ -104,12 +105,12 @@ export default function CompanyCalendar() {
               <button className="btn-outline" style={{ width: 32, padding: 0, justifyContent: 'center' }} onClick={nextMonth}>›</button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <select className="input" style={{ width: 170 }} value={category} onChange={(e) => setCategory(e.target.value as 'All' | EventCategory)}>
+              <Select className="input" style={{ width: 170 }} value={category} onChange={(e) => setCategory(e.target.value as 'All' | EventCategory)}>
                 <option value="All">All Categories</option>
                 {categories.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
-              </select>
+              </Select>
               <div style={{ display: 'flex', border: '1px solid var(--color-border-subtle)', borderRadius: 8, overflow: 'hidden' }}>
                 <button
                   onClick={() => setView('Month')}
@@ -141,19 +142,19 @@ export default function CompanyCalendar() {
 
           {view === 'Month' ? (
             <div style={{ border: '1px solid var(--color-border-subtle)', borderRadius: 14, overflow: 'hidden' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--color-border-default)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', borderBottom: '1px solid var(--color-border-default)' }}>
                 {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((d) => (
                   <div key={d} style={{ padding: 10, fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{d}</div>
                 ))}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
                 {grid.map((cell, i) => {
                   const dayEvents = cell.inMonth ? allEvents.filter((e) => e.date === cell.date && (category === 'All' || e.category === category)) : []
                   const isToday = cell.date === today
                   return (
                     <div key={i} style={{ minHeight: 96, padding: 8, fontSize: 13, fontWeight: 600, borderRight: '1px solid var(--color-border-default)', borderBottom: '1px solid var(--color-border-default)', color: cell.inMonth ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)' }}>
                       {isToday ? (
-                        <span style={{ background: '#004543', color: '#fff', width: 22, height: 22, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{cell.label}</span>
+                        <span style={{ background: 'var(--brand-deep)', color: '#fff', width: 22, height: 22, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{cell.label}</span>
                       ) : cell.label}
                       {dayEvents.map((e) => (
                         <div key={e.id} className="mono" style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 9999, marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: `${categoryColor[e.category]}22`, color: categoryColor[e.category] }} title={e.title}>

@@ -6,6 +6,7 @@ import { BuildingIcon, ChevronLeftIcon, ProjectsIcon, StaffingIcon } from '../..
 import { useProjects, type ProjectStatus } from '../../data/projects'
 import { setClientStatus, useClientStatuses, type ClientStatus } from '../../data/clients'
 import CreateProjectModal from '../../components/CreateProjectModal'
+import { Select } from '../../components/SearchableSelect'
 
 const statusBadge: Record<ProjectStatus, string> = {
   Active: 'b-pine',
@@ -39,7 +40,7 @@ export default function ClientDetail() {
             <NavGroupLabel label="General" />
             <NavItem to="/projects" icon={<ProjectsIcon />} label="Projects" />
             <NavItem to="/projects/staffing" icon={<StaffingIcon />} label="Staffing" />
-            <NavItem to="/projects/clients" icon={<BuildingIcon color="#fafafa" />} label="Clients" active />
+            <NavItem to="/projects/clients" icon={<BuildingIcon color="var(--color-text-inverse)" />} label="Clients" active />
           </>
         }
       >
@@ -62,7 +63,7 @@ export default function ClientDetail() {
           <NavGroupLabel label="General" />
           <NavItem to="/projects" icon={<ProjectsIcon />} label="Projects" />
           <NavItem to="/projects/staffing" icon={<StaffingIcon />} label="Staffing" />
-          <NavItem to="/projects/clients" icon={<BuildingIcon color="#fafafa" />} label="Clients" active />
+          <NavItem to="/projects/clients" icon={<BuildingIcon color="var(--color-text-inverse)" />} label="Clients" active />
         </>
       }
     >
@@ -84,11 +85,11 @@ export default function ClientDetail() {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <select className="input" style={{ width: 140 }} value={status} onChange={(e) => setClientStatus(clientName, e.target.value as ClientStatus)}>
+          <Select className="input" style={{ width: 140 }} value={status} onChange={(e) => setClientStatus(clientName, e.target.value as ClientStatus)}>
             {clientStatuses.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
-          </select>
+          </Select>
           <div style={{ textAlign: 'right' }}>
             <div className="mono" style={{ fontSize: 24, fontWeight: 600 }}>{clientProjects.length}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>project{clientProjects.length === 1 ? '' : 's'}</div>

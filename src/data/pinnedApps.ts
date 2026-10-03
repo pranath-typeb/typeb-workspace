@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 
-const STORAGE_KEY = 'typeb-hr.pinned-apps.v1'
+const STORAGE_KEY = 'typeb-hr.pinned-apps.v2'
 
 // Every app starts pinned so the nav bar's icon strip looks the same as before
 // this feature existed — unpinning is opt-in via the All apps switcher.
-const DEFAULT_PINNED_KEYS = ['dashboard', 'time', 'hr', 'payroll', 'projects', 'people', 'calendar', 'analytics']
+const DEFAULT_PINNED_KEYS = ['dashboard', 'time', 'hr', 'payroll', 'projects', 'people', 'focus', 'challenges', 'calendar', 'analytics']
 
 function loadInitial(): string[] {
   try {

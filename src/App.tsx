@@ -43,17 +43,21 @@ import TimerLiveWidget from './components/TimerLiveWidget'
 import ScreenRippleOverlay from './components/ScreenRippleOverlay'
 import { NavItem, NavGroupLabel, NavSep } from './components/NavItem'
 import { GridIcon, ClockIcon, LetterIcon, PolicyIcon, BenefitsIcon } from './components/icons'
+import Focus from './pages/Focus'
+import Challenges from './pages/Challenges'
+import MoveReminder from './components/MoveReminder'
+import FocusMini from './components/FocusMini'
 
 function HrSidebar({ active }: { active: string }) {
   return (
     <>
-      <NavItem to="/hr/overview" icon={<GridIcon color={active === 'overview' ? '#fafafa' : undefined} />} label="Overview" active={active === 'overview'} />
+      <NavItem to="/hr/overview" icon={<GridIcon color={active === 'overview' ? 'var(--color-text-inverse)' : undefined} />} label="Overview" active={active === 'overview'} />
       <NavSep />
       <NavGroupLabel label="Me" />
-      <NavItem to="/hr/leave" icon={<ClockIcon color={active === 'leave' ? '#fafafa' : undefined} />} label="My Leave" active={active === 'leave'} />
-      <NavItem to="/hr/letters" icon={<LetterIcon color={active === 'letters' ? '#fafafa' : undefined} />} label="My Letters" active={active === 'letters'} />
-      <NavItem to="/hr/policies" icon={<PolicyIcon color={active === 'policies' ? '#fafafa' : undefined} />} label="Policies" active={active === 'policies'} />
-      <NavItem to="/hr/benefits" icon={<BenefitsIcon color={active === 'benefits' ? '#fafafa' : undefined} />} label="Benefits" active={active === 'benefits'} />
+      <NavItem to="/hr/leave" icon={<ClockIcon color={active === 'leave' ? 'var(--color-text-inverse)' : undefined} />} label="My Leave" active={active === 'leave'} />
+      <NavItem to="/hr/letters" icon={<LetterIcon color={active === 'letters' ? 'var(--color-text-inverse)' : undefined} />} label="My Letters" active={active === 'letters'} />
+      <NavItem to="/hr/policies" icon={<PolicyIcon color={active === 'policies' ? 'var(--color-text-inverse)' : undefined} />} label="Policies" active={active === 'policies'} />
+      <NavItem to="/hr/benefits" icon={<BenefitsIcon color={active === 'benefits' ? 'var(--color-text-inverse)' : undefined} />} label="Benefits" active={active === 'benefits'} />
     </>
   )
 }
@@ -121,6 +125,8 @@ export default function App() {
       <Route path="/projects/clients/:name" element={<ClientDetail />} />
       <Route path="/projects/staffing" element={<Staffing />} />
 
+      <Route path="/focus" element={<Focus />} />
+      <Route path="/challenges" element={<Challenges />} />
       <Route path="/calendar" element={<CompanyCalendar />} />
       <Route path="/analytics" element={<Analytics />} />
 
@@ -135,6 +141,8 @@ export default function App() {
     {!isAuthRoute && <BottomNav />}
     {!isAuthRoute && <ScrollToTopButton />}
     {!isAuthRoute && <TimerLiveWidget />}
+    {!isAuthRoute && <FocusMini />}
+    {!isAuthRoute && <MoveReminder />}
     <ScreenRippleOverlay />
     <ToastContainer />
     </>

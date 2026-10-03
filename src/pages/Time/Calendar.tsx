@@ -3,7 +3,7 @@ import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import DurationPicker from '../../components/DurationPicker'
-import SearchableSelect from '../../components/SearchableSelect'
+import SearchableSelect, { Select } from '../../components/SearchableSelect'
 import { ClockIcon, RefreshIcon, CloseIcon, TrashIcon } from '../../components/icons'
 import { CURRENT_USER_ID } from '../../data/people'
 import { projectColor, useProjects } from '../../data/projects'
@@ -25,14 +25,9 @@ import {
   type TimeEntry,
 } from '../../data/timeEntries'
 
-// Tints a hex color to a light background wash, keeping the solid hex as the accent border/text.
-function hexToRgba(hex: string, alpha: number): string {
-  const clean = hex.replace('#', '')
-  const r = parseInt(clean.substring(0, 2), 16)
-  const g = parseInt(clean.substring(2, 4), 16)
-  const b = parseInt(clean.substring(4, 6), 16)
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
-}
+// Event blocks: wash strength and text lift come from theme vars so dark theme stays legible.
+const entryWash = (hex: string) => `color-mix(in srgb, ${hex} var(--entry-wash), transparent)`
+const entryText = (hex: string) => `color-mix(in srgb, ${hex}, #fff var(--entry-lift))`
 
 const HOUR_HEIGHT = 44
 const HOURS = Array.from({ length: 24 }, (_, i) => i)
@@ -268,7 +263,7 @@ function MonthGrid({
                   gap: 6,
                   borderRight: '1px solid var(--color-border-default)',
                   borderBottom: '1px solid var(--color-border-default)',
-                  ...(isToday ? { border: '1.5px dashed #00736f' } : {}),
+                  ...(isToday ? { border: '1.5px dashed var(--brand-mid)' } : {}),
                   background: 'var(--color-background-page)',
                   cursor: 'pointer',
                   transition: 'transform 0.1s ease',
@@ -282,13 +277,13 @@ function MonthGrid({
                       right: 0,
                       bottom: 0,
                       height: `${fillPct}%`,
-                      background: isFull ? '#004543' : 'rgba(0, 69, 67, 0.22)',
-                      borderTop: isFull ? 'none' : '2px solid rgba(0, 69, 67, 0.6)',
+                      background: isFull ? 'var(--brand-deep)' : 'color-mix(in srgb, var(--brand-deep) 28%, transparent)',
+                      borderTop: isFull ? 'none' : '2px solid color-mix(in srgb, var(--brand-deep) 70%, transparent)',
                       transition: 'height 0.4s ease, background 0.3s ease',
                     }}
                   />
                 )}
-                <span className="mono" style={{ position: 'relative', zIndex: 1, fontSize: 13, fontWeight: 600, color: isDark ? '#fff' : isToday ? '#00736f' : 'var(--color-text-primary)' }}>
+                <span className="mono" style={{ position: 'relative', zIndex: 1, fontSize: 13, fontWeight: 600, color: isDark ? '#fff' : isToday ? 'var(--brand-mid)' : 'var(--color-text-primary)' }}>
                   {cell.label}
                 </span>
                 {minutes > 0 && (
@@ -303,8 +298,8 @@ function MonthGrid({
                         padding: '2px 6px',
                         borderRadius: 9999,
                         alignSelf: 'flex-start',
-                        background: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,69,67,0.1)',
-                        color: isDark ? '#fff' : '#004543',
+                        background: isDark ? 'rgba(255,255,255,0.2)' : 'color-mix(in srgb, var(--brand-deep) 14%, transparent)',
+                        color: isDark ? '#fff' : 'var(--brand-text)',
                       }}
                     >
                       {count} {count === 1 ? 'log' : 'logs'}
@@ -486,8 +481,8 @@ export default function TimeCalendar() {
           <button className="btn-outline" onClick={goToday}>{view === 'Week' ? 'This week' : view === 'Month' ? 'This month' : 'Today'}</button>
           <span style={{ fontSize: 14, fontWeight: 600 }}>{formatRangeLabel(view, days, anchor)}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ display: 'flex', border: '1px solid var(--color-border-subtle)', borderRadius: 8, overflow: 'hidden' }}>
+        <div className="cal-toolbar-right" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="cal-viewtoggle" style={{ display: 'flex', border: '1px solid var(--color-border-subtle)', borderRadius: 8, overflow: 'hidden' }}>
             {VIEW_MODES.map((v) => (
               <button
                 key={v}
@@ -529,7 +524,7 @@ export default function TimeCalendar() {
       ) : (
       <div className="cal-scroll-wrap" style={{ border: '1px solid var(--color-border-subtle)', borderRadius: 12, overflow: 'hidden' }}>
         {/* Header + grid share one scroll container so their columns always line up, even when the vertical scrollbar appears. */}
-        <div ref={scrollRef} style={{ maxHeight: 560, overflowY: 'auto' }}>
+        <div ref={scrollRef} className="cal-scroller" style={{ maxHeight: 560, overflowY: 'auto' }}>
         <div className="cal-header-row" style={{ display: 'flex', borderBottom: '1px solid var(--color-border-default)', position: 'sticky', top: 0, zIndex: 2, background: 'var(--color-background-page)' }}>
           <div style={{ width: 56, flexShrink: 0 }} />
           {days.map((d) => {
@@ -540,8 +535,8 @@ export default function TimeCalendar() {
             return (
               <div key={d} className="cal-day-col" style={{ flex: 1, minWidth: 0, padding: '10px 12px', borderLeft: '1px solid var(--table-row-border)' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: isToday ? '#00736f' : 'var(--color-text-primary)' }}>{dayName}</span>
-                  <span className="mono" style={{ fontSize: 13, fontWeight: 600, color: isToday ? '#00736f' : 'var(--color-text-primary)' }}>{dateNum}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: isToday ? 'var(--brand-mid)' : 'var(--color-text-primary)' }}>{dayName}</span>
+                  <span className="mono" style={{ fontSize: 13, fontWeight: 600, color: isToday ? 'var(--brand-mid)' : 'var(--color-text-primary)' }}>{dateNum}</span>
                 </div>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 2 }}>{dayMinutes > 0 ? formatMinutes(dayMinutes) : ''}</div>
               </div>
@@ -589,7 +584,7 @@ export default function TimeCalendar() {
                         height,
                         left: `calc(${(colIndex * 100) / numCols}% + 4px)`,
                         width: `calc(${100 / numCols}% - 8px)`,
-                        background: hexToRgba(accent, 0.14),
+                        background: entryWash(accent),
                         borderLeft: `3px solid ${accent}`,
                         borderRadius: 4,
                         padding: '4px 6px',
@@ -606,14 +601,14 @@ export default function TimeCalendar() {
                       >
                         <span className="cal-resize-grip" style={{ background: accent }} />
                       </div>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: accent, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description}</div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: entryText(accent), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description}</div>
                       {height > 30 && (
-                        <div className="mono" style={{ fontSize: 10, color: accent, marginTop: 2 }}>
+                        <div className="mono" style={{ fontSize: 10, color: entryText(accent), marginTop: 2 }}>
                           {formatTimeRange(startMinutes, minutes)}
                         </div>
                       )}
                       {height > 44 && (
-                        <div style={{ fontSize: 10, color: hexToRgba(accent, 0.75), marginTop: 1 }}>{projectLabel(e.projectId)}</div>
+                        <div style={{ fontSize: 10, color: entryText(accent), opacity: 0.8, marginTop: 1 }}>{projectLabel(e.projectId)}</div>
                       )}
                       <div
                         className="cal-resize-handle cal-resize-handle-bottom"
@@ -745,11 +740,11 @@ function EditEntryPopover({
           </div>
           <div style={{ flex: 1 }}>
             <div className="field-label">Category</div>
-            <select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <Select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 
@@ -765,7 +760,7 @@ function EditEntryPopover({
         </div>
 
         <DurationPicker options={DURATION_OPTIONS} selectedMinutes={duration} onSelect={applyDuration} />
-        {duration <= 0 && <div style={{ fontSize: 12, color: '#c53030' }}>End time must be after start time.</div>}
+        {duration <= 0 && <div style={{ fontSize: 12, color: 'var(--danger-fg)' }}>End time must be after start time.</div>}
 
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
           <input type="checkbox" checked={billable} onChange={(e) => setBillable(e.target.checked)} />
@@ -774,7 +769,7 @@ function EditEntryPopover({
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
           <button className="btn-danger-text" onClick={() => setConfirmingDelete(true)}>
-            <TrashIcon size={13} color="#c53030" /> Delete
+            <TrashIcon size={13} color="var(--danger-fg)" /> Delete
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="btn-outline" onClick={duplicate}>Duplicate</button>
@@ -874,11 +869,11 @@ function QuickAddPopover({
           </div>
           <div style={{ flex: 1 }}>
             <div className="field-label">Category</div>
-            <select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <Select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 
@@ -894,7 +889,7 @@ function QuickAddPopover({
         </div>
 
         <DurationPicker options={DURATION_OPTIONS} selectedMinutes={duration} onSelect={applyDuration} />
-        {duration <= 0 && <div style={{ fontSize: 12, color: '#c53030' }}>End time must be after start time.</div>}
+        {duration <= 0 && <div style={{ fontSize: 12, color: 'var(--danger-fg)' }}>End time must be after start time.</div>}
 
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
           <input type="checkbox" checked={billable} onChange={(e) => setBillable(e.target.checked)} />

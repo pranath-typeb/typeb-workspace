@@ -4,6 +4,9 @@ import { avatarContent } from '../components/Avatar'
 import { CURRENT_USER_ID, updatePerson, usePeople } from '../data/people'
 import { setTheme, useTheme, type Theme } from '../data/theme'
 import { showToast } from '../data/toast'
+import Toggle from '../components/Toggle'
+import { hapticsSupportLabel } from '../data/haptics'
+import { feedback, playUiSound, updateUiSoundSettings, useUiSoundSettings, type UiSoundKind } from '../data/uiSounds'
 import { useNavPosition, setNavPosition, useNavPinned, setNavPinned, type NavPosition } from '../data/navPosition'
 import {
   BellIcon,
@@ -79,6 +82,7 @@ function SettingsSidebar({ active, onChange }: { active: SectionKey; onChange: (
 }
 
 export default function Settings() {
+  const uiSound = useUiSoundSettings()
   const [section, setSection] = useState<SectionKey>('profile')
   const person = usePeople().find((p) => p.id === CURRENT_USER_ID)!
 
@@ -345,6 +349,71 @@ export default function Settings() {
               >
                 <span style={{ width: 16, height: 16, borderRadius: '50%', background: navPinned ? 'var(--color-text-inverse)' : 'var(--color-background-page)', boxShadow: '0 1px 2px rgba(0,0,0,0.25)' }} />
               </button>
+            </div>
+
+            <div style={{ paddingTop: 12, borderTop: '1px solid var(--color-border-subtle)', marginTop: 4, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <div className="field-label" style={{ marginBottom: 2 }}>Interface sounds</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                    Soft clicks as you tap, toggle, pick and get notified — each interaction has its own sound.
+                  </div>
+                </div>
+                <Toggle label="Interface sounds" checked={uiSound.enabled} onChange={(v) => { updateUiSoundSettings({ enabled: v }); if (v) playUiSound('toggle-on', true) }} />
+              </div>
+              {uiSound.enabled && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', width: 52 }}>Volume</span>
+                    <input
+                      type="range"
+                      min={0.1}
+                      max={1}
+                      step={0.05}
+                      value={uiSound.volume}
+                      onChange={(e) => updateUiSoundSettings({ volume: Number(e.target.value) })}
+                      onPointerUp={() => playUiSound('tap', true)}
+                      aria-label="Interface sound volume"
+                      style={{ flex: 1, accentColor: 'var(--brand-mid)' }}
+                    />
+                    <span className="mono" style={{ width: 34, textAlign: 'right', fontSize: 12, color: 'var(--color-text-secondary)' }}>{Math.round(uiSound.volume * 100)}%</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {([
+                      ['Tap', 'tap'],
+                      ['Navigate', 'nav'],
+                      ['Switch on', 'toggle-on'],
+                      ['Switch off', 'toggle-off'],
+                      ['Select', 'select'],
+                      ['Open', 'open'],
+                      ['Success', 'success'],
+                      ['Alert', 'error'],
+                      ['Delete', 'delete'],
+                    ] as Array<[string, UiSoundKind]>).map(([label, kind]) => (
+                      <button key={kind} data-no-sound className="btn-outline" style={{ height: 30, padding: '0 12px', fontSize: 12 }} onClick={() => feedback(kind, true)}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingTop: 12, borderTop: '1px solid var(--color-border-subtle)' }}>
+                <div>
+                  <div className="field-label" style={{ marginBottom: 2 }}>Haptic feedback</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                    A tiny vibration on taps — stronger for deletes. {hapticsSupportLabel()}.
+                  </div>
+                </div>
+                <Toggle
+                  label="Haptic feedback"
+                  checked={uiSound.haptics}
+                  onChange={(v) => {
+                    updateUiSoundSettings({ haptics: v })
+                    if (v) feedback('toggle-on', true)
+                  }}
+                />
+              </div>
             </div>
           </div>
         </>

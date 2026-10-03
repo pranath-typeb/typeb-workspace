@@ -16,16 +16,16 @@ function historyHeadline(e: HistoryEvent): string {
 }
 
 function historyIconFor(type: HistoryEventType) {
-  if (type === 'Promotion') return <TrendingUpIcon size={16} color="#004543" />
+  if (type === 'Promotion') return <TrendingUpIcon size={16} color="var(--brand-text)" />
   if (type === 'Salary Change') return <DollarIcon size={16} color="#cc3a00" />
-  if (type === 'Hire') return <FlagIcon size={16} color="#004543" />
-  return <HistoryIcon size={16} color="#5f636c" />
+  if (type === 'Hire') return <FlagIcon size={16} color="var(--brand-text)" />
+  return <HistoryIcon size={16} color="var(--muted-label)" />
 }
 
 function historyIconBg(type: HistoryEventType): string {
-  if (type === 'Promotion') return '#cce3e2'
-  if (type === 'Salary Change') return '#ffdacc'
-  if (type === 'Hire') return '#cce3e2'
+  if (type === 'Promotion') return 'var(--brand-soft-bg)'
+  if (type === 'Salary Change') return 'var(--warn-bg)'
+  if (type === 'Hire') return 'var(--brand-soft-bg)'
   return '#ebebeb'
 }
 
@@ -155,13 +155,13 @@ export default function Profile() {
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#cce3e2', padding: '3px 10px', borderRadius: 9999, flexShrink: 0 }}>
-          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#004543', display: 'inline-block' }} />
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#004543' }}>Active</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--brand-soft-bg)', padding: '3px 10px', borderRadius: 9999, flexShrink: 0 }}>
+          <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--brand-deep)', display: 'inline-block' }} />
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--brand-text)' }}>Active</span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', background: 'var(--color-background-page)', border: '1px solid var(--color-border-default)', borderRadius: 14 }}>
+      <div className="stat-strip" style={{ display: 'flex', background: 'var(--color-background-page)', border: '1px solid var(--color-border-default)', borderRadius: 14 }}>
         <StatCell label="Tenure" value={tenureFrom(person.startDate)} sub={`Since ${fmtDate(person.startDate)}`} />
         <StatCell label="Next anniversary" value={`${journey.daysRemaining}d`} sub={journey.nextAnniversary.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })} />
         <StatCell label="Current pay period" value={currentPeriod?.label ?? '—'} sub={currentPeriod?.cycle ?? 'No periods yet'} />
@@ -177,16 +177,16 @@ export default function Profile() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ background: 'var(--color-background-muted)', borderRadius: 9999, height: 6, overflow: 'hidden' }}>
-              <div style={{ background: '#00736f', height: 6, borderRadius: 9999, width: `${yearSpanPct}%` }} />
+              <div style={{ background: 'var(--brand-mid)', height: 6, borderRadius: 9999, width: `${yearSpanPct}%` }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Year {journey.fromYear}</span>
               <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Year {journey.toYear}</span>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#cce3e2', borderRadius: 10, padding: '10px 14px' }}>
-            <CakeIcon size={20} color="#004543" />
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#004543' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--brand-soft-bg)', borderRadius: 10, padding: '10px 14px' }}>
+            <CakeIcon size={20} color="var(--brand-text)" />
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--brand-text)' }}>
               Your {journey.toYear}-year anniversary is in {journey.daysRemaining} days ({journey.nextAnniversary.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })})
             </span>
           </div>
@@ -300,7 +300,7 @@ export default function Profile() {
                 key={p.id}
                 style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderTop: i === 0 ? 'none' : '1px solid var(--table-row-border)' }}
               >
-                <div style={{ width: 34, height: 34, borderRadius: 9, background: '#cce3e2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--brand-soft-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <PayslipFileIcon />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -399,7 +399,7 @@ function StatCell({ label, value, sub, last }: { label: string; value: string; s
     <div style={{ flex: 1, padding: '16px 20px', borderRight: last ? 'none' : '1px solid var(--color-border-subtle)' }}>
       <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 500, marginTop: 8, letterSpacing: '-0.48px' }}>{value}</div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: '#5f636c', marginTop: 4 }}>{sub}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-label)', marginTop: 4 }}>{sub}</div>
     </div>
   )
 }
@@ -408,14 +408,14 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 500, marginTop: 3 }}>{value}</div>
+      <div style={{ fontSize: 14, fontWeight: 500, marginTop: 3, overflowWrap: 'anywhere' }}>{value}</div>
     </div>
   )
 }
 
 function PayslipFileIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#004543" strokeWidth="1.8">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand-text)" strokeWidth="1.8">
       <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
       <path d="M9 12h6M9 16h6M9 8h2" />
     </svg>

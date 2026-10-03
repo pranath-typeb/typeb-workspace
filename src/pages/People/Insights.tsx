@@ -132,7 +132,7 @@ export default function Insights() {
                 <span style={{ color: 'var(--color-text-secondary)' }}>{count}</span>
               </div>
               <div style={{ height: 6, background: 'var(--color-border-default)', borderRadius: 9999, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: '#004543' }} />
+                <div style={{ height: '100%', width: `${pct}%`, background: 'var(--brand-deep)' }} />
               </div>
             </div>
           ))}

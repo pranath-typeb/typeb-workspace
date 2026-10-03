@@ -48,17 +48,17 @@ export default function Payslip() {
   const generatedAt = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
 
   return (
-    <section className="stage" style={{ background: '#f5f5f5' }}>
+    <section className="stage" style={{ background: 'var(--color-background-subtle)' }}>
       <div style={{ width: '100%', maxWidth: 680, padding: '24px 16px 60px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button
             onClick={() => navigate(-1)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.53)' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}
           >
-            <ChevronLeftIcon color="rgba(0,0,0,0.53)" /> Back
+            <ChevronLeftIcon color="var(--color-text-secondary)" /> Back
           </button>
           <button className="btn-dark" onClick={() => window.print()}>
-            <DownloadIcon size={14} color="#fafafa" /> Download PDF
+            <DownloadIcon size={14} color="var(--color-text-inverse)" /> Download PDF
           </button>
         </div>
 
@@ -147,8 +147,8 @@ export default function Payslip() {
           </div>
 
           <div style={{ borderTop: '1px solid #ececee', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.35)' }}>Generated {generatedAt}. This document is auto-generated from your payroll record.</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.35)' }}>TYPE B</span>
+            <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>Generated {generatedAt}. This document is auto-generated from your payroll record.</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-tertiary)' }}>TYPE B</span>
           </div>
         </div>
       </div>

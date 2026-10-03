@@ -72,8 +72,8 @@ export default function Dashboard() {
                   borderRadius: 8,
                   fontSize: 13,
                   fontWeight: c.cycle === selectedCycle ? 700 : 500,
-                  background: c.cycle === selectedCycle ? '#cce3e2' : 'transparent',
-                  color: c.cycle === selectedCycle ? '#004543' : undefined,
+                  background: c.cycle === selectedCycle ? 'var(--brand-soft-bg)' : 'transparent',
+                  color: c.cycle === selectedCycle ? 'var(--brand-text)' : undefined,
                   textAlign: 'left',
                 }}
               >
@@ -89,8 +89,8 @@ export default function Dashboard() {
           <div className="serif" style={{ fontSize: 20, letterSpacing: '-0.6px' }}>{activeCycle?.label ?? 'No data'}</div>
 
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-            <Stat label="Total gross pay" value={`$${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} sub={`${cyclePeriods.length} employees`} onClick={() => goToReviews()} />
-            <Stat label="Needs attention" value={String(needsAttention)} sub="under review or flagged" onClick={() => goToReviews()} accent={needsAttention > 0 ? '#cc3a00' : undefined} />
+            <Stat label="Total gross pay" value={`$${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} sub={`${cyclePeriods.length} ${cyclePeriods.length === 1 ? 'employee' : 'employees'}`} onClick={() => goToReviews()} />
+            <Stat label="Needs attention" value={String(needsAttention)} sub="under review or flagged" onClick={() => goToReviews()} accent={needsAttention > 0 ? 'var(--warn-fg)' : undefined} />
             <Stat label="Pending timesheets" value={String(pending)} sub="not yet submitted" onClick={() => goToReviews('Timesheet pending')} />
             <Stat label="Approved / Paid out" value={String(approved)} sub={`${cyclePeriods.filter((p) => p.status === 'Paid out').length} paid out`} onClick={() => goToReviews('Approved')} />
           </div>
@@ -103,7 +103,7 @@ export default function Dashboard() {
             {byJurisdiction.map((j) => (
               <div key={j.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 4px', borderTop: '1px solid var(--table-row-border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontWeight: 700, fontSize: 14, width: 140 }}>{j.name}</span>
+                  <span style={{ fontWeight: 700, fontSize: 14, width: 'min(140px, 42vw)' }}>{j.name}</span>
                   <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{j.count} {j.count === 1 ? 'employee' : 'employees'}</span>
                 </div>
               </div>

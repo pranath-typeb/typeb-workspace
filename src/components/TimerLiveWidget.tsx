@@ -21,7 +21,7 @@ export default function TimerLiveWidget() {
     <div className={`timer-live-widget${timer.running ? ' is-running' : ' is-paused'}`}>
       <div className="timer-live-widget-main">
         {timer.running ? (
-          <TimerActivityIcon size={14} color="#00e0b8" />
+          <TimerActivityIcon size={14} color="var(--live-accent)" />
         ) : (
           <span className="timer-live-widget-dot" />
         )}
@@ -38,7 +38,7 @@ export default function TimerLiveWidget() {
           aria-label={timer.running ? 'Pause timer' : 'Resume timer'}
           title={timer.running ? 'Pause' : 'Resume'}
         >
-          {timer.running ? <StopIcon size={10} color="#fff" /> : <PlayIcon size={10} color="#fff" />}
+          {timer.running ? <StopIcon size={10} color="var(--nav-fg)" /> : <PlayIcon size={10} color="var(--nav-fg)" />}
         </button>
         <button
           className="timer-live-widget-btn timer-live-widget-btn-finish"
@@ -48,7 +48,7 @@ export default function TimerLiveWidget() {
           aria-label="Stop and save"
           title="Stop & save"
         >
-          <CheckCircleIcon size={14} color="#00e0b8" />
+          <CheckCircleIcon size={14} color="var(--live-accent)" />
         </button>
       </div>
     </div>

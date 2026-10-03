@@ -7,6 +7,7 @@ import { useProjects, type BillingType, type ProjectStatus } from '../../data/pr
 import { CURRENT_USER_ID } from '../../data/people'
 import CreateProjectModal from '../../components/CreateProjectModal'
 import { useNavigate } from 'react-router-dom'
+import { Select } from '../../components/SearchableSelect'
 
 const statusBadge: Record<ProjectStatus, string> = {
   Active: 'b-pine',
@@ -52,7 +53,7 @@ export default function ProjectsList() {
       sidebar={
         <>
           <NavGroupLabel label="General" />
-          <NavItem to="/projects" icon={<ProjectsIcon color="#fafafa" />} label="Projects" active />
+          <NavItem to="/projects" icon={<ProjectsIcon color="var(--color-text-inverse)" />} label="Projects" active />
           <NavItem to="/projects/staffing" icon={<StaffingIcon />} label="Staffing" />
           <NavItem to="/projects/clients" icon={<BuildingIcon />} label="Clients" />
         </>
@@ -60,7 +61,7 @@ export default function ProjectsList() {
     >
       <div className="page-title">Projects</div>
 
-      <div style={{ display: 'flex', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
+      <div className="stat-strip" style={{ display: 'flex', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
         {[
           { label: 'All Projects', value: projects.length, sub: 'Across all clients' },
           { label: 'Active Projects', value: activeCount, sub: 'Currently in progress' },
@@ -68,9 +69,9 @@ export default function ProjectsList() {
           { label: 'Total Billable Hours', value: `${totalHours}h`, sub: 'Logged this cycle' },
         ].map((s, i, arr) => (
           <div key={s.label} style={{ flex: 1, padding: '16px 20px', borderRight: i < arr.length - 1 ? '1px solid var(--color-border-subtle)' : 'none' }}>
-            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: '#5f636c' }}>{s.label}</div>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--muted-label)' }}>{s.label}</div>
             <div style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.48px', marginTop: 8 }}>{s.value}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#5f636c' }}>{s.sub}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-label)' }}>{s.sub}</div>
           </div>
         ))}
       </div>
@@ -82,30 +83,30 @@ export default function ProjectsList() {
         </div>
         <div style={{ flex: 1, minWidth: 140 }}>
           <div className="field-label">Status</div>
-          <select className="input" value={status} onChange={(e) => setStatus(e.target.value as 'Any' | ProjectStatus)}>
+          <Select className="input" value={status} onChange={(e) => setStatus(e.target.value as 'Any' | ProjectStatus)}>
             <option value="Any">Any</option>
             <option value="Active">Active</option>
             <option value="On Track">On Track</option>
             <option value="Completed">Completed</option>
-          </select>
+          </Select>
         </div>
         <div style={{ flex: 1, minWidth: 140 }}>
           <div className="field-label">Stage</div>
-          <select className="input" value={stage} onChange={(e) => setStage(e.target.value as 'Any' | BillingType)}>
+          <Select className="input" value={stage} onChange={(e) => setStage(e.target.value as 'Any' | BillingType)}>
             <option value="Any">Any</option>
             {stages.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div style={{ flex: 1, minWidth: 140 }}>
           <div className="field-label">Client</div>
-          <select className="input" value={client} onChange={(e) => setClient(e.target.value)}>
+          <Select className="input" value={client} onChange={(e) => setClient(e.target.value)}>
             <option value="Any">Any</option>
             {clients.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 36, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)', cursor: 'pointer' }}>
           <span

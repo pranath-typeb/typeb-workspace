@@ -45,7 +45,7 @@ export default function Clients() {
           <NavGroupLabel label="General" />
           <NavItem to="/projects" icon={<ProjectsIcon />} label="Projects" />
           <NavItem to="/projects/staffing" icon={<StaffingIcon />} label="Staffing" />
-          <NavItem to="/projects/clients" icon={<BuildingIcon color="#fafafa" />} label="Clients" active />
+          <NavItem to="/projects/clients" icon={<BuildingIcon color="var(--color-text-inverse)" />} label="Clients" active />
         </>
       }
     >
@@ -56,7 +56,7 @@ export default function Clients() {
           <div className="field-label">Search</div>
           <input className="input" placeholder="Client name" value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
-        <div style={{ display: 'flex', background: 'var(--color-background-muted)', borderRadius: 10, padding: 2 }}>
+        <div className="scroll-x" style={{ display: 'flex', background: 'var(--color-background-muted)', borderRadius: 10, padding: 2 }}>
           {(Object.keys(counts) as Tab[]).map((t) => (
             <button
               key={t}

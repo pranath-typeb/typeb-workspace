@@ -27,7 +27,7 @@ const STORAGE_KEY = 'typeb-hr.projects.v1'
 // Rotating palette assigned to new projects in order, so each project reads as a
 // distinct color on the Calendar without anyone having to pick one manually.
 export const PROJECT_COLOR_PALETTE = [
-  '#004543',
+  '#1f8a85',
   '#3b82f6',
   '#c084fc',
   '#eab308',

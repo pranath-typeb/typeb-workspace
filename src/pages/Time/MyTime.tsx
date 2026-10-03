@@ -218,7 +218,7 @@ export default function MyTime() {
               justifyContent: 'center',
               padding: '6px 14px',
               borderRadius: 30,
-              background: mode === 'Timer' ? 'var(--color-background-inverse)' : '#e5e5e5',
+              background: mode === 'Timer' ? 'var(--color-background-inverse)' : 'var(--color-background-muted)',
               color: mode === 'Timer' ? 'var(--color-text-inverse)' : 'var(--color-text-primary)',
               fontSize: 12,
               fontWeight: 600,
@@ -235,7 +235,7 @@ export default function MyTime() {
               justifyContent: 'center',
               padding: '6px 14px',
               borderRadius: 30,
-              background: mode === 'Manual' ? 'var(--color-background-inverse)' : '#e5e5e5',
+              background: mode === 'Manual' ? 'var(--color-background-inverse)' : 'var(--color-background-muted)',
               color: mode === 'Manual' ? 'var(--color-text-inverse)' : 'var(--color-text-primary)',
               fontSize: 12,
               fontWeight: 600,
@@ -266,7 +266,7 @@ export default function MyTime() {
               style={{ width: 220 }}
               options={[{ value: '', label: 'Select Project' }, ...projects.map((p) => ({ value: p.id, label: p.name }))]}
             />
-            <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--color-border-default)' }} />
+            <div className="hide-on-phone" style={{ width: 1, alignSelf: 'stretch', background: 'var(--color-border-default)' }} />
             <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
               <button
                 className="btn-dark"
@@ -456,7 +456,7 @@ export default function MyTime() {
         </div>
         <div style={{ flex: '1 1 120px', minWidth: 120, padding: '16px 20px', borderRight: '1px solid var(--color-border-subtle)' }}>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Balance</div>
-          <span className="mono" style={{ fontSize: 20, fontWeight: 600, color: weekMinutes >= WEEKLY_TARGET_MINUTES ? '#004543' : '#ff4800' }}>
+          <span className="mono" style={{ fontSize: 20, fontWeight: 600, color: weekMinutes >= WEEKLY_TARGET_MINUTES ? 'var(--brand-text)' : '#ff4800' }}>
             {formatMinutes(weekMinutes - WEEKLY_TARGET_MINUTES)}
           </span>
         </div>
@@ -545,7 +545,7 @@ export default function MyTime() {
                 overflow: 'hidden',
                 flex: '1 1 90px',
                 background: 'var(--color-background-page)',
-                border: isToday ? '1.5px dashed #00736f' : '1px solid var(--table-row-border)',
+                border: isToday ? '1.5px dashed var(--brand-mid)' : '1px solid var(--table-row-border)',
                 boxShadow: isToday ? '0 0 0 3px rgba(0,115,111,0.08)' : 'none',
                 borderRadius: 14,
                 padding: 12,
@@ -566,14 +566,14 @@ export default function MyTime() {
                     right: 0,
                     bottom: 0,
                     height: `${fillPct}%`,
-                    background: isFull ? '#004543' : 'var(--daycard-fill-partial)',
+                    background: isFull ? 'var(--brand-deep)' : 'var(--daycard-fill-partial)',
                     transition: 'height 0.4s ease, background 0.3s ease',
                   }}
                 />
               )}
               <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span className="mono" style={{ fontSize: 16, fontWeight: 600, color: isFull ? '#fff' : isToday ? '#00736f' : 'var(--color-text-primary)' }}>{dateNum}</span>
-                <span style={{ fontSize: 10, fontWeight: 600, color: isFull ? 'rgba(255,255,255,0.6)' : isToday ? '#00736f' : '#a1a1a1' }}>{dayName}</span>
+                <span className="mono" style={{ fontSize: 16, fontWeight: 600, color: isFull ? '#fff' : isToday ? 'var(--brand-mid)' : 'var(--color-text-primary)' }}>{dateNum}</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: isFull ? 'rgba(255,255,255,0.6)' : isToday ? 'var(--brand-mid)' : '#a1a1a1' }}>{dayName}</span>
               </div>
               <div className="mono" style={{ position: 'relative', zIndex: 1, fontSize: 13, fontWeight: 600, color: isFull ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)' }}>{mins > 0 ? formatMinutes(mins) : '—'}</div>
             </button>
@@ -690,9 +690,9 @@ export default function MyTime() {
                     fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: '0.2px',
-                    border: isToday && !isActive ? '1.5px solid #00736f' : '1.5px solid var(--color-border-default)',
+                    border: isToday && !isActive ? '1.5px solid var(--brand-mid)' : '1.5px solid var(--color-border-default)',
                     background: isActive ? 'var(--color-background-inverse)' : 'var(--color-background-page)',
-                    color: isActive ? 'var(--color-text-inverse)' : isToday ? '#00736f' : 'var(--color-text-secondary)',
+                    color: isActive ? 'var(--color-text-inverse)' : isToday ? 'var(--brand-mid)' : 'var(--color-text-secondary)',
                     boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.18)' : 'none',
                     transform: isActive ? 'scale(1.08)' : 'scale(1)',
                     transition: 'transform 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease',

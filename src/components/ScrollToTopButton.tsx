@@ -25,7 +25,7 @@ export default function ScrollToTopButton() {
       tabIndex={visible ? 0 : -1}
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
     >
-      <ChevronUpIcon size={18} color="#fff" />
+      <ChevronUpIcon size={18} color="var(--color-text-inverse)" />
     </button>
   )
 }

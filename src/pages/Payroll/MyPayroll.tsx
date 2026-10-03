@@ -77,7 +77,7 @@ export default function MyPayroll() {
                   <td className="td2">{p.cycle}</td>
                   <td className="td2 mono">${p.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                   <td className="td2 mono">
-                    <span style={{ color: behind ? '#cc3a00' : undefined }}>{p.actualHours} / {p.targetHours}</span>
+                    <span style={{ color: behind ? 'var(--warn-fg)' : undefined }}>{p.actualHours} / {p.targetHours}</span>
                   </td>
                   <td className="td2"><span className={`badge ${statusBadgeClass(p.status)}`}>{p.status}</span></td>
                   <td className="td2" style={{ width: 24 }}>

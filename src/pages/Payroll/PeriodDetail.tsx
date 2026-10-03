@@ -36,6 +36,7 @@ import {
   usePayrollPeriods,
   type PayrollAdjustment,
 } from '../../data/payroll'
+import { Select } from '../../components/SearchableSelect'
 
 function money(n: number): string {
   return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -234,7 +235,7 @@ export default function PeriodDetail({ mode }: { mode: 'admin' | 'self' }) {
             <Stat
               label="Hours (actual / target)"
               value={`${period.actualHours} / ${period.targetHours}`}
-              valueColor={behind ? '#cc3a00' : undefined}
+              valueColor={behind ? 'var(--warn-fg)' : undefined}
             />
             <Stat label="Pay date" value={period.payDate ? new Date(period.payDate + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) : 'Pending'} />
             {mode === 'self' && period.workingDays !== undefined && (
@@ -297,11 +298,11 @@ export default function PeriodDetail({ mode }: { mode: 'admin' | 'self' }) {
 
               {canEdit && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                  <select className="input" style={{ width: 120 }} value={adjType} onChange={(e) => setAdjType(e.target.value as PayrollAdjustment['type'])}>
+                  <Select className="input" style={{ width: 120 }} value={adjType} onChange={(e) => setAdjType(e.target.value as PayrollAdjustment['type'])}>
                     {ADJUSTMENT_TYPES.map((t) => (
                       <option key={t} value={t}>{t}</option>
                     ))}
-                  </select>
+                  </Select>
                   <input className="input" style={{ flex: 1, minWidth: 140 }} placeholder="Description" value={adjDesc} onChange={(e) => setAdjDesc(e.target.value)} />
                   <input className="input" style={{ width: 100 }} type="number" placeholder="Amount" value={adjAmount} onChange={(e) => setAdjAmount(e.target.value)} />
                   <button className="btn-outline" onClick={submitAdjustment} disabled={!adjDesc.trim() || !adjAmount}>

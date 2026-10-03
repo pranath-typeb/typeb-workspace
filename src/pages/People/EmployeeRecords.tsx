@@ -5,6 +5,7 @@ import PeopleSidebar from '../../components/PeopleSidebar'
 import { PeopleIcon, RefreshIcon } from '../../components/icons'
 import { avatarContent } from '../../components/Avatar'
 import { resyncAllPeople, usePeople, type Department } from '../../data/people'
+import { Select } from '../../components/SearchableSelect'
 
 const departments: Department[] = ['Technology', 'Growth', 'Strategy', 'Operations', 'People']
 
@@ -52,21 +53,21 @@ export default function EmployeeRecords() {
         </div>
         <div>
           <div className="field-label">Jurisdiction</div>
-          <select className="input" style={{ width: 180 }} value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)}>
+          <Select className="input" style={{ width: 180 }} value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)}>
             <option value="All">All jurisdictions</option>
             {jurisdictions.map((j) => (
               <option key={j} value={j}>{j}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <div className="field-label">Department</div>
-          <select className="input" style={{ width: 170 }} value={dept} onChange={(e) => setDept(e.target.value as 'All' | Department)}>
+          <Select className="input" style={{ width: 170 }} value={dept} onChange={(e) => setDept(e.target.value as 'All' | Department)}>
             <option value="All">All departments</option>
             {departments.map((d) => (
               <option key={d} value={d}>{d}</option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { addLeaveRequest, updateLeaveRequest, type LeaveRequest, type LeaveType } from '../data/leave'
 import { CloseIcon } from './icons'
+import { Select } from './SearchableSelect'
 
 interface RequestLeaveModalProps {
   onClose: () => void
@@ -53,11 +54,11 @@ export default function RequestLeaveModal({ onClose, requestedBy, defaultType = 
 
         <div>
           <div className="field-label">Type</div>
-          <select className="input" value={type} onChange={(e) => setType(e.target.value as LeaveType)}>
+          <Select className="input" value={type} onChange={(e) => setType(e.target.value as LeaveType)}>
             {leaveTypes.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div style={{ display: 'flex', gap: 12 }}>

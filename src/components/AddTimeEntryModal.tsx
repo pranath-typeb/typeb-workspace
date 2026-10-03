@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import DurationPicker from './DurationPicker'
-import SearchableSelect from './SearchableSelect'
+import SearchableSelect, { Select } from './SearchableSelect'
 import TimeInput from './TimeInput'
 import { CircleArrowRightIcon, CloseIcon } from './icons'
 import { CURRENT_USER_ID } from '../data/people'
@@ -108,11 +108,11 @@ export default function AddTimeEntryModal({ date, onClose, editing, onSave }: Ad
           </div>
           <div style={{ flex: 1 }}>
             <div className="field-label">Category</div>
-            <select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <Select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 

@@ -58,7 +58,7 @@ export const CATEGORIES = ['Development', 'Code Review', 'Meetings & Calls', 'Ad
 // Shared category → color mapping, used by both the Calendar week-grid (entry block accents)
 // and Reporting (category bars/legend) so the same category always reads as the same color.
 export const CATEGORY_COLORS: Record<string, string> = {
-  Development: '#004543',
+  Development: '#1f8a85',
   'Code Review': '#3a8f8c',
   'Meetings & Calls': '#3b82f6',
   Admin: '#ff6d33',

@@ -6,6 +6,7 @@ import { people } from '../data/people'
 import { useProjects } from '../data/projects'
 import { useAssignments } from '../data/staffing'
 import { addDays, formatWeekRange, todayLocal, weekStartFor } from '../data/timeEntries'
+import { Select } from '../components/SearchableSelect'
 
 const WEEKLY_CAPACITY_PER_PERSON = 40
 
@@ -73,11 +74,11 @@ export default function Analytics() {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Week of {formatWeekRange(currentWeekStart)}</div>
-            <select className="input" style={{ width: 150 }} value={rangeWeeks} onChange={(e) => setRangeWeeks(Number(e.target.value))}>
+            <Select className="input" style={{ width: 150 }} value={rangeWeeks} onChange={(e) => setRangeWeeks(Number(e.target.value))}>
               <option value={4}>Last 4 weeks</option>
               <option value={8}>Last 8 weeks</option>
               <option value={12}>Last 12 weeks</option>
-            </select>
+            </Select>
           </div>
 
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
@@ -96,7 +97,7 @@ export default function Analytics() {
               {trend.map((t) => (
                 <div key={t.weekStart} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: 1 }}>
                   <div style={{ height: 160, display: 'flex', alignItems: 'flex-end' }}>
-                    <div style={{ width: 28, borderRadius: '6px 6px 2px 2px', background: '#3a8f8c', height: Math.max(4, (t.committed / maxTrend) * 160) }} />
+                    <div style={{ width: 28, borderRadius: '6px 6px 2px 2px', background: 'var(--brand-bar)', height: Math.max(4, (t.committed / maxTrend) * 160) }} />
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', textAlign: 'center' }}>{formatWeekRange(t.weekStart)}</div>
                 </div>

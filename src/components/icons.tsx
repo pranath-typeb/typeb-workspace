@@ -536,7 +536,7 @@ export function RefreshIcon({ size = 14, color = 'currentColor' }: IconProps) {
 
 export function TrashIcon({ size = 14, color = 'currentColor' }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg data-icon="trash" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" />
     </svg>
   )
@@ -599,6 +599,99 @@ export function AppleIcon({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
       <path d="M16.36 1.43c0 1.14-.42 2.2-1.24 3.03-.87.89-2.05 1.5-3.27 1.4a3.63 3.63 0 0 1-.03-.44c0-1.1.48-2.19 1.26-2.98.83-.85 2.15-1.44 3.2-1.44.03.15.08.29.08.43ZM20.9 17.5c-.55 1.28-.82 1.86-1.53 2.99-1 1.57-2.4 3.53-4.14 3.55-1.55.02-1.94-1.02-4.04-1.01-2.1.01-2.53 1.03-4.08 1.01-1.74-.02-3.06-1.79-4.06-3.35-2.78-4.31-3.07-9.37-1.36-12.06 1.22-1.92 3.14-3.05 4.94-3.05 1.83 0 2.98 1.03 4.5 1.03 1.47 0 2.36-1.04 4.48-1.04 1.6 0 3.29.87 4.5 2.38-3.96 2.17-3.32 7.83.79 9.55Z" />
+    </svg>
+  )
+}
+
+export function TargetIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="1.2" fill={color} />
+    </svg>
+  )
+}
+
+export function TrophyIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 4h8v5a4 4 0 0 1-8 0V4Z" />
+      <path d="M8 6H5a1 1 0 0 0-1 1c0 2.2 1.6 4 4 4" />
+      <path d="M16 6h3a1 1 0 0 1 1 1c0 2.2-1.6 4-4 4" />
+      <path d="M12 13v4M9 20h6M10 17h4" />
+    </svg>
+  )
+}
+
+export function FootprintsIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 4c-1.7 0-3 2-3 4.5S6 12 7.5 12 10 10.6 10 8.5 9.7 4 8 4Z" />
+      <path d="M6.5 15h3.4l-.4 2.2a1.6 1.6 0 0 1-3.1 0L6.5 15Z" />
+      <path d="M16 8c-1.7 0-2 2-2 4.2S15.6 16 17 16s3-1.4 3-3.5S17.7 8 16 8Z" />
+      <path d="M14.8 19h3.4l-.4 1.2a1.5 1.5 0 0 1-2.6 0L14.8 19Z" />
+    </svg>
+  )
+}
+
+export function PauseIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
+      <rect x="6" y="5" width="4" height="14" rx="1.2" />
+      <rect x="14" y="5" width="4" height="14" rx="1.2" />
+    </svg>
+  )
+}
+
+export function SkipIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m6 6 8 6-8 6V6Z" />
+      <path d="M18 6v12" />
+    </svg>
+  )
+}
+
+export function ResetIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12a9 9 0 1 0 3-6.7" />
+      <path d="M3 4v5h5" />
+    </svg>
+  )
+}
+
+export function VolumeIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
+    </svg>
+  )
+}
+
+export function ExpandIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+    </svg>
+  )
+}
+
+export function FlameIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.2 2-4 .2 1.2.9 2 1.7 2.3C10.3 8.5 10.7 5.5 12 3Z" />
+    </svg>
+  )
+}
+
+export function HeartPulseIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" />
+      <path d="M7 12h2.5l1.5-3 2 5 1.5-2H17" />
     </svg>
   )
 }

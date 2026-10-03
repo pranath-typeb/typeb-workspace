@@ -6,6 +6,7 @@ import { PayrollFileIcon, ChevronRightIcon } from '../../components/icons'
 import { avatarContent } from '../../components/Avatar'
 import { personById } from '../../data/people'
 import { bulkApprove, statusBadgeClass, usePayrollPeriods, type PayrollStatus } from '../../data/payroll'
+import { Select } from '../../components/SearchableSelect'
 
 const STATUSES: PayrollStatus[] = ['Timesheet pending', 'Under review', 'Update needed', 'Approved', 'Paid out']
 
@@ -95,11 +96,11 @@ export default function Reviews() {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <select className="input" style={{ width: 220 }} value={cycle} onChange={(e) => setCycle(e.target.value)}>
+          <Select className="input" style={{ width: 220 }} value={cycle} onChange={(e) => setCycle(e.target.value)}>
             {cycles.map((c) => (
               <option key={c.cycle} value={c.cycle}>{c.label} · {c.cycle}</option>
             ))}
-          </select>
+          </Select>
           <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{cyclePeriods.length} {cyclePeriods.length === 1 ? 'employee' : 'employees'}</span>
         </div>
         <input className="input" style={{ width: 220 }} placeholder="Search employees…" value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -150,7 +151,7 @@ export default function Reviews() {
                   </td>
                   <td className="td2 mono">${p.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                   <td className="td2 mono">
-                    <span style={{ color: behind ? '#cc3a00' : undefined }}>{p.actualHours} / {p.targetHours}</span>
+                    <span style={{ color: behind ? 'var(--warn-fg)' : undefined }}>{p.actualHours} / {p.targetHours}</span>
                   </td>
                   <td className="td2"><span className={`badge ${statusBadgeClass(p.status)}`}>{p.status}</span></td>
                   <td className="td2" style={{ width: 24 }}>
@@ -198,7 +199,7 @@ function StatusPill({ label, count, active, onClick }: { label: string; count: n
           fontWeight: 700,
           padding: '1px 6px',
           borderRadius: 9999,
-          background: active ? 'rgba(255,255,255,0.2)' : 'var(--color-border-default)',
+          background: active ? 'rgba(127,127,127,0.25)' : 'var(--color-border-default)',
           color: active ? 'inherit' : 'var(--color-text-primary)',
         }}
       >
