@@ -1,9 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
 import { ChevronLeftIcon, ClockIcon, CloseIcon, LockIcon } from '../../components/icons'
 import { avatarContent } from '../../components/Avatar'
+import { DecisionBar, ReviewTrack, Sparkline, VerdictCard } from '../../components/ReviewParts'
+import { computeTimesheetFlags, flagsByEntry, type TimesheetFlag } from '../../data/timesheetFlags'
+import { getApprovalQueue, type QueueItem } from '../../data/approvalQueue'
+import { useLeaveRequests } from '../../data/leave'
+import { showToast } from '../../data/toast'
 import { CURRENT_USER_ID, personById } from '../../data/people'
 import {
   addDays,
@@ -52,11 +57,36 @@ export default function TimesheetDetail() {
   const navigate = useNavigate()
   const entries = useTimeEntries()
   const assignments = useAssignments()
-  useSubmissions() // subscribe so this view re-renders after approve/reject/submit
+  const allSubmissions = useSubmissions() // also subscribes so this view re-renders after approve/reject/submit
+  const leaveRequests = useLeaveRequests()
+  const [reviewed, setReviewed] = useState<Set<string>>(new Set())
+  const [flash, setFlash] = useState<Set<string>>(new Set())
+  const keysRef = useRef<{ next?: () => void; prev?: () => void; approve?: () => void; reject?: () => void } | null>(null)
   const [rejecting, setRejecting] = useState(false)
   const [comment, setComment] = useState('')
   const [recalling, setRecalling] = useState(false)
   const [recallReason, setRecallReason] = useState('')
+
+  // Reviewer shortcuts: J/K = next/previous, A = approve, R = reject. Ignored while typing or in a dialog.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const el = e.target as HTMLElement | null
+      if (el?.closest('input, textarea, select, [contenteditable="true"], [role="combobox"], .modal, .ss-panel, .ss-sheet')) return
+      const h = keysRef.current
+      if (!h) return
+      const k = e.key.toLowerCase()
+      if (k === 'j' && h.next) h.next()
+      else if (k === 'k' && h.prev) h.prev()
+      else if (k === 'a' && h.approve) h.approve()
+      else if (k === 'r' && h.reject) {
+        e.preventDefault()
+        h.reject()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const person = personId ? personById(personId) : undefined
   const reviewer = personById(CURRENT_USER_ID)!
@@ -116,17 +146,80 @@ export default function TimesheetDetail() {
   const canRequestRecall = isOwn && locked && !recallReq
   const canHandleRecall = !isOwn && recallReq !== null
 
+  // ---- review intelligence ------------------------------------------------------------------
+  const todayStr = new Date().toLocaleDateString('en-CA')
+  const flags = computeTimesheetFlags({
+    person,
+    weekStart,
+    weekEntries,
+    allocationMin: (projectId) => committedHoursForProject(assignments, person.id, projectId) * 60,
+    leaveRequests,
+    today: todayStr,
+  })
+  const flagMap = flagsByEntry(flags)
+  const unreviewedWarns = flags.filter((f) => f.severity === 'warn' && !reviewed.has(f.id)).length
+
+  // compare with this person's last 4 weeks
+  const prevTotals = [4, 3, 2, 1].map((k) => entriesForPersonWeek(entries, person.id, addDays(weekStart, -7 * k)).reduce((s, e) => s + e.minutes, 0))
+  const nonZeroPrev = prevTotals.filter((m) => m > 0)
+  const prevAvg = nonZeroPrev.length ? nonZeroPrev.reduce((a, b) => a + b, 0) / nonZeroPrev.length : 0
+  const deltaMin = Math.round(totalMinutes - prevAvg)
+
+  // ---- queue (Previous / Next) -----------------------------------------------------------------
+  const storedQueue = getApprovalQueue()
+  const queue: QueueItem[] =
+    submission && storedQueue.some((q) => q.id === submission.id)
+      ? storedQueue
+      : allSubmissions
+          .filter((s) => nextReviewStage(s) !== null)
+          .sort((a, b) => b.weekStart.localeCompare(a.weekStart))
+          .map((s) => ({ id: s.id, personId: s.personId, weekStart: s.weekStart }))
+  const queueIndex = submission ? queue.findIndex((q) => q.id === submission.id) : -1
+  const goTo = (q: QueueItem) => navigate(`/time/timesheets/${q.personId}/${q.weekStart}`)
+  const prevItem = queueIndex > 0 ? queue[queueIndex - 1] : undefined
+  const nextItem = queueIndex >= 0 ? queue[queueIndex + 1] : queue[0]
+
+  // After a decision, move on to the next timesheet that still needs one — or back to the list.
+  function advance() {
+    const decidedId = submission?.id
+    const actionable = (q: QueueItem) => q.id !== decidedId && allSubmissions.some((s) => s.id === q.id && nextReviewStage(s) !== null)
+    const target = queue.slice(Math.max(queueIndex, 0) + 1).find(actionable) ?? queue.slice(0, Math.max(queueIndex, 0)).find(actionable)
+    if (target) {
+      goTo(target)
+    } else {
+      showToast('Queue cleared — nothing left waiting on you', 'success')
+      navigate('/time/approvals')
+    }
+  }
+
+  function toggleReviewed(id: string) {
+    setReviewed((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function jumpToFlag(flag: TimesheetFlag) {
+    const first = flag.entryIds[0]
+    document.getElementById(`entry-${first}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setFlash(new Set(flag.entryIds))
+    window.setTimeout(() => setFlash(new Set()), 1900)
+  }
+
   function approve() {
     if (!submission || !stage) return
     reviewSubmission(submission.id, stage, 'Approved', reviewer.name)
-    navigate(-1)
+    advance()
   }
 
   function confirmReject() {
     if (!submission || !stage) return
     reviewSubmission(submission.id, stage, 'Rejected', reviewer.name, comment.trim() || undefined)
     setRejecting(false)
-    navigate(-1)
+    setComment('')
+    advance()
   }
 
   const personIdForSubmit = person.id
@@ -151,6 +244,13 @@ export default function TimesheetDetail() {
   function denyRecall() {
     if (!submission) return
     respondToRecall(submission.id, 'Denied', reviewer.name)
+  }
+
+  keysRef.current = {
+    next: nextItem ? () => goTo(nextItem) : undefined,
+    prev: prevItem ? () => goTo(prevItem) : undefined,
+    approve: canReview ? approve : undefined,
+    reject: canReview ? () => setRejecting(true) : undefined,
   }
 
   return (
@@ -209,11 +309,10 @@ export default function TimesheetDetail() {
         })}
       </div>
 
-      {submission && status !== 'Not Submitted' && (
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          <ApprovalChip label="Line Manager" status={submission.lmStatus} by={submission.lmBy} at={submission.lmAt} />
-          <ApprovalChip label="HR" status={submission.hrStatus} by={submission.hrBy} at={submission.hrAt} />
-        </div>
+      {submission && status !== 'Not Submitted' && <ReviewTrack submission={submission} />}
+
+      {weekEntries.length > 0 && (canReview || isOwn || submission) && (
+        <VerdictCard flags={flags} reviewed={reviewed} onToggle={toggleReviewed} onJump={jumpToFlag} forOwner={isOwn} />
       )}
 
       {locked && (
@@ -260,6 +359,14 @@ export default function TimesheetDetail() {
             <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>Total hours</div>
             <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-1px', marginTop: 6 }}>{formatMinutes(totalMinutes)}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 }}>{weekEntries.length} entries</div>
+            {prevAvg > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: Math.abs(deltaMin) < 60 ? 'var(--color-text-secondary)' : deltaMin > 0 ? 'var(--warn-fg)' : 'var(--color-text-secondary)' }}>
+                  {deltaMin >= 0 ? '▲' : '▼'} {formatMinutes(Math.abs(deltaMin))} vs 4-wk avg
+                </span>
+                <Sparkline values={[...prevTotals, totalMinutes]} />
+              </div>
+            )}
           </div>
           <div className="stat" style={{ flex: 1, minWidth: 150 }}>
             <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>Billable</div>
@@ -343,10 +450,15 @@ export default function TimesheetDetail() {
             </thead>
             <tbody>
               {weekEntries.map((e) => (
-                <tr key={e.id}>
+                <tr key={e.id} id={`entry-${e.id}`} className={`ts-row${flagMap.get(e.id)?.some((f) => f.severity === 'warn') ? ' flag-warn' : flagMap.has(e.id) ? ' flag-info' : ''}${flash.has(e.id) ? ' flash' : ''}`}>
                   <td className="td2">{new Date(e.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</td>
                   <td className="td2 mono" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{e.startMinutes !== undefined ? formatTimeRange(e.startMinutes, e.minutes) : '—'}</td>
-                  <td className="td2">{e.description || 'Untitled entry'}</td>
+                  <td className="td2 wrap">
+                    {e.description || 'Untitled entry'}
+                    {[...new Map((flagMap.get(e.id) ?? []).filter((f) => f.short).map((f) => [f.short, f])).values()].slice(0, 2).map((f) => (
+                      <span key={f.short} className={`ts-tag${f.severity === 'warn' ? ' warn' : ''}`}>{f.short}</span>
+                    ))}
+                  </td>
                   <td className="td2" style={{ color: 'var(--color-text-secondary)' }}>{e.category}</td>
                   <td className="td2">{projectLabel(e.projectId)}</td>
                   <td className="td2">
@@ -374,17 +486,9 @@ export default function TimesheetDetail() {
         </div>
       </div>
 
-      {(canReview || canSubmit) && (
+      {canSubmit && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          {canReview && (
-            <>
-              <button className="btn-outline" onClick={() => setRejecting(true)}>Reject</button>
-              <button className="btn-dark" onClick={approve}>Approve as {STAGE_LABEL[stage!]}</button>
-            </>
-          )}
-          {canSubmit && (
-            <button className="btn-dark" onClick={submit}>Submit for review</button>
-          )}
+          <button className="btn-dark" onClick={submit}>Submit for review</button>
         </div>
       )}
 
@@ -405,6 +509,22 @@ export default function TimesheetDetail() {
         </div>
       )}
 
+      {canReview && (
+        <DecisionBar
+          person={person}
+          weekLabel={formatWeekRange(weekStart)}
+          totalLabel={formatMinutes(totalMinutes)}
+          unreviewedWarns={unreviewedWarns}
+          position={queueIndex >= 0 ? queueIndex + 1 : 0}
+          total={queue.length}
+          onPrev={prevItem ? () => goTo(prevItem) : undefined}
+          onNext={nextItem ? () => goTo(nextItem) : undefined}
+          stageLabel={STAGE_LABEL[stage!]}
+          onApprove={approve}
+          onReject={() => setRejecting(true)}
+        />
+      )}
+
       {rejecting && (
         <div className="modal-backdrop" onClick={() => setRejecting(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -419,10 +539,31 @@ export default function TimesheetDetail() {
             </div>
 
             <div>
-              <div className="field-label">Reason *</div>
+              <div className="field-label">Quick reasons</div>
+              <div className="reject-reasons">
+                {[
+                  ...flags.slice(0, 3).map((f) => ({ label: f.title, text: f.suggestion })),
+                  { label: 'Missing descriptions', text: 'Please add descriptions to all entries.' },
+                  { label: 'Wrong project', text: 'Some entries look like they are on the wrong project.' },
+                  { label: 'Hours look off', text: 'The hours look off — please recheck and resubmit.' },
+                ].map((r) => {
+                  const on = comment.includes(r.text)
+                  return (
+                    <button
+                      key={r.label}
+                      type="button"
+                      className={on ? 'on' : ''}
+                      onClick={() => setComment((c) => (on ? c.replace(r.text, '').replace(/\n{2,}/g, '\n').trim() : c ? `${c}\n${r.text}` : r.text))}
+                    >
+                      {r.label}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="field-label" style={{ marginTop: 12 }}>Note to {person.name.split(' ')[0]} *</div>
               <textarea
                 className="input"
-                style={{ height: 90, alignItems: 'flex-start', paddingTop: 10, resize: 'vertical' }}
+                style={{ height: 100, alignItems: 'flex-start', paddingTop: 10, resize: 'vertical' }}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Let them know what needs fixing…"
@@ -471,22 +612,5 @@ export default function TimesheetDetail() {
         </div>
       )}
     </AppShell>
-  )
-}
-
-function ApprovalChip({ label, status, by, at }: { label: string; status: 'Pending' | 'Approved' | 'Rejected'; by?: string; at?: string }) {
-  const badgeClass = status === 'Approved' ? 'b-pine' : status === 'Rejected' ? 'b-danger' : 'b-neutral'
-  return (
-    <div className="stat" style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px' }}>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
-        {by ? (
-          <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>{status} by {by} · {at ? fmtWhen(at) : ''}</div>
-        ) : (
-          <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>Not yet reviewed</div>
-        )}
-      </div>
-      <span className={`badge ${badgeClass}`} style={{ fontSize: 10, flexShrink: 0 }}>{status}</span>
-    </div>
   )
 }

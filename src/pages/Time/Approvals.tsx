@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
-import { ClockIcon, CloseIcon } from '../../components/icons'
+import { CheckIcon, ClockIcon, CloseIcon } from '../../components/icons'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { avatarContent } from '../../components/Avatar'
 import { CURRENT_USER_ID, personById, type Department } from '../../data/people'
 import {
@@ -18,6 +19,11 @@ import {
   type WeekSubmission,
 } from '../../data/timeEntries'
 import { Select } from '../../components/SearchableSelect'
+import { useAssignments, committedHoursForProject } from '../../data/staffing'
+import { useLeaveRequests } from '../../data/leave'
+import { setApprovalQueue } from '../../data/approvalQueue'
+import { computeTimesheetFlags, type TimesheetFlag } from '../../data/timesheetFlags'
+import { entriesForPersonWeek } from '../../data/timeEntries'
 
 type Tab = 'Awaiting me' | 'Pending' | 'Approved' | 'Rejected' | 'All'
 
@@ -44,6 +50,9 @@ export default function Approvals() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [rejectTarget, setRejectTarget] = useState<WeekSubmission | 'bulk' | null>(null)
   const [comment, setComment] = useState('')
+  const [confirmClean, setConfirmClean] = useState(false)
+  const assignments = useAssignments()
+  const leaveRequests = useLeaveRequests()
 
   const counts = useMemo(
     () => ({
@@ -101,7 +110,36 @@ export default function Approvals() {
     })
   }
 
+  // Review flags for every visible row, so each can show a clean / flagged chip.
+  const flagsById = useMemo(() => {
+    const map = new Map<string, TimesheetFlag[]>()
+    const today = new Date().toLocaleDateString('en-CA')
+    filtered.forEach((s) => {
+      const person = personById(s.personId)
+      if (!person) return
+      map.set(
+        s.id,
+        computeTimesheetFlags({
+          person,
+          weekStart: s.weekStart,
+          weekEntries: entriesForPersonWeek(entries, s.personId, s.weekStart),
+          allocationMin: (projectId) => committedHoursForProject(assignments, s.personId, projectId) * 60,
+          leaveRequests,
+          today,
+        }),
+      )
+    })
+    return map
+  }, [filtered, entries, assignments, leaveRequests])
+
+  const cleanIds = useMemo(
+    () => filtered.filter((s) => nextReviewStage(s) !== null && (flagsById.get(s.id)?.length ?? 1) === 0).map((s) => s.id),
+    [filtered, flagsById],
+  )
+
   function openDetail(s: WeekSubmission) {
+    // Hand the current (filtered, sorted) list to the detail page so it can offer Previous / Next.
+    setApprovalQueue(filtered.map((x) => ({ id: x.id, personId: x.personId, weekStart: x.weekStart })))
     navigate(`/time/timesheets/${s.personId}/${s.weekStart}`)
   }
 
@@ -210,6 +248,16 @@ export default function Approvals() {
         </div>
       </div>
 
+      {cleanIds.length > 0 && (
+        <div className="clean-bar">
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+            <CheckIcon size={14} color="var(--brand-mid)" />
+            <b>{cleanIds.length}</b> {cleanIds.length === 1 ? 'timesheet has' : 'timesheets have'} no flags
+          </span>
+          <button className="btn-outline" onClick={() => setConfirmClean(true)}>Approve all {cleanIds.length} clean</button>
+        </div>
+      )}
+
       {selected.size > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--color-background-muted)', borderRadius: 10, padding: '10px 16px' }}>
           <span style={{ fontSize: 13, fontWeight: 600 }}>{selected.size} selected</span>
@@ -220,7 +268,7 @@ export default function Approvals() {
         </div>
       )}
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card" style={{ padding: 0 }}>
         <table>
           <thead>
             <tr>
@@ -231,9 +279,10 @@ export default function Approvals() {
               <th className="th2">Department</th>
               <th className="th2">Period</th>
               <th className="th2">Hours</th>
+              <th className="th2">Flags</th>
               <th className="th2">Line Manager</th>
               <th className="th2">HR</th>
-              <th className="th2"></th>
+              <th className="th2 col-sticky-right"></th>
             </tr>
           </thead>
           <tbody>
@@ -258,6 +307,18 @@ export default function Approvals() {
                   <td className="td2">{formatWeekRange(s.weekStart)}</td>
                   <td className="td2 mono">{formatMinutes(minutes)}</td>
                   <td className="td2">
+                    {(() => {
+                      const fl = flagsById.get(s.id) ?? []
+                      const warns = fl.filter((f) => f.severity === 'warn').length
+                      if (fl.length === 0) return <span className="flag-chip clean" title="No flags">Clean</span>
+                      return (
+                        <span className={`flag-chip ${warns ? 'warn' : 'note'}`} title={fl.map((f) => f.title).join('\n')}>
+                          {warns ? `${warns} to check` : `${fl.length} ${fl.length === 1 ? 'note' : 'notes'}`}
+                        </span>
+                      )
+                    })()}
+                  </td>
+                  <td className="td2">
                     <span className={`badge ${approvalBadge(s.lmStatus)}`} style={{ fontSize: 10 }}>{s.lmStatus}</span>
                     {s.lmBy && <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 3 }}>{s.lmBy}</div>}
                   </td>
@@ -265,11 +326,11 @@ export default function Approvals() {
                     <span className={`badge ${approvalBadge(s.hrStatus)}`} style={{ fontSize: 10 }}>{s.hrStatus}</span>
                     {s.hrBy && <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 3 }}>{s.hrBy}</div>}
                   </td>
-                  <td className="td2" onClick={(e) => e.stopPropagation()}>
+                  <td className="td2 col-sticky-right" onClick={(e) => e.stopPropagation()}>
                     {stage && (
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap' }}>
                         <button className="btn-outline" onClick={() => setRejectTarget(s)}>Reject</button>
-                        <button className="btn-dark" onClick={() => approveOne(s)}>Approve ({STAGE_LABEL[stage]})</button>
+                        <button className="btn-dark" title={`Approve as ${STAGE_LABEL[stage]}`} onClick={() => approveOne(s)}>Approve ({stage === 'lm' ? 'LM' : STAGE_LABEL[stage]})</button>
                       </div>
                     )}
                   </td>
@@ -278,12 +339,26 @@ export default function Approvals() {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td className="td2" colSpan={8} style={{ color: 'var(--color-text-tertiary)' }}>Nothing here.</td>
+                <td className="td2" colSpan={9} style={{ color: 'var(--color-text-tertiary)' }}>Nothing here.</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {confirmClean && (
+        <ConfirmDialog
+          title={`Approve ${cleanIds.length} clean ${cleanIds.length === 1 ? 'timesheet' : 'timesheets'}?`}
+          message="Only timesheets with no flags are included. Anything with a long entry, overlap, gap or allocation issue stays in your queue."
+          confirmLabel={`Approve ${cleanIds.length}`}
+          danger={false}
+          onCancel={() => setConfirmClean(false)}
+          onConfirm={() => {
+            applyToSelection('Approved', cleanIds)
+            setConfirmClean(false)
+          }}
+        />
+      )}
 
       {rejectTarget && (
         <div className="modal-backdrop" onClick={() => setRejectTarget(null)}>

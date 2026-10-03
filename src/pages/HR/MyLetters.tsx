@@ -63,7 +63,7 @@ export default function MyLetters() {
               <tr key={r.id}>
                 <td className="td2">{r.type}</td>
                 <td className="td2">{fmtDate(r.requestedAt)}</td>
-                <td className="td2">{r.purpose ?? '—'}</td>
+                <td className="td2 wrap">{r.purpose ?? '—'}</td>
                 <td className="td2">
                   <div className="row-actions">
                     <Link to={`/hr/letters/${r.id}`} className="row-action-btn" aria-label="View" title="View">
