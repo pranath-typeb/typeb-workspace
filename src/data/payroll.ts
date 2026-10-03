@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CURRENT_USER_ID, personById } from './people'
 import { showToast } from './toast'
+import { supabase } from '../lib/supabaseClient'
 
 export type PayrollStatus = 'Timesheet pending' | 'Under review' | 'Update needed' | 'Approved' | 'Paid out'
 
@@ -304,6 +305,130 @@ function setState(next: PayrollPeriod[]) {
   listeners.forEach((l) => l(periods))
 }
 
+interface PayrollPeriodRow {
+  id: string
+  person_id: string
+  label: string
+  cycle: string
+  cycle_start: string | null
+  cycle_end: string | null
+  gross_pay: number
+  actual_hours: number
+  target_hours: number
+  status: PayrollStatus
+  pay_date: string | null
+  earnings: PayrollEarnings | null
+  deductions: PayrollDeductions | null
+  adjustments: PayrollAdjustment[] | null
+  notes: string | null
+  history: PayrollHistoryEvent[] | null
+  working_days: number | null
+  holidays: number | null
+  eligible_days: number | null
+  pto_hours: number | null
+  unpaid_hours: number | null
+  timesheet_confirmed: boolean | null
+  timesheet_confirmed_at: string | null
+  timesheet_confirmed_by: string | null
+  invoice_number: string | null
+  invoice_amount: number | null
+  invoice_issued_at: string | null
+  invoice_paid_at: string | null
+}
+
+function payrollPeriodFromRow(row: PayrollPeriodRow): PayrollPeriod {
+  return {
+    id: row.id,
+    personId: row.person_id,
+    label: row.label,
+    cycle: row.cycle,
+    cycleStart: row.cycle_start ?? undefined,
+    cycleEnd: row.cycle_end ?? undefined,
+    grossPay: row.gross_pay,
+    actualHours: row.actual_hours,
+    targetHours: row.target_hours,
+    status: row.status,
+    payDate: row.pay_date ?? undefined,
+    earnings: row.earnings ?? undefined,
+    deductions: row.deductions ?? undefined,
+    adjustments: row.adjustments ?? undefined,
+    notes: row.notes ?? undefined,
+    history: row.history ?? undefined,
+    workingDays: row.working_days ?? undefined,
+    holidays: row.holidays ?? undefined,
+    eligibleDays: row.eligible_days ?? undefined,
+    ptoHours: row.pto_hours ?? undefined,
+    unpaidHours: row.unpaid_hours ?? undefined,
+    timesheetConfirmed: row.timesheet_confirmed ?? undefined,
+    timesheetConfirmedAt: row.timesheet_confirmed_at ?? undefined,
+    timesheetConfirmedBy: row.timesheet_confirmed_by ?? undefined,
+    invoiceNumber: row.invoice_number ?? undefined,
+    invoiceAmount: row.invoice_amount ?? undefined,
+    invoiceIssuedAt: row.invoice_issued_at ?? undefined,
+    invoicePaidAt: row.invoice_paid_at ?? undefined,
+  }
+}
+
+function payrollPeriodToRow(p: PayrollPeriod): PayrollPeriodRow {
+  return {
+    id: p.id,
+    person_id: p.personId,
+    label: p.label,
+    cycle: p.cycle,
+    cycle_start: p.cycleStart ?? null,
+    cycle_end: p.cycleEnd ?? null,
+    gross_pay: p.grossPay,
+    actual_hours: p.actualHours,
+    target_hours: p.targetHours,
+    status: p.status,
+    pay_date: p.payDate ?? null,
+    earnings: p.earnings ?? null,
+    deductions: p.deductions ?? null,
+    adjustments: p.adjustments ?? null,
+    notes: p.notes ?? null,
+    history: p.history ?? null,
+    working_days: p.workingDays ?? null,
+    holidays: p.holidays ?? null,
+    eligible_days: p.eligibleDays ?? null,
+    pto_hours: p.ptoHours ?? null,
+    unpaid_hours: p.unpaidHours ?? null,
+    timesheet_confirmed: p.timesheetConfirmed ?? null,
+    timesheet_confirmed_at: p.timesheetConfirmedAt ?? null,
+    timesheet_confirmed_by: p.timesheetConfirmedBy ?? null,
+    invoice_number: p.invoiceNumber ?? null,
+    invoice_amount: p.invoiceAmount ?? null,
+    invoice_issued_at: p.invoiceIssuedAt ?? null,
+    invoice_paid_at: p.invoicePaidAt ?? null,
+  }
+}
+
+async function hydrateFromSupabase() {
+  const { data, error } = await supabase.from('payroll_periods').select('*')
+  if (error || !data) return
+  setState(data.map((row) => payrollPeriodFromRow(row as PayrollPeriodRow)))
+}
+
+hydrateFromSupabase()
+
+function syncUpsert(period: PayrollPeriod) {
+  supabase
+    .from('payroll_periods')
+    .upsert(payrollPeriodToRow(period))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync payroll period to the server', 'danger')
+    })
+}
+
+function syncUpsertMany(list: PayrollPeriod[]) {
+  if (list.length === 0) return
+  supabase
+    .from('payroll_periods')
+    .upsert(list.map(payrollPeriodToRow))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync payroll periods to the server', 'danger')
+    })
+}
+
 export function usePayrollPeriods(): PayrollPeriod[] {
   const [value, setValue] = useState(periods)
   useEffect(() => {
@@ -322,12 +447,16 @@ function appendHistory(p: PayrollPeriod, status: PayrollStatus, note?: string): 
 
 export function submitPeriod(id: string) {
   setState(periods.map((p) => (p.id === id ? appendHistory(p, 'Under review') : p)))
+  const updated = periods.find((p) => p.id === id)
+  if (updated) syncUpsert(updated)
   showToast('Submitted for payroll review', 'success')
 }
 
 export function reviewPeriod(id: string, status: 'Approved' | 'Rejected') {
   const period = periods.find((p) => p.id === id)
   setState(periods.map((p) => (p.id === id ? appendHistory(p, status === 'Rejected' ? 'Timesheet pending' : 'Approved') : p)))
+  const updated = periods.find((p) => p.id === id)
+  if (updated) syncUpsert(updated)
   const person = period ? personById(period.personId) : undefined
   showToast(`${person?.name ?? 'Payroll'} for ${period?.label ?? 'period'} ${status === 'Approved' ? 'approved' : 'sent back'}`, status === 'Approved' ? 'success' : 'danger')
 }
@@ -337,6 +466,8 @@ export function reviewPeriod(id: string, status: 'Approved' | 'Rejected') {
 export function requestUpdate(id: string, note: string) {
   const period = periods.find((p) => p.id === id)
   setState(periods.map((p) => (p.id === id ? appendHistory({ ...p, notes: note }, 'Update needed', note) : p)))
+  const updated = periods.find((p) => p.id === id)
+  if (updated) syncUpsert(updated)
   const person = period ? personById(period.personId) : undefined
   showToast(`Requested an update for ${person?.name ?? 'this period'}`, 'danger')
 }
@@ -344,23 +475,31 @@ export function requestUpdate(id: string, note: string) {
 export function markPaidOut(id: string, payDate: string) {
   const period = periods.find((p) => p.id === id)
   setState(periods.map((p) => (p.id === id ? appendHistory({ ...p, payDate }, 'Paid out') : p)))
+  const updated = periods.find((p) => p.id === id)
+  if (updated) syncUpsert(updated)
   const person = period ? personById(period.personId) : undefined
   showToast(`${person?.name ?? 'Payroll'} marked as paid out`, 'success')
 }
 
 export function addAdjustment(id: string, adjustment: PayrollAdjustment) {
   setState(periods.map((p) => (p.id === id ? { ...p, adjustments: [...(p.adjustments ?? []), adjustment] } : p)))
+  const updated = periods.find((p) => p.id === id)
+  if (updated) syncUpsert(updated)
   showToast('Adjustment added', 'success')
 }
 
 export function removeAdjustment(id: string, index: number) {
   setState(periods.map((p) => (p.id === id ? { ...p, adjustments: (p.adjustments ?? []).filter((_, i) => i !== index) } : p)))
+  const updated = periods.find((p) => p.id === id)
+  if (updated) syncUpsert(updated)
 }
 
 // Reconciles leave hours against the employee's own figures before they submit —
 // distinct from the Adjustments list, which is for one-off reimbursements.
 export function setLeaveHours(id: string, ptoHours: number, unpaidHours: number) {
   setState(periods.map((p) => (p.id === id ? { ...p, ptoHours, unpaidHours } : p)))
+  const updated = periods.find((p) => p.id === id)
+  if (updated) syncUpsert(updated)
   showToast('Leave hours saved', 'success')
 }
 
@@ -372,12 +511,15 @@ export function confirmTimesheet(id: string, confirmedBy: string) {
       p.id === id ? { ...p, timesheetConfirmed: true, timesheetConfirmedAt: new Date().toISOString(), timesheetConfirmedBy: confirmedBy } : p,
     ),
   )
+  const updated = periods.find((p) => p.id === id)
+  if (updated) syncUpsert(updated)
   showToast('Timesheet confirmed — ready for payroll', 'success')
 }
 
 export function bulkApprove(ids: string[]) {
   const idSet = new Set(ids)
   setState(periods.map((p) => (idSet.has(p.id) ? appendHistory(p, 'Approved') : p)))
+  syncUpsertMany(periods.filter((p) => idSet.has(p.id)))
   showToast(`Approved ${ids.length} ${ids.length === 1 ? 'review' : 'reviews'}`, 'success')
 }
 

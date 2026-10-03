@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
+
 export type EventCategory = 'Birthday' | 'Public Holiday' | 'Main Event' | 'Employee Leave'
 
 export interface CalendarEvent {
@@ -49,3 +52,51 @@ export const staticEvents: CalendarEvent[] = [
   { id: 'ce13', date: '2026-09-22', title: "Isabela Costa's birthday", category: 'Birthday' },
   { id: 'ce14', date: '2026-10-15', title: 'All-Hands: Q4 Kickoff', category: 'Main Event', detail: 'Company update · 4:00 PM' },
 ]
+
+// Read-only Supabase mirror, same pattern as employment_history — no add/edit/delete
+// UI writes calendar events today, so staticEvents above stays as the fallback if the
+// table is ever unreachable, instead of the only source of truth.
+interface CalendarEventRow {
+  id: string
+  date: string
+  title: string
+  category: EventCategory
+  detail: string | null
+}
+
+function calendarEventFromRow(row: CalendarEventRow): CalendarEvent {
+  return {
+    id: row.id,
+    date: row.date,
+    title: row.title,
+    category: row.category,
+    detail: row.detail ?? undefined,
+  }
+}
+
+let listeners: Array<(v: CalendarEvent[]) => void> = []
+let events: CalendarEvent[] = staticEvents
+
+function setEvents(next: CalendarEvent[]) {
+  events = next
+  listeners.forEach((l) => l(events))
+}
+
+async function hydrateFromSupabase() {
+  const { data, error } = await supabase.from('calendar_events').select('*').order('date')
+  if (error || !data) return
+  setEvents(data.map((row) => calendarEventFromRow(row as CalendarEventRow)))
+}
+
+hydrateFromSupabase()
+
+export function useCalendarEvents(): CalendarEvent[] {
+  const [value, setValue] = useState(events)
+  useEffect(() => {
+    listeners.push(setValue)
+    return () => {
+      listeners = listeners.filter((l) => l !== setValue)
+    }
+  }, [])
+  return value
+}

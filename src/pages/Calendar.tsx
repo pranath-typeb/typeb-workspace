@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { CalendarIcon, ChevronLeftIcon, GridIcon } from '../components/icons'
 import { todayLocal } from '../data/timeEntries'
 import { useLeaveRequests } from '../data/leave'
-import { categoryBadgeClass, categoryColor, parseLeaveDisplayDate, staticEvents, type CalendarEvent, type EventCategory } from '../data/calendarEvents'
+import { categoryBadgeClass, categoryColor, parseLeaveDisplayDate, useCalendarEvents, type CalendarEvent, type EventCategory } from '../data/calendarEvents'
 
 const categories: EventCategory[] = ['Birthday', 'Public Holiday', 'Main Event', 'Employee Leave']
 
@@ -13,6 +13,7 @@ function pad(n: number) {
 
 export default function CompanyCalendar() {
   const leaveRequests = useLeaveRequests()
+  const staticEvents = useCalendarEvents()
   const today = todayLocal()
   const [cursor, setCursor] = useState(() => {
     const [y, m] = today.split('-').map(Number)
@@ -32,7 +33,7 @@ export default function CompanyCalendar() {
         detail: `${r.days} ${r.days === 1 ? 'day' : 'days'}`,
       }))
     return [...staticEvents, ...leaveEvents]
-  }, [leaveRequests])
+  }, [leaveRequests, staticEvents])
 
   const monthEvents = useMemo(() => {
     const prefix = `${cursor.year}-${pad(cursor.month + 1)}`

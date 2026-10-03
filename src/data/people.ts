@@ -749,10 +749,46 @@ function personFromRow(row: PersonRow): Person {
   }
 }
 
+function personToRow(p: Person): PersonRow {
+  return {
+    id: p.id,
+    name: p.name,
+    initials: p.initials,
+    avatar_url: p.avatarUrl ?? null,
+    title: p.title,
+    department: p.department,
+    email: p.email,
+    timezone: p.timezone,
+    manager_id: p.managerId,
+    start_date: p.startDate,
+    jurisdiction: p.jurisdiction,
+    employment_type: p.employmentType,
+    payroll_excluded: p.payrollExcluded,
+    synced_days_ago: p.syncedDaysAgo,
+    employee_id: p.employeeId ?? null,
+    phone: p.phone ?? null,
+    birthday: p.birthday ?? null,
+    city: p.city ?? null,
+    personal_email: p.personalEmail ?? null,
+    emergency_contact: p.emergencyContact ?? null,
+    bank_name: p.bankName ?? null,
+    bank_account_no: p.bankAccountNo ?? null,
+  }
+}
+
 async function hydrateFromSupabase() {
   const { data, error } = await supabase.from('people').select('*').order('name')
   if (error || !data) return
   setState(data.map((row) => personFromRow(row as PersonRow)))
+}
+
+function syncUpsert(person: Person) {
+  supabase
+    .from('people')
+    .upsert(personToRow(person))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync the record to the server', 'danger')
+    })
 }
 
 function load(): Person[] {
@@ -795,6 +831,7 @@ hydrateFromSupabase()
 export function updatePerson(id: string, patch: Partial<Person>) {
   setState(people.map((p) => (p.id === id ? { ...p, ...patch } : p)))
   const person = people.find((p) => p.id === id)
+  if (person) syncUpsert(person)
   showToast(`${person?.name ?? 'Record'} updated`, 'success')
 }
 

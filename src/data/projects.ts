@@ -413,10 +413,48 @@ function projectFromRow(row: ProjectRow): Project {
   }
 }
 
+function projectToRow(p: Project): ProjectRow {
+  return {
+    id: p.id,
+    name: p.name,
+    client: p.client,
+    status: p.status,
+    billable: p.billable,
+    staffing: p.staffing,
+    hours_logged: p.hoursLogged,
+    starts: p.starts,
+    ends: p.ends,
+    billing: p.billing,
+    manager_id: p.managerId,
+    team_ids: p.teamIds,
+    calendar_keywords: p.calendarKeywords ?? null,
+    color: p.color,
+  }
+}
+
 async function hydrateFromSupabase() {
   const { data, error } = await supabase.from('projects').select('*').order('name')
   if (error || !data) return
   setState(data.map((row) => projectFromRow(row as ProjectRow)))
+}
+
+function syncUpsert(project: Project) {
+  supabase
+    .from('projects')
+    .upsert(projectToRow(project))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync project to the server', 'danger')
+    })
+}
+
+function syncDelete(id: string) {
+  supabase
+    .from('projects')
+    .delete()
+    .eq('id', id)
+    .then(({ error }) => {
+      if (error) showToast('Could not sync deletion to the server', 'danger')
+    })
 }
 
 function load(): Project[] {
@@ -458,6 +496,7 @@ export function addProject(input: Omit<Project, 'id' | 'hoursLogged' | 'color'> 
     color: input.color ?? projectColorForIndex(state.length),
   }
   setState([project, ...state])
+  syncUpsert(project)
   showToast(`"${project.name}" created`, 'success')
   return project
 }
@@ -470,11 +509,14 @@ export function nextProjectColor(): string {
 
 export function updateProject(id: string, patch: Partial<Project>) {
   setState(state.map((p) => (p.id === id ? { ...p, ...patch } : p)))
+  const updated = state.find((p) => p.id === id)
+  if (updated) syncUpsert(updated)
 }
 
 export function deleteProject(id: string) {
   const project = state.find((p) => p.id === id)
   setState(state.filter((p) => p.id !== id))
+  syncDelete(id)
   if (project) showToast(`"${project.name}" deleted`, 'danger')
 }
 

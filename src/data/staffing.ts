@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { showToast } from './toast'
 import { personById } from './people'
 import { projectById } from './projects'
+import { supabase } from '../lib/supabaseClient'
 
 export interface Assignment {
   id: string
@@ -76,9 +77,71 @@ function setState(next: Assignment[]) {
   listeners.forEach((l) => l(state))
 }
 
+interface AssignmentRow {
+  id: string
+  person_id: string
+  project_id: string
+  hours_per_week: number
+  start_date: string
+  open_ended: boolean
+  note: string | null
+}
+
+function assignmentFromRow(row: AssignmentRow): Assignment {
+  return {
+    id: row.id,
+    personId: row.person_id,
+    projectId: row.project_id,
+    hoursPerWeek: row.hours_per_week,
+    startDate: row.start_date,
+    openEnded: row.open_ended,
+    note: row.note ?? undefined,
+  }
+}
+
+function assignmentToRow(a: Assignment): AssignmentRow {
+  return {
+    id: a.id,
+    person_id: a.personId,
+    project_id: a.projectId,
+    hours_per_week: a.hoursPerWeek,
+    start_date: a.startDate,
+    open_ended: a.openEnded,
+    note: a.note ?? null,
+  }
+}
+
+async function hydrateFromSupabase() {
+  const { data, error } = await supabase.from('staffing_assignments').select('*')
+  if (error || !data) return
+  setState(data.map((row) => assignmentFromRow(row as AssignmentRow)))
+}
+
+hydrateFromSupabase()
+
+function syncUpsert(assignment: Assignment) {
+  supabase
+    .from('staffing_assignments')
+    .upsert(assignmentToRow(assignment))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync staffing assignment to the server', 'danger')
+    })
+}
+
+function syncDelete(id: string) {
+  supabase
+    .from('staffing_assignments')
+    .delete()
+    .eq('id', id)
+    .then(({ error }) => {
+      if (error) showToast('Could not sync deletion to the server', 'danger')
+    })
+}
+
 export function addAssignment(input: Omit<Assignment, 'id'>) {
   const assignment: Assignment = { ...input, id: `s${Date.now()}` }
   setState([assignment, ...state])
+  syncUpsert(assignment)
   const person = personById(assignment.personId)
   const project = projectById(assignment.projectId)
   showToast(`Committed ${assignment.hoursPerWeek}h/wk for ${person?.name ?? 'employee'} on ${project?.name ?? 'project'}`, 'success')
@@ -88,6 +151,7 @@ export function addAssignment(input: Omit<Assignment, 'id'>) {
 export function removeAssignment(id: string) {
   const assignment = state.find((a) => a.id === id)
   setState(state.filter((a) => a.id !== id))
+  syncDelete(id)
   if (assignment) {
     const person = personById(assignment.personId)
     const project = projectById(assignment.projectId)

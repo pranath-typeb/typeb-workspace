@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { showToast } from './toast'
 
 export type HistoryEventType = 'Hire' | 'Promotion' | 'Title Change' | 'Salary Change' | 'Transfer'
 
@@ -403,10 +404,6 @@ const seedHistory: HistoryEvent[] = [
   },
 ]
 
-// Read-only Supabase mirror of this table (see src/lib/supabaseClient.ts and the same
-// note in data/people.ts). No add/edit UI writes to this data today, so read-only
-// hydration is a clean fit — addHistoryEvent still only writes to localStorage, for
-// whenever that UI gets built.
 interface HistoryEventRow {
   id: string
   person_id: string
@@ -433,10 +430,33 @@ function historyEventFromRow(row: HistoryEventRow): HistoryEvent {
   }
 }
 
+function historyEventToRow(h: HistoryEvent): HistoryEventRow {
+  return {
+    id: h.id,
+    person_id: h.personId,
+    date: h.date,
+    type: h.type,
+    title: h.title,
+    department: h.department ?? null,
+    salary: h.salary ?? null,
+    previous_salary: h.previousSalary ?? null,
+    note: h.note ?? null,
+  }
+}
+
 async function hydrateFromSupabase() {
   const { data, error } = await supabase.from('employment_history').select('*').order('date')
   if (error || !data) return
   setState(data.map((row) => historyEventFromRow(row as HistoryEventRow)))
+}
+
+function syncUpsert(event: HistoryEvent) {
+  supabase
+    .from('employment_history')
+    .upsert(historyEventToRow(event))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync the history event to the server', 'danger')
+    })
 }
 
 function load(): HistoryEvent[] {
@@ -474,6 +494,7 @@ export function historyFor(personId: string): HistoryEvent[] {
 export function addHistoryEvent(input: Omit<HistoryEvent, 'id'>) {
   const event: HistoryEvent = { ...input, id: `eh-${Date.now()}` }
   setState([...history, event])
+  syncUpsert(event)
   return event
 }
 
