@@ -136,7 +136,7 @@ export default function Profile() {
       </div>
 
       <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
-        <div className="avatar" style={{ width: 88, height: 88, fontSize: 26, borderRadius: 44, flexShrink: 0 }}>{avatarContent(person)}</div>
+        <div className="avatar" style={{ width: 88, height: 88, fontSize: 26, borderRadius: 44, flexShrink: 0 }}>{avatarContent(person, { animate: true })}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="serif" style={{ fontSize: 24, letterSpacing: '-1.2px' }}>{person.name}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>

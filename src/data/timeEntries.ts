@@ -2895,3 +2895,28 @@ export function exportEntriesToCSV(list: TimeEntry[], filename: string) {
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
+
+
+// Most recently logged-on projects / categories for a person (distinct, newest first) — feeds the
+// "Recently used" section of the project and category pickers from what they have actually tracked.
+function recentFromEntries<T>(pick: (e: TimeEntry) => T | null, personId: string, limit: number): T[] {
+  const mine = entries
+    .filter((e) => e.personId === personId)
+    .slice()
+    .sort((a, b) => b.date.localeCompare(a.date) || (b.startMinutes ?? 0) - (a.startMinutes ?? 0) || b.id.localeCompare(a.id))
+  const out: T[] = []
+  for (const e of mine) {
+    const v = pick(e)
+    if (v !== null && v !== undefined && !out.includes(v)) out.push(v)
+    if (out.length >= limit) break
+  }
+  return out
+}
+
+export function recentProjectIds(limit = 6, personId: string = CURRENT_USER_ID): string[] {
+  return recentFromEntries((e) => e.projectId, personId, limit)
+}
+
+export function recentCategoryNames(limit = 6, personId: string = CURRENT_USER_ID): string[] {
+  return recentFromEntries((e) => e.category || null, personId, limit)
+}

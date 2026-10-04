@@ -5,7 +5,6 @@
 const SELECTOR = [
   '.scroll-x',
   '.sidebar-inner',
-  '.bn-bar-center',
   '.cal-scroller',
   '.card:has(> table)',
   '[style*="overflow-x: auto"]',
@@ -16,6 +15,13 @@ const tracked = new WeakSet<Element>()
 let observer: ResizeObserver | null = null
 
 function update(el: HTMLElement) {
+  // The section sidebar is only a horizontal strip on phones; on desktop it is a vertical list,
+  // where a few pixels of overhang (tooltips, badges) must not trigger a sideways fade.
+  if (el.classList.contains('sidebar-inner') && getComputedStyle(el).flexDirection !== 'row') {
+    el.removeAttribute('data-fade-start')
+    el.removeAttribute('data-fade-end')
+    return
+  }
   const max = el.scrollWidth - el.clientWidth
   const scrollable = max > EDGE_TOLERANCE
   el.toggleAttribute('data-fade-start', scrollable && el.scrollLeft > EDGE_TOLERANCE)

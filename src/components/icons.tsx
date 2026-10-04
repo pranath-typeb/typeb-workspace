@@ -695,3 +695,22 @@ export function HeartPulseIcon({ size = 16, color = 'currentColor' }: IconProps)
     </svg>
   )
 }
+
+export function VolumeOffIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+      <path d="m16 9 5 6M21 9l-5 6" />
+    </svg>
+  )
+}
+
+export function CoffeeIcon({ size = 16, color = 'currentColor' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 10h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-5Z" />
+      <path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16" />
+      <path d="M8 3c-.8 1 .8 1.8 0 3M12 3c-.8 1 .8 1.8 0 3" />
+    </svg>
+  )
+}

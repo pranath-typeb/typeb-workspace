@@ -5,7 +5,7 @@ import TimeInput from './TimeInput'
 import { CircleArrowRightIcon, CloseIcon } from './icons'
 import { CURRENT_USER_ID } from '../data/people'
 import { useProjects } from '../data/projects'
-import { addEntry, CATEGORIES, updateEntry, type TimeEntry } from '../data/timeEntries'
+import { addEntry, CATEGORIES, recentProjectIds, updateEntry, type TimeEntry } from '../data/timeEntries'
 
 const DURATION_OPTIONS = [15, 30, 45, 60, 90, 120, 180, 240]
 
@@ -100,6 +100,9 @@ export default function AddTimeEntryModal({ date, onClose, editing, onSave }: Ad
           <div style={{ flex: 1 }}>
             <div className="field-label">Project</div>
             <SearchableSelect
+              recentKey="project"
+              recentFrom={recentProjectIds}
+              allLabel="All projects"
               value={projectId}
               onChange={setProjectId}
               placeholder="No project"

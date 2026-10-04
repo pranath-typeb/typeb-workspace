@@ -6,6 +6,7 @@ import './index.css'
 import './data/theme'
 import { initScrollFades } from './lib/scrollFades'
 import { initUiSounds } from './data/uiSounds'
+import { initAutoTitles } from './lib/autoTitles'
 
 // A standalone single-file build (see vite.singlefile.config.ts) is opened directly as a
 // local file, or hosted with no server-side rewrite rules — there's no server to fall back
@@ -15,6 +16,7 @@ const Router = typeof __STANDALONE__ !== 'undefined' && __STANDALONE__ ? HashRou
 
 initScrollFades()
 initUiSounds()
+initAutoTitles()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

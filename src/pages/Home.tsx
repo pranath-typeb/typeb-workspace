@@ -14,7 +14,7 @@ import { startTimer, toggleTimerRunning, useTimerState } from '../data/timer'
 import { triggerScreenRipple } from '../data/screenRipple'
 import { AlertFileIcon, CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon, StopIcon, TimerActivityIcon } from '../components/icons'
 import WellbeingRow from '../components/WellbeingRow'
-import QuickActions from '../components/QuickActions'
+import DialClock from '../components/DialClock'
 import WhoIsOff from '../components/WhoIsOff'
 
 const DAILY_TARGET_MINUTES = 480
@@ -140,28 +140,8 @@ export default function Home() {
                 {dateStr} · Times shown in Asia/Colombo
               </div>
             </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 16,
-                background: 'var(--color-background-muted)',
-                border: '1px solid var(--color-border-subtle)',
-                borderRadius: 18,
-                padding: '10px 22px',
-              }}
-            >
-              <span className="home-clock" style={{ fontSize: 40, fontWeight: 700, lineHeight: 1, letterSpacing: '-0.5px', color: 'var(--color-text-primary)' }}>
-                {timeStr}
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>{weekdayStr}</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>{dayMonthStr}</span>
-              </div>
-            </div>
+            <DialClock now={now} weekday={weekdayStr} dayMonth={dayMonthStr} />
           </div>
-
-          <QuickActions />
 
           <div className="dash">
             {/* Main column: the work */}

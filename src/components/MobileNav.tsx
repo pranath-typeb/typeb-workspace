@@ -156,7 +156,7 @@ export default function MobileNav({ apps, pinnedKeys, activeKey, notifications, 
             <div className="mn-grabber" />
 
             <Link to={`/people/${currentUser.id}`} className="mn-profile">
-              <div className="avatar" style={{ width: 40, height: 40, fontSize: 13 }}>{avatarContent(currentUser)}</div>
+              <div className="avatar" style={{ width: 40, height: 40, fontSize: 13 }}>{avatarContent(currentUser, { animate: true })}</div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div className="mn-profile-name">{currentUser.name}</div>
                 <div className="mn-profile-sub">{currentUser.email}</div>

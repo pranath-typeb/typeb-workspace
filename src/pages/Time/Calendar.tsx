@@ -4,7 +4,8 @@ import TimeSidebar from '../../components/TimeSidebar'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import DurationPicker from '../../components/DurationPicker'
 import SearchableSelect, { Select } from '../../components/SearchableSelect'
-import { ClockIcon, RefreshIcon, CloseIcon, TrashIcon } from '../../components/icons'
+import { ClockIcon, RefreshIcon, CloseIcon, TrashIcon, DuplicateIcon } from '../../components/icons'
+import EntryTags from '../../components/EntryTags'
 import { CURRENT_USER_ID } from '../../data/people'
 import { projectColor, useProjects } from '../../data/projects'
 import { showToast } from '../../data/toast'
@@ -23,6 +24,7 @@ import {
   useTimeEntries,
   weekStartFor,
   type TimeEntry,
+  recentProjectIds,
 } from '../../data/timeEntries'
 
 // Event blocks: wash strength and text lift come from theme vars so dark theme stays legible.
@@ -659,7 +661,7 @@ export default function TimeCalendar() {
 }
 
 function popoverStyle(anchor: PopoverAnchor, estimatedHeight = 420): React.CSSProperties {
-  const width = 300
+  const width = 360
   const left = clamp(anchor.x + 8, 8, window.innerWidth - width - 8)
   const top = clamp(anchor.y + 8, 8, window.innerHeight - estimatedHeight - 8)
   return { left, top, maxHeight: window.innerHeight - 16, overflowY: 'auto' }
@@ -717,44 +719,37 @@ function EditEntryPopover({
   return (
     <>
       <div className="cal-popover-backdrop" onClick={onClose} />
-      <div className="cal-popover" style={popoverStyle(anchor, 500)}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: 13, fontWeight: 700 }}>Edit entry</div>
-          <button onClick={onClose} aria-label="Close" style={{ display: 'flex', padding: 2 }}><CloseIcon /></button>
+      <div className="cal-popover" style={popoverStyle(anchor, 560)}>
+        <div className="ep-head">
+          <div className="ep-title">Edit entry</div>
+          <button className="ep-close" onClick={onClose} aria-label="Close"><CloseIcon /></button>
         </div>
-
         <div>
           <div className="field-label">Description</div>
           <input className="input" value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div className="field-label">Project</div>
-            <SearchableSelect
-              value={projectId}
-              onChange={setProjectId}
-              placeholder="No project"
-              options={[{ value: '', label: 'No project' }, ...projects.map((p) => ({ value: p.id, label: p.name }))]}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div className="field-label">Category</div>
-            <Select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </Select>
-          </div>
+        <div>
+          <div className="field-label">Project</div>
+          <SearchableSelect
+            recentKey="project"
+            recentFrom={recentProjectIds}
+            allLabel="All projects"
+            value={projectId}
+            onChange={setProjectId}
+            placeholder="No project"
+            options={[{ value: '', label: 'No project' }, ...projects.map((p) => ({ value: p.id, label: p.name }))]}
+          />
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div className="field-label">Start time</div>
+        <div className="ep-times">
+          <div>
+            <div className="field-label">Start</div>
             <input className="input" type="time" value={startTime} onChange={(e) => handleStartTimeChange(e.target.value)} />
           </div>
-          <div style={{ flex: 1 }}>
-            <div className="field-label">End time</div>
+          <span className="ep-arrow" aria-hidden>→</span>
+          <div>
+            <div className="field-label">End</div>
             <input className="input" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
           </div>
         </div>
@@ -762,19 +757,18 @@ function EditEntryPopover({
         <DurationPicker options={DURATION_OPTIONS} selectedMinutes={duration} onSelect={applyDuration} />
         {duration <= 0 && <div style={{ fontSize: 12, color: 'var(--danger-fg)' }}>End time must be after start time.</div>}
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-          <input type="checkbox" checked={billable} onChange={(e) => setBillable(e.target.checked)} />
-          Billable
-        </label>
+        <EntryTags category={category} onCategory={setCategory} billable={billable} onBillable={setBillable} />
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-          <button className="btn-danger-text" onClick={() => setConfirmingDelete(true)}>
-            <TrashIcon size={13} color="var(--danger-fg)" /> Delete
-          </button>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn-outline" onClick={duplicate}>Duplicate</button>
-            <button className="btn-dark" disabled={duration <= 0} onClick={save}>Save</button>
+        <div className="ep-footer">
+          <div className="ep-footer-icons">
+            <button className="ep-icon-btn danger" title="Delete entry" aria-label="Delete entry" onClick={() => setConfirmingDelete(true)}>
+              <TrashIcon size={16} color="var(--danger-fg)" />
+            </button>
+            <button className="ep-icon-btn" title="Duplicate entry" aria-label="Duplicate entry" onClick={duplicate}>
+              <DuplicateIcon size={16} color="var(--color-text-primary)" />
+            </button>
           </div>
+          <button className="btn-dark ep-primary" disabled={duration <= 0} onClick={save}>Save</button>
         </div>
       </div>
 
@@ -846,44 +840,37 @@ function QuickAddPopover({
   return (
     <>
       <div className="cal-popover-backdrop" onClick={onClose} />
-      <div className="cal-popover" style={popoverStyle(anchor, 460)}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: 13, fontWeight: 700 }}>New entry · {dayLabel}</div>
-          <button onClick={onClose} aria-label="Close" style={{ display: 'flex', padding: 2 }}><CloseIcon /></button>
+      <div className="cal-popover" style={popoverStyle(anchor, 520)}>
+        <div className="ep-head">
+          <div className="ep-title">New entry <span>· {dayLabel}</span></div>
+          <button className="ep-close" onClick={onClose} aria-label="Close"><CloseIcon /></button>
         </div>
-
         <div>
           <div className="field-label">Description</div>
           <input className="input" autoFocus placeholder="What did you work on?" value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div className="field-label">Project</div>
-            <SearchableSelect
-              value={projectId}
-              onChange={setProjectId}
-              placeholder="No project"
-              options={[{ value: '', label: 'No project' }, ...projects.map((p) => ({ value: p.id, label: p.name }))]}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div className="field-label">Category</div>
-            <Select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </Select>
-          </div>
+        <div>
+          <div className="field-label">Project</div>
+          <SearchableSelect
+            recentKey="project"
+            recentFrom={recentProjectIds}
+            allLabel="All projects"
+            value={projectId}
+            onChange={setProjectId}
+            placeholder="No project"
+            options={[{ value: '', label: 'No project' }, ...projects.map((p) => ({ value: p.id, label: p.name }))]}
+          />
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div className="field-label">Start time</div>
+        <div className="ep-times">
+          <div>
+            <div className="field-label">Start</div>
             <input className="input" type="time" value={startTime} onChange={(e) => handleStartTimeChange(e.target.value)} />
           </div>
-          <div style={{ flex: 1 }}>
-            <div className="field-label">End time</div>
+          <span className="ep-arrow" aria-hidden>→</span>
+          <div>
+            <div className="field-label">End</div>
             <input className="input" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
           </div>
         </div>
@@ -891,14 +878,11 @@ function QuickAddPopover({
         <DurationPicker options={DURATION_OPTIONS} selectedMinutes={duration} onSelect={applyDuration} />
         {duration <= 0 && <div style={{ fontSize: 12, color: 'var(--danger-fg)' }}>End time must be after start time.</div>}
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-          <input type="checkbox" checked={billable} onChange={(e) => setBillable(e.target.checked)} />
-          Billable
-        </label>
+        <EntryTags category={category} onCategory={setCategory} billable={billable} onBillable={setBillable} />
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
+        <div className="ep-footer">
           <button className="btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn-dark" disabled={!description.trim() || duration <= 0} onClick={add}>Add entry</button>
+          <button className="btn-dark ep-primary" disabled={!description.trim() || duration <= 0} onClick={add}>Add entry</button>
         </div>
       </div>
     </>

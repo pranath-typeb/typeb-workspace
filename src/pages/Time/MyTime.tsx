@@ -6,8 +6,9 @@ import AddTimeEntryModal from '../../components/AddTimeEntryModal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import DurationPicker from '../../components/DurationPicker'
 import SearchableSelect from '../../components/SearchableSelect'
+import { BillableButton, CategoryTagButton } from '../../components/EntryTags'
 import TimeInput from '../../components/TimeInput'
-import { ChevronLeftIcon, ChevronRightIcon, CircleArrowRightIcon, ClockIcon, DollarSignIcon, DuplicateIcon, EditIcon, PlayIcon, StopIcon, TagIcon, TimerActivityIcon, TrashIcon } from '../../components/icons'
+import { ChevronLeftIcon, ChevronRightIcon, CircleArrowRightIcon, ClockIcon, DuplicateIcon, EditIcon, PlayIcon, StopIcon, TimerActivityIcon, TrashIcon } from '../../components/icons'
 import { CURRENT_USER_ID } from '../../data/people'
 import { projectColor, useProjects } from '../../data/projects'
 import {
@@ -30,6 +31,7 @@ import {
   useTimeEntries,
   weekStartFor,
   WEEKLY_TARGET_MINUTES,
+  recentProjectIds,
 } from '../../data/timeEntries'
 import { setTimerBillable, setTimerCategory, setTimerDescription, setTimerProjectId, startTimer, stopAndSaveTimer, toggleTimerRunning, useTimerState } from '../../data/timer'
 import { triggerScreenRipple } from '../../data/screenRipple'
@@ -79,7 +81,6 @@ export default function MyTime() {
   const [stagedDeleteTarget, setStagedDeleteTarget] = useState<TimeEntry | null>(null)
   const [stagedEditTarget, setStagedEditTarget] = useState<TimeEntry | null>(null)
 
-  const [openMenu, setOpenMenu] = useState<'timer-cat' | 'timer-bill' | 'manual-cat' | 'manual-bill' | null>(null)
   const [addEntryDate, setAddEntryDate] = useState<string | null>(null)
   const [editEntryTarget, setEditEntryTarget] = useState<TimeEntry | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<TimeEntry | null>(null)
@@ -260,6 +261,9 @@ export default function MyTime() {
               onChange={(e) => setTimerDescription(e.target.value)}
             />
             <SearchableSelect
+              recentKey="project"
+              recentFrom={recentProjectIds}
+              allLabel="All projects"
               value={timer.projectId}
               onChange={setTimerProjectId}
               placeholder="Select Project"
@@ -268,43 +272,8 @@ export default function MyTime() {
             />
             <div className="hide-on-phone" style={{ width: 1, alignSelf: 'stretch', background: 'var(--color-border-default)' }} />
             <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
-              <button
-                className="btn-dark"
-                style={{ width: 36, padding: 0, justifyContent: 'center', borderRadius: 10 }}
-                title={`Category: ${timer.category}`}
-                aria-label="Category"
-                onClick={() => setOpenMenu(openMenu === 'timer-cat' ? null : 'timer-cat')}
-              >
-                <TagIcon size={16} />
-              </button>
-              <button
-                style={{
-                  width: 36,
-                  height: 36,
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 10,
-                  background: timer.billable ? '#005c59' : '#171717',
-                  transition: 'background-color 0.15s ease',
-                }}
-                title={timer.billable ? 'Billable' : 'Non-billable'}
-                aria-label="Billable"
-                onClick={() => setOpenMenu(openMenu === 'timer-bill' ? null : 'timer-bill')}
-              >
-                <DollarSignIcon size={16} color="#ebebeb" />
-              </button>
-              {openMenu === 'timer-cat' && (
-                <IconMenu options={CATEGORIES} onSelect={(v) => { setTimerCategory(v); setOpenMenu(null) }} onClose={() => setOpenMenu(null)} />
-              )}
-              {openMenu === 'timer-bill' && (
-                <IconMenu
-                  options={['Billable', 'Non-billable']}
-                  onSelect={(v) => { setTimerBillable(v === 'Billable'); setOpenMenu(null) }}
-                  onClose={() => setOpenMenu(null)}
-                />
-              )}
+              <CategoryTagButton value={timer.category} onChange={setTimerCategory} size={36} />
+              <BillableButton value={timer.billable} onChange={setTimerBillable} size={36} />
             </div>
             {timer.running ? (
               <button
@@ -348,6 +317,9 @@ export default function MyTime() {
               <div style={{ flex: 1, minWidth: 160 }}>
                 <div className="field-label">Project</div>
                 <SearchableSelect
+                  recentKey="project"
+                  recentFrom={recentProjectIds}
+                  allLabel="All projects"
                   value={manualProject}
                   onChange={setManualProject}
                   placeholder="No project"
@@ -358,45 +330,9 @@ export default function MyTime() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
               <DurationPicker options={QUICK_DURATIONS} selectedMinutes={manualMinutes} onSelect={applyQuickDuration} />
               <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
-                <button
-                  className="btn-dark"
-                  style={{ width: 36, padding: 0, justifyContent: 'center', borderRadius: 10 }}
-                  title={`Category: ${manualCategory}`}
-                  aria-label="Category"
-                  onClick={() => setOpenMenu(openMenu === 'manual-cat' ? null : 'manual-cat')}
-                >
-                  <TagIcon size={16} />
-                </button>
-                <button
-                  style={{
-                    width: 36,
-                    height: 36,
-                    padding: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 10,
-                    background: manualBillable ? '#005c59' : '#171717',
-                    transition: 'background-color 0.15s ease',
-                  }}
-                  title={manualBillable ? 'Billable' : 'Non-billable'}
-                  aria-label="Billable"
-                  onClick={() => setOpenMenu(openMenu === 'manual-bill' ? null : 'manual-bill')}
-                >
-                  <DollarSignIcon size={16} color="#ebebeb" />
-                </button>
+                <CategoryTagButton value={manualCategory} onChange={setManualCategory} size={36} />
+                <BillableButton value={manualBillable} onChange={setManualBillable} size={36} />
                 <button className="btn-dark" style={{ borderRadius: 10 }} disabled={!manualDesc.trim() || manualMinutes <= 0} onClick={addManualEntry}>Add Entry</button>
-                {openMenu === 'manual-cat' && (
-                  <IconMenu options={CATEGORIES} onSelect={(v) => { setManualCategory(v); setOpenMenu(null) }} onClose={() => setOpenMenu(null)} align="right" />
-                )}
-                {openMenu === 'manual-bill' && (
-                  <IconMenu
-                    options={['Billable', 'Non-billable']}
-                    onSelect={(v) => { setManualBillable(v === 'Billable'); setOpenMenu(null) }}
-                    onClose={() => setOpenMenu(null)}
-                    align="right"
-                  />
-                )}
               </div>
             </div>
 
@@ -446,7 +382,7 @@ export default function MyTime() {
         />
       )}
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--color-background-page)', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
+      <div className="stat-strip" style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--color-background-page)', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
         <div style={{ flex: '1 1 160px', minWidth: 160, padding: '16px 20px', borderRight: '1px solid var(--color-border-subtle)' }}>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Week logged</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
@@ -821,42 +757,5 @@ function EntryRow({
         </button>
       </div>
     </div>
-  )
-}
-
-function IconMenu({ options, onSelect, onClose, align = 'left' }: { options: string[]; onSelect: (value: string) => void; onClose: () => void; align?: 'left' | 'right' }) {
-  return (
-    <>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={onClose} />
-      <div
-        style={{
-          position: 'absolute',
-          top: 40,
-          [align === 'left' ? 'left' : 'right']: 0,
-          background: 'var(--color-background-page)',
-          border: '1px solid var(--color-border-default)',
-          borderRadius: 10,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-          padding: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          zIndex: 10,
-          minWidth: 160,
-        }}
-      >
-        {options.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => onSelect(opt)}
-            style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 6, fontSize: 13, fontWeight: 500 }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-state-hover)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
-    </>
   )
 }

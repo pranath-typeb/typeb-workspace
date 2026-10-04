@@ -4,6 +4,7 @@ import {
   BellIcon,
   CalendarIcon,
   ChartIcon,
+  CoffeeIcon,
   ClockIcon,
   DatabaseIcon,
   DollarSignIcon,
@@ -342,9 +343,11 @@ export default function BottomNav() {
                           toggleTimerRunning()
                           triggerScreenRipple()
                         }}
-                        style={{ background: '#005c59', color: '#ebebeb', fontSize: 13, fontWeight: 600, padding: '6px 12px', borderRadius: 8 }}
+                        aria-label={running ? 'Take a break (pause the timer)' : 'Resume timer'}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#005c59', color: '#ebebeb', fontSize: 13, fontWeight: 600, padding: '6px 12px', borderRadius: 8 }}
                       >
-                        {running ? 'Pause' : 'Resume'}
+                        {running ? <CoffeeIcon size={15} color="#ebebeb" /> : <PlayIcon size={12} color="#ebebeb" />}
+                        {running ? 'Break' : 'Resume'}
                       </button>
                     </div>
                     <div>
@@ -524,7 +527,7 @@ export default function BottomNav() {
                 onClick={() => setProfileOpen((v) => !v)}
                 style={{ border: 'none', cursor: 'pointer' }}
               >
-                {avatarContent(currentUser)}
+                {avatarContent(currentUser, { animate: true })}
               </button>
               {profileOpen && (
                 <div className="bn-popover bn-popover-up" style={{ ...popoverStyle(navPos, 'right', 'bottom'), width: 260 }}>

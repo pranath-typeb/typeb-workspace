@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { addAssignment } from '../data/staffing'
 import { useProjects } from '../data/projects'
 import type { Person } from '../data/people'
-import { todayLocal } from '../data/timeEntries'
+import { recentProjectIds, todayLocal } from '../data/timeEntries'
 import { CloseIcon } from './icons'
 import SearchableSelect from './SearchableSelect'
 
@@ -50,6 +50,9 @@ export default function CommitHoursModal({ person, onClose }: CommitHoursModalPr
         <div>
           <div className="field-label">Project *</div>
           <SearchableSelect
+            recentKey="project"
+            recentFrom={recentProjectIds}
+            allLabel="All projects"
             value={projectId}
             onChange={setProjectId}
             options={projects.map((p) => ({ value: p.id, label: `${p.name} — ${p.client}` }))}
