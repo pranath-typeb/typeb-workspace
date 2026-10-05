@@ -23,10 +23,6 @@ export const whoIsOff = [
   { initials: 'VP', name: 'Viktor Petrov' },
 ]
 
-export const weeklyHoursWorked = '29:30'
-export const weeklyHoursTarget = 32
-export const weeklyBehindLabel = '3:30 behind target to date'
-
 export interface WeekSummary {
   range: string
   hours: string

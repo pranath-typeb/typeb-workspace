@@ -1,14 +1,22 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { useLeaveRequests, PTO_TOTAL_ACCRUED, PTO_TOTAL_USED } from '../data/leave'
-import {
-  weeklyHoursWorked,
-  weeklyHoursTarget,
-  weeklyBehindLabel,
-} from '../data/dashboard'
 import { CURRENT_USER_ID } from '../data/people'
 import { useCalendarEvents } from '../data/calendarEvents'
-import { addDays, categoryColor, minutesForPersonDate, projectLabel, todayLocal, useTimeEntries, weekStartFor, type TimeEntry } from '../data/timeEntries'
+import { committedHoursFor, useAssignments } from '../data/staffing'
+import {
+  addDays,
+  categoryColor,
+  formatMinutes,
+  minutesForPersonDate,
+  minutesForPersonWeek,
+  projectLabel,
+  todayLocal,
+  useTimeEntries,
+  weekStartFor,
+  WEEKLY_TARGET_MINUTES,
+  type TimeEntry,
+} from '../data/timeEntries'
 import { startTimer, toggleTimerRunning, useTimerState } from '../data/timer'
 import { triggerScreenRipple } from '../data/screenRipple'
 import { CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon, StopIcon, TimerActivityIcon } from '../components/icons'
@@ -94,6 +102,21 @@ export default function Home() {
   const recentWorks = useMemo(() => recentWorkGroups(timeEntries), [timeEntries])
 
   const today = todayLocal()
+
+  // What "on track" means for this person — their own allocated hours across assigned
+  // projects, not a flat 40h/week. 40h is a cap, not a target: being under your allocation
+  // is the expected, good outcome, not something to flag. Falls back to the weekly cap only
+  // for someone with no project allocation on file at all.
+  const assignments = useAssignments()
+  const allocatedWeeklyMinutes = committedHoursFor(assignments, CURRENT_USER_ID, 1) * 60
+  const weeklyTargetMinutes = allocatedWeeklyMinutes > 0 ? allocatedWeeklyMinutes : WEEKLY_TARGET_MINUTES
+  const weekMinutesSoFar = minutesForPersonWeek(timeEntries, CURRENT_USER_ID, weekStartFor(today))
+  const weeklyTrackingDiff = weekMinutesSoFar - weeklyTargetMinutes
+  const weeklyTrackingLabel =
+    weeklyTrackingDiff <= 0
+      ? `${formatMinutes(-weeklyTrackingDiff)} under your ${formatMinutes(weeklyTargetMinutes)} allocation`
+      : `${formatMinutes(weeklyTrackingDiff)} over your ${formatMinutes(weeklyTargetMinutes)} allocation`
+
   const weekDays = useMemo(() => {
     const start = weekStartFor(today)
     return Array.from({ length: 7 }, (_, i) => {
@@ -337,10 +360,10 @@ export default function Home() {
 
                 <div>
                   <div>
-                    <span style={{ fontSize: 24, fontWeight: 500, color: 'var(--color-text-primary)' }}>{weeklyHoursWorked}</span>
-                    <span style={{ fontSize: 24, fontWeight: 500, color: 'var(--color-text-secondary)' }}> / {weeklyHoursTarget} h</span>
+                    <span style={{ fontSize: 24, fontWeight: 500, color: 'var(--color-text-primary)' }}>{formatMinutes(weekMinutesSoFar)}</span>
+                    <span style={{ fontSize: 24, fontWeight: 500, color: 'var(--color-text-secondary)' }}> / {Math.round(weeklyTargetMinutes / 60)} h</span>
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{weeklyBehindLabel}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: weeklyTrackingDiff > 0 ? 'var(--warn-fg)' : 'var(--color-text-secondary)' }}>{weeklyTrackingLabel}</div>
                 </div>
               </div>
 

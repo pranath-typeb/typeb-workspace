@@ -12,6 +12,7 @@ import TimeInput from '../../components/TimeInput'
 import { ChevronLeftIcon, ChevronRightIcon, CircleArrowRightIcon, ClockIcon, DuplicateIcon, EditIcon, LockIcon, PlayIcon, StopIcon, TimerActivityIcon, TrashIcon } from '../../components/icons'
 import { CURRENT_USER_ID } from '../../data/people'
 import { projectColor, useProjects } from '../../data/projects'
+import { committedHoursFor, useAssignments } from '../../data/staffing'
 import {
   addDays,
   addEntries,
@@ -96,6 +97,14 @@ export default function MyTime() {
   const submission = submissionFor(CURRENT_USER_ID, weekStart)
   const weekEntries = entries.filter((e) => e.personId === CURRENT_USER_ID && days.includes(e.date))
   const weekLocked = isLockedStatus(submission?.status ?? 'Not Submitted')
+
+  // Your real target is whatever you're allocated across your assigned projects, not a flat
+  // 40h — that's just the weekly cap. Being under your allocation is the expected, good
+  // outcome, so it's never treated as "behind." Falls back to the cap only if you have no
+  // project allocation on file at all.
+  const assignments = useAssignments()
+  const allocatedMinutes = committedHoursFor(assignments, CURRENT_USER_ID, 1) * 60
+  const weeklyTarget = allocatedMinutes > 0 ? allocatedMinutes : WEEKLY_TARGET_MINUTES
 
   const currentWeek = weekStartFor(today)
   const quickWeeks = useMemo(() => Array.from({ length: 5 }, (_, i) => addDays(currentWeek, -14 + i * 7)), [currentWeek])
@@ -390,9 +399,9 @@ export default function MyTime() {
 
       {confirmingSubmit && (
         <ConfirmDialog
-          title="Submit an incomplete week?"
-          message={`You've logged ${formatMinutes(weekMinutes)} of the ${formatMinutes(WEEKLY_TARGET_MINUTES)} target. Once submitted, entries lock and you'll need to request a recall to change anything.`}
-          confirmLabel="Submit anyway"
+          title="Submit this week for review?"
+          message={`You've logged ${formatMinutes(weekMinutes)} of your ${formatMinutes(weeklyTarget)} allocation. Once submitted, entries lock and you'll need to request a recall to change anything.`}
+          confirmLabel="Submit"
           onCancel={() => setConfirmingSubmit(false)}
           onConfirm={() => {
             submitWeek(CURRENT_USER_ID, weekStart)
@@ -406,13 +415,13 @@ export default function MyTime() {
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Week logged</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
             <span className="mono" style={{ fontSize: 20, fontWeight: 600 }}>{formatMinutes(weekMinutes)}</span>
-            <span className="mono" style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>/ Target {formatMinutes(WEEKLY_TARGET_MINUTES)}</span>
+            <span className="mono" style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>/ {allocatedMinutes > 0 ? 'Allocated' : 'Cap'} {formatMinutes(weeklyTarget)}</span>
           </div>
         </div>
         <div style={{ flex: '1 1 120px', minWidth: 120, padding: '16px 20px', borderRight: '1px solid var(--color-border-subtle)' }}>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Balance</div>
-          <span className="mono" style={{ fontSize: 20, fontWeight: 600, color: weekMinutes >= WEEKLY_TARGET_MINUTES ? 'var(--brand-text)' : 'var(--warn-fg)' }}>
-            {formatMinutes(weekMinutes - WEEKLY_TARGET_MINUTES)}
+          <span className="mono" style={{ fontSize: 20, fontWeight: 600, color: weekMinutes <= weeklyTarget ? 'var(--brand-text)' : 'var(--warn-fg)' }}>
+            {formatMinutes(weeklyTarget - weekMinutes)}
           </span>
         </div>
         <div style={{ flex: '1 1 120px', minWidth: 120, padding: '16px 20px' }}>
@@ -590,12 +599,12 @@ export default function MyTime() {
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <span className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)' }}>{formatMinutes(weekMinutes)} / {formatMinutes(WEEKLY_TARGET_MINUTES)}</span>
+              <span className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)' }}>{formatMinutes(weekMinutes)} / {formatMinutes(weeklyTarget)}</span>
               <button
                 className="btn-dark"
                 disabled={weekEntries.length === 0 || weekLocked}
                 onClick={() => {
-                  if (weekMinutes < WEEKLY_TARGET_MINUTES) setConfirmingSubmit(true)
+                  if (weekMinutes < weeklyTarget) setConfirmingSubmit(true)
                   else submitWeek(CURRENT_USER_ID, weekStart)
                 }}
               >

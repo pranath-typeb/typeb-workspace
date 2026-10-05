@@ -21,7 +21,7 @@ import {
   type ReviewStage,
   type WeekSubmission,
 } from '../../data/timeEntries'
-import { useAssignments, committedHoursForProject } from '../../data/staffing'
+import { useAssignments, committedHoursFor, committedHoursForProject } from '../../data/staffing'
 import { useLeaveRequests } from '../../data/leave'
 import { setApprovalQueue } from '../../data/approvalQueue'
 import { computeTimesheetFlags, type TimesheetFlag } from '../../data/timesheetFlags'
@@ -126,6 +126,7 @@ export default function Approvals() {
           weekStart: s.weekStart,
           weekEntries: entriesForPersonWeek(entries, s.personId, s.weekStart),
           allocationMin: (projectId) => committedHoursForProject(assignments, s.personId, projectId) * 60,
+          totalAllocationMin: committedHoursFor(assignments, s.personId, 1) * 60,
           leaveRequests,
           today,
         }),

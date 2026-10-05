@@ -24,7 +24,6 @@ export const FLAG_RULES = {
   longDayMin: 10 * 60,
   offHoursStart: 6 * 60, // before 06:00
   offHoursEnd: 22 * 60, // after 22:00
-  underTargetRatio: 0.85,
   overTargetRatio: 1.15,
   nearBudgetPct: 95,
 }
@@ -35,6 +34,10 @@ interface FlagInput {
   weekEntries: TimeEntry[]
   // weekly allocation (minutes) per project id for this person; absent = no allocation
   allocationMin: (projectId: string) => number
+  // total weekly allocation (minutes) across every project this person is staffed on — the
+  // real target for their week, not WEEKLY_TARGET_MINUTES (that's just the standard weekly
+  // cap). 0 = no staffing assignment on file, in which case the cap is used as a fallback.
+  totalAllocationMin: number
   leaveRequests: LeaveRequest[]
   today: string // YYYY-MM-DD
 }
@@ -42,7 +45,7 @@ interface FlagInput {
 const dayName = (ymd: string) => new Date(ymd + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 const dow = (ymd: string) => new Date(ymd + 'T00:00:00').getDay()
 
-export function computeTimesheetFlags({ person, weekStart, weekEntries, allocationMin, leaveRequests, today }: FlagInput): TimesheetFlag[] {
+export function computeTimesheetFlags({ person, weekStart, weekEntries, allocationMin, totalAllocationMin, leaveRequests, today }: FlagInput): TimesheetFlag[] {
   const flags: TimesheetFlag[] = []
   const R = FLAG_RULES
   const weekEnd = addDays(weekStart, 6)
@@ -184,27 +187,20 @@ export function computeTimesheetFlags({ person, weekStart, weekEntries, allocati
     })
   }
 
-  // --- week total vs target (only once the week is over)
+  // --- week total vs this person's own allocation (only once the week is over). The
+  // 40h figure is a cap, not a target — being under your allocated hours is the expected,
+  // good outcome and is never flagged. Only meaningfully exceeding your allocation is.
   if (weekEnd < today && total > 0) {
-    if (total < WEEKLY_TARGET_MINUTES * R.underTargetRatio) {
-      flags.push({
-        id: 'under',
-        severity: total < WEEKLY_TARGET_MINUTES * 0.6 ? 'warn' : 'info',
-        title: `Below target: ${formatMinutes(total)} of ${formatMinutes(WEEKLY_TARGET_MINUTES)}`,
-        detail: `${Math.round((total / WEEKLY_TARGET_MINUTES) * 100)}% of the weekly target`,
-        short: '',
-        entryIds: [],
-        suggestion: `The week totals ${formatMinutes(total)} against a ${formatMinutes(WEEKLY_TARGET_MINUTES)} target — is any time missing?`,
-      })
-    } else if (total > WEEKLY_TARGET_MINUTES * R.overTargetRatio) {
+    const target = totalAllocationMin > 0 ? totalAllocationMin : WEEKLY_TARGET_MINUTES
+    if (total > target * R.overTargetRatio) {
       flags.push({
         id: 'over',
         severity: 'warn',
-        title: `Above target: ${formatMinutes(total)} of ${formatMinutes(WEEKLY_TARGET_MINUTES)}`,
-        detail: `${Math.round((total / WEEKLY_TARGET_MINUTES) * 100)}% of the weekly target`,
+        title: `Above allocation: ${formatMinutes(total)} of ${formatMinutes(target)}`,
+        detail: `${Math.round((total / target) * 100)}% of the weekly allocation`,
         short: '',
         entryIds: [],
-        suggestion: `The week totals ${formatMinutes(total)} against a ${formatMinutes(WEEKLY_TARGET_MINUTES)} target — please confirm the overtime.`,
+        suggestion: `The week totals ${formatMinutes(total)} against a ${formatMinutes(target)} allocation — please confirm the overtime.`,
       })
     }
   }

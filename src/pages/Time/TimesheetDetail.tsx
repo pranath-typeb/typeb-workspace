@@ -31,7 +31,7 @@ import {
   WEEKLY_TARGET_MINUTES,
   type ReviewStage,
 } from '../../data/timeEntries'
-import { committedHoursForProject, useAssignments } from '../../data/staffing'
+import { committedHoursFor, committedHoursForProject, useAssignments } from '../../data/staffing'
 
 const statusBadge: Record<string, string> = {
   'Not Submitted': 'b-neutral',
@@ -153,6 +153,7 @@ export default function TimesheetDetail() {
     weekStart,
     weekEntries,
     allocationMin: (projectId) => committedHoursForProject(assignments, person.id, projectId) * 60,
+    totalAllocationMin: committedHoursFor(assignments, person.id, 1) * 60,
     leaveRequests,
     today: todayStr,
   })
