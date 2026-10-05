@@ -5,6 +5,7 @@ import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
 import { ChevronLeftIcon, ChevronRightIcon, ClockIcon } from '../../components/icons'
 import { CURRENT_USER_ID } from '../../data/people'
+import { committedHoursFor, useAssignments } from '../../data/staffing'
 import {
   addDays,
   formatMinutes,
@@ -78,6 +79,13 @@ export default function Timesheets() {
   const navigate = useNavigate()
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  const [customRangeOpen, setCustomRangeOpen] = useState(false)
+
+  // Your real weekly target is your own allocation across assigned projects, not the flat
+  // 40h cap — see data/timesheetFlags.ts for the same reasoning applied to review flags.
+  const assignments = useAssignments()
+  const allocatedMinutes = committedHoursFor(assignments, CURRENT_USER_ID, 1) * 60
+  const weeklyTarget = allocatedMinutes > 0 ? allocatedMinutes : WEEKLY_TARGET_MINUTES
 
   const today = todayLocal()
   const [monthCursor, setMonthCursor] = useState(() => {
@@ -138,6 +146,7 @@ export default function Timesheets() {
     if (submitted > 0) {
       setFrom('')
       setTo('')
+      setCustomRangeOpen(false)
     }
   }
 
@@ -152,7 +161,7 @@ export default function Timesheets() {
         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 10 }}>
           This pay cycle · {fmtDate(cycle.start)} – {fmtDate(cycle.end)}
         </div>
-        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }}>
+        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4, minWidth: 0 }}>
           {cycleWeeks.map((w) => {
             const minutes = minutesForPersonWeek(entries, CURRENT_USER_ID, w)
             const submission = submissionFor(CURRENT_USER_ID, w)
@@ -172,21 +181,43 @@ export default function Timesheets() {
         </div>
       </div>
 
-      <div className="card">
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Submit a custom range</div>
-        <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 12 }}>Leave "To" empty to submit a single day's week.</div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 160 }}>
-            <div className="field-label">From</div>
-            <DatePicker value={from} onChange={setFrom} allowClear />
+      {customRangeOpen ? (
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>Submit a custom range</div>
+            <button
+              className="btn-outline"
+              style={{ height: 28, padding: '0 10px', fontSize: 12 }}
+              onClick={() => {
+                setCustomRangeOpen(false)
+                setFrom('')
+                setTo('')
+              }}
+            >
+              Cancel
+            </button>
           </div>
-          <div style={{ flex: 1, minWidth: 160 }}>
-            <div className="field-label">To</div>
-            <DatePicker value={to} onChange={setTo} placeholder="Same as From" allowClear />
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 12 }}>Leave "To" empty to submit a single day's week.</div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div className="field-label">From</div>
+              <DatePicker value={from} onChange={setFrom} allowClear />
+            </div>
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div className="field-label">To</div>
+              <DatePicker value={to} onChange={setTo} placeholder="Same as From" allowClear />
+            </div>
+            <button className="btn-dark" disabled={!from} onClick={submitCustomRange}>Submit for review</button>
           </div>
-          <button className="btn-dark" disabled={!from} onClick={submitCustomRange}>Submit for review</button>
         </div>
-      </div>
+      ) : (
+        <button
+          onClick={() => setCustomRangeOpen(true)}
+          style={{ alignSelf: 'flex-start', fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', textDecoration: 'underline', textUnderlineOffset: 3 }}
+        >
+          Submit a custom range…
+        </button>
+      )}
 
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
@@ -204,7 +235,7 @@ export default function Timesheets() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {current.map((r) => (
-            <TimesheetRow key={r.weekStart} {...r} onClick={() => navigate(`/time/timesheets/${CURRENT_USER_ID}/${r.weekStart}`)} />
+            <TimesheetRow key={r.weekStart} {...r} weeklyTarget={weeklyTarget} onClick={() => navigate(`/time/timesheets/${CURRENT_USER_ID}/${r.weekStart}`)} />
           ))}
           {current.length === 0 && <div className="card" style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>Nothing open right now.</div>}
         </div>
@@ -215,7 +246,7 @@ export default function Timesheets() {
           <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10 }}>History</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {history.map((r) => (
-              <TimesheetRow key={r.weekStart} {...r} onClick={() => navigate(`/time/timesheets/${CURRENT_USER_ID}/${r.weekStart}`)} />
+              <TimesheetRow key={r.weekStart} {...r} weeklyTarget={weeklyTarget} onClick={() => navigate(`/time/timesheets/${CURRENT_USER_ID}/${r.weekStart}`)} />
             ))}
           </div>
         </div>
@@ -229,15 +260,17 @@ function TimesheetRow({
   minutes,
   status,
   submission,
+  weeklyTarget,
   onClick,
 }: {
   weekStart: string
   minutes: number
   status: string
   submission?: { comment?: string }
+  weeklyTarget: number
   onClick: () => void
 }) {
-  const pct = Math.min(100, Math.round((minutes / WEEKLY_TARGET_MINUTES) * 100))
+  const pct = Math.min(100, Math.round((minutes / weeklyTarget) * 100))
   return (
     <div
       className="card task-row"
@@ -247,7 +280,7 @@ function TimesheetRow({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 600 }}>{formatWeekRange(weekStart)}</div>
         <div className="mono" style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 }}>
-          {formatMinutes(minutes)} / {formatMinutes(WEEKLY_TARGET_MINUTES)}
+          {formatMinutes(minutes)} / {formatMinutes(weeklyTarget)}
         </div>
         <div style={{ height: 4, background: 'var(--color-border-default)', borderRadius: 9999, overflow: 'hidden', marginTop: 8, maxWidth: 220 }}>
           <div style={{ height: '100%', width: `${pct}%`, background: status === 'Rejected' ? '#ff6d33' : 'var(--brand-deep)' }} />
