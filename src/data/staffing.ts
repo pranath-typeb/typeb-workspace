@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { showToast } from './toast'
 import { personById } from './people'
 import { projectById } from './projects'
+import { supabase } from '../lib/supabaseClient'
 
 export interface Assignment {
   id: string
@@ -31,6 +32,22 @@ const seedAssignments: Assignment[] = [
   { id: 's8', personId: 'priya-nair', projectId: 'atlas-launch', hoursPerWeek: 8, startDate: '2026-09-10', openEnded: true },
   { id: 's9', personId: 'dinusha-randika', projectId: 'beacon-support', hoursPerWeek: 5, startDate: '2026-01-01', openEnded: true },
   { id: 's10', personId: 'yuki-tanaka', projectId: 'vantage-crm', hoursPerWeek: 20, startDate: '2026-08-01', openEnded: true },
+  // Additional commitments across the new projects/people — exercises every allocationStatus bucket
+  { id: 's11', personId: 'isabela-costa', projectId: 'nimbus-onboarding', hoursPerWeek: 18, startDate: '2026-09-01', openEnded: true },
+  // Over-allocated: two concurrent commitments push this well past 100%
+  { id: 's12', personId: 'kwame-mensah', projectId: 'pinecrest-crm', hoursPerWeek: 22, startDate: '2026-06-01', openEnded: true },
+  { id: 's13', personId: 'kwame-mensah', projectId: 'vertex-data-lake', hoursPerWeek: 20, startDate: '2026-08-01', openEnded: true },
+  // At capacity: exactly 40h/wk ≈ 176h/month
+  { id: 's14', personId: 'nadia-rahman', projectId: 'orbit-analytics', hoursPerWeek: 40, startDate: '2026-07-20', openEnded: false, note: 'QA coverage through GA' },
+  { id: 's15', personId: 'felix-huber', projectId: 'orbit-analytics', hoursPerWeek: 15, startDate: '2026-07-20', openEnded: true },
+  { id: 's16', personId: 'felix-huber', projectId: 'talon-security-audit', hoursPerWeek: 10, startDate: '2026-09-20', openEnded: true },
+  { id: 's17', personId: 'meera-pillai', projectId: 'orbit-analytics', hoursPerWeek: 12, startDate: '2026-07-20', openEnded: true },
+  { id: 's18', personId: 'devon-marsh', projectId: 'pinecrest-crm', hoursPerWeek: 16, startDate: '2026-06-01', openEnded: true },
+  { id: 's19', personId: 'grace-kim', projectId: 'summit-partnership', hoursPerWeek: 25, startDate: '2026-09-15', openEnded: true },
+  { id: 's20', personId: 'fatima-al-sayed', projectId: 'union-hr-portal', hoursPerWeek: 30, startDate: '2026-05-15', openEnded: true },
+  // At capacity: 38h/wk ≈ 95% of monthly capacity
+  { id: 's21', personId: 'rohan-kapoor', projectId: 'union-hr-portal', hoursPerWeek: 38, startDate: '2026-05-15', openEnded: true },
+  { id: 's22', personId: 'chloe-dubois', projectId: 'westgate-retainer', hoursPerWeek: 8, startDate: '2026-01-01', openEnded: true },
 ]
 
 function load(): Assignment[] {
@@ -60,9 +77,71 @@ function setState(next: Assignment[]) {
   listeners.forEach((l) => l(state))
 }
 
+interface AssignmentRow {
+  id: string
+  person_id: string
+  project_id: string
+  hours_per_week: number
+  start_date: string
+  open_ended: boolean
+  note: string | null
+}
+
+function assignmentFromRow(row: AssignmentRow): Assignment {
+  return {
+    id: row.id,
+    personId: row.person_id,
+    projectId: row.project_id,
+    hoursPerWeek: row.hours_per_week,
+    startDate: row.start_date,
+    openEnded: row.open_ended,
+    note: row.note ?? undefined,
+  }
+}
+
+function assignmentToRow(a: Assignment): AssignmentRow {
+  return {
+    id: a.id,
+    person_id: a.personId,
+    project_id: a.projectId,
+    hours_per_week: a.hoursPerWeek,
+    start_date: a.startDate,
+    open_ended: a.openEnded,
+    note: a.note ?? null,
+  }
+}
+
+async function hydrateFromSupabase() {
+  const { data, error } = await supabase.from('staffing_assignments').select('*')
+  if (error || !data) return
+  setState(data.map((row) => assignmentFromRow(row as AssignmentRow)))
+}
+
+hydrateFromSupabase()
+
+function syncUpsert(assignment: Assignment) {
+  supabase
+    .from('staffing_assignments')
+    .upsert(assignmentToRow(assignment))
+    .then(({ error }) => {
+      if (error) showToast('Could not sync staffing assignment to the server', 'danger')
+    })
+}
+
+function syncDelete(id: string) {
+  supabase
+    .from('staffing_assignments')
+    .delete()
+    .eq('id', id)
+    .then(({ error }) => {
+      if (error) showToast('Could not sync deletion to the server', 'danger')
+    })
+}
+
 export function addAssignment(input: Omit<Assignment, 'id'>) {
   const assignment: Assignment = { ...input, id: `s${Date.now()}` }
   setState([assignment, ...state])
+  syncUpsert(assignment)
   const person = personById(assignment.personId)
   const project = projectById(assignment.projectId)
   showToast(`Committed ${assignment.hoursPerWeek}h/wk for ${person?.name ?? 'employee'} on ${project?.name ?? 'project'}`, 'success')
@@ -72,6 +151,7 @@ export function addAssignment(input: Omit<Assignment, 'id'>) {
 export function removeAssignment(id: string) {
   const assignment = state.find((a) => a.id === id)
   setState(state.filter((a) => a.id !== id))
+  syncDelete(id)
   if (assignment) {
     const person = personById(assignment.personId)
     const project = projectById(assignment.projectId)
@@ -94,6 +174,15 @@ export function committedHoursFor(assignments: Assignment[], personId: string, w
   return assignments
     .filter((a) => a.personId === personId)
     .reduce((sum, a) => sum + Math.round(a.hoursPerWeek * weeksMultiplier), 0)
+}
+
+// A manager's per-project commitment for this person — e.g. "10h/wk on Atlas Launch" — as
+// opposed to committedHoursFor's total across every project. Powers "assigned vs actual"
+// views like the Timesheet's "By project" breakdown.
+export function committedHoursForProject(assignments: Assignment[], personId: string, projectId: string, weeksMultiplier = 1): number {
+  return assignments
+    .filter((a) => a.personId === personId && a.projectId === projectId)
+    .reduce((sum, a) => sum + a.hoursPerWeek * weeksMultiplier, 0)
 }
 
 export function allocationStatus(pct: number): { label: string; badgeClass: string } {

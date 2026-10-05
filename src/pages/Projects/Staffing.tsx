@@ -1,8 +1,12 @@
 import { Fragment, useMemo, useState } from 'react'
+import EmptyState from '../../components/EmptyState'
+import { useUrlParam, useUrlFlag } from '../../lib/useUrlState'
+import FilterBar from '../../components/FilterBar'
 import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavGroupLabel, NavItem } from '../../components/NavItem'
-import { BuildingIcon, ProjectsIcon, StaffingIcon } from '../../components/icons'
+import { BuildingIcon, ProjectsIcon, StaffingIcon, PresentationIcon } from '../../components/icons'
+import { avatarContent } from '../../components/Avatar'
 import { people, personById, type Department, type EmploymentType } from '../../data/people'
 import { useProjects } from '../../data/projects'
 import { allocationStatus, committedHoursFor, removeAssignment, useAssignments } from '../../data/staffing'
@@ -45,17 +49,17 @@ function yearEnd(d: string) {
 export default function Staffing() {
   const projects = useProjects()
   const assignments = useAssignments()
-  const [view, setView] = useState<'List' | 'Timeline'>('List')
-  const [metric, setMetric] = useState<Metric>('Allocated hours')
-  const [scope, setScope] = useState<Scope>('Direct')
-  const [groupByManager, setGroupByManager] = useState(false)
+  const [view, setView] = useUrlParam<'List' | 'Timeline'>('view', 'List')
+  const [metric, setMetric] = useUrlParam<Metric>('show', 'Allocated hours')
+  const [scope, setScope] = useUrlParam<Scope>('staff', 'Direct')
+  const [groupByManager, setGroupByManager] = useUrlFlag('group')
   const [granularity, setGranularity] = useState<Granularity>('Monthly')
   const [anchor, setAnchor] = useState(() => todayLocal())
-  const [query, setQuery] = useState('')
-  const [dept, setDept] = useState<'All' | Department>('All')
-  const [employment, setEmployment] = useState<'All' | EmploymentType>('All')
-  const [sortBy, setSortBy] = useState<SortBy>('Default order')
-  const [tab, setTab] = useState<FilterTab>('Everyone')
+  const [query, setQuery] = useUrlParam('q', '')
+  const [dept, setDept] = useUrlParam<'All' | Department>('dept', 'All')
+  const [employment, setEmployment] = useUrlParam<'All' | EmploymentType>('employment', 'All')
+  const [sortBy, setSortBy] = useUrlParam<SortBy>('sort', 'Default order')
+  const [tab, setTab] = useUrlParam<FilterTab>('tab', 'Everyone')
   const [commitFor, setCommitFor] = useState<string | null>(null)
 
   const projectName = (id: string) => projects.find((p) => p.id === id)?.name ?? 'Unknown project'
@@ -184,16 +188,16 @@ export default function Staffing() {
   }
 
   function cellStyle(pct: number, current: boolean) {
-    let background = '#cce3e2'
-    let color = '#004543'
+    let background = 'var(--brand-soft-bg)'
+    let color = 'var(--brand-deep)'
     if (pct > 100) {
       background = '#171717'
       color = '#fff'
     } else if (pct >= 95) {
-      background = '#00736f'
+      background = 'var(--brand-mid)'
       color = '#fff'
     } else if (pct > 0) {
-      background = '#3a8f8c'
+      background = 'var(--brand-bar)'
       color = '#fff'
     }
     return {
@@ -210,57 +214,48 @@ export default function Staffing() {
 
   return (
     <AppShell
-      appIcon={<ProjectsIcon size={16} color="rgba(0,0,0,0.53)" />}
+      appIcon={<PresentationIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="Projects"
       appHref="/projects"
       sidebar={
         <>
           <NavGroupLabel label="General" />
           <NavItem to="/projects" icon={<ProjectsIcon />} label="Projects" />
-          <NavItem to="/projects/staffing" icon={<StaffingIcon color="#fafafa" />} label="Staffing" active />
+          <NavItem to="/projects/staffing" icon={<StaffingIcon color="var(--color-text-inverse)" />} label="Staffing" active />
           <NavItem to="/projects/clients" icon={<BuildingIcon />} label="Clients" />
         </>
       }
     >
-      <div className="page-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <span>Staffing</span>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <SegmentedToggle value={metric} options={['Allocated hours', 'Availability']} onChange={(v) => setMetric(v as Metric)} />
-          <SegmentedToggle value={view} options={['List', 'Timeline']} onChange={(v) => setView(v as 'List' | 'Timeline')} />
-        </div>
-      </div>
+      <div className="page-title">Staffing</div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <SegmentedToggle value={granularity} options={['Weekly', 'Monthly', 'Yearly']} onChange={(v) => changeGranularity(v as Granularity)} />
-          <button className="btn-outline" style={{ width: 32, padding: 0, justifyContent: 'center' }} onClick={() => step(-1)}>‹</button>
-          <div className="serif" style={{ fontSize: 16, letterSpacing: '-0.4px', minWidth: 120, textAlign: 'center' }}>{range.label}</div>
-          <button className="btn-outline" style={{ width: 32, padding: 0, justifyContent: 'center' }} onClick={() => step(1)}>›</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'nowrap' }}>
+            <button className="btn-outline" style={{ width: 32, padding: 0, justifyContent: 'center', flexShrink: 0 }} onClick={() => step(-1)} aria-label="Previous period">‹</button>
+            <div className="serif" style={{ fontSize: 16, letterSpacing: '-0.4px', minWidth: 110, textAlign: 'center' }}>{range.label}</div>
+            <button className="btn-outline" style={{ width: 32, padding: 0, justifyContent: 'center', flexShrink: 0 }} onClick={() => step(1)} aria-label="Next period">›</button>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <SegmentedToggle value={scope} options={['Direct', 'Indirect']} onChange={(v) => setScope(v as Scope)} />
-          <button className="btn-outline" onClick={() => setGroupByManager((v) => !v)} style={groupByManager ? { background: '#171717', color: '#fff', borderColor: '#171717' } : undefined}>
-            Group by manager
-          </button>
-        </div>
+        <SegmentedToggle value={view} options={['List', 'Timeline']} onChange={(v) => setView(v as 'List' | 'Timeline')} />
       </div>
 
-      <div style={{ display: 'flex', border: '1px solid #ececee', borderRadius: 14, overflow: 'hidden' }}>
+      <div className="stat-strip" style={{ display: 'flex', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
         {[
           { label: 'Capacity', value: `${totalCapacity}h`, sub: `Total hours this ${granularity.toLowerCase().replace('ly', '')}` },
           { label: 'Committed', value: `${totalCommitted}h`, sub: 'Assigned to projects' },
           { label: 'Unassigned', value: `${Math.max(totalCapacity - totalCommitted, 0)}h`, sub: 'Not yet staffed' },
           { label: 'Logged', value: '0h', sub: 'Actual time recorded' },
         ].map((s, i, arr) => (
-          <div key={s.label} style={{ flex: 1, padding: '16px 20px', borderRight: i < arr.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none' }}>
-            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: '#5f636c' }}>{s.label}</div>
+          <div key={s.label} style={{ flex: 1, padding: '16px 20px', borderRight: i < arr.length - 1 ? '1px solid var(--color-border-subtle)' : 'none' }}>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--muted-label)' }}>{s.label}</div>
             <div style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.48px', marginTop: 8 }}>{s.value}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#5f636c' }}>{s.sub}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-label)' }}>{s.sub}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid #ebebeb' }}>
+      <div className="scroll-x" style={{ display: 'flex', gap: 24, borderBottom: '1px solid var(--color-border-default)' }}>
         {(Object.keys(counts) as FilterTab[]).map((t) => (
           <button
             key={t}
@@ -269,61 +264,80 @@ export default function Staffing() {
               paddingBottom: 10,
               fontSize: 14,
               fontWeight: t === tab ? 600 : 500,
-              color: t === tab ? '#0f0f10' : 'rgba(0,0,0,0.53)',
-              borderBottom: t === tab ? '2px solid #171717' : '2px solid transparent',
+              color: t === tab ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+              borderBottom: t === tab ? '2px solid var(--color-text-primary)' : '2px solid transparent',
               display: 'flex',
               alignItems: 'center',
               gap: 6,
             }}
           >
             {t}
-            <span className="mono" style={{ background: t === tab ? '#171717' : '#ebebeb', color: t === tab ? '#fff' : '#525252', borderRadius: 9999, fontSize: 11, padding: '1px 7px' }}>
+            <span className="mono" style={{ background: t === tab ? 'var(--color-background-inverse)' : 'var(--color-background-muted)', color: t === tab ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)', borderRadius: 9999, fontSize: 11, padding: '1px 7px' }}>
               {counts[t]}
             </span>
           </button>
         ))}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ flex: 2, minWidth: 200 }}>
-          <div className="field-label">Search</div>
-          <input className="input" placeholder="Name or job title" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </div>
-        <div style={{ flex: 1, minWidth: 140 }}>
-          <div className="field-label">Department</div>
-          <select className="input" value={dept} onChange={(e) => setDept(e.target.value as 'All' | Department)}>
-            <option value="All">Any</option>
-            {departments.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-        </div>
-        <div style={{ flex: 1, minWidth: 140 }}>
-          <div className="field-label">Employment</div>
-          <select className="input" value={employment} onChange={(e) => setEmployment(e.target.value as 'All' | EmploymentType)}>
-            <option value="All">Any</option>
-            {employmentTypes.map((t) => (
-              <option key={t} value={t}>{employmentLabel[t]}</option>
-            ))}
-          </select>
-        </div>
-        <div style={{ flex: 1, minWidth: 180 }}>
-          <div className="field-label">Sort by</div>
-          <select className="input" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
-            {sortOptions.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <FilterBar
+        search={{ value: query, onChange: setQuery, placeholder: 'Search name or job title' }}
+        filters={[
+          {
+            key: 'dept',
+            label: 'Department',
+            value: dept,
+            defaultValue: 'All',
+            onChange: (v) => setDept(v as 'All' | Department),
+            options: departments.map((d) => ({ value: d, label: d })),
+          },
+          {
+            key: 'scope',
+            label: 'Staff',
+            required: true,
+            value: scope,
+            defaultValue: 'Direct',
+            onChange: (v) => setScope(v as Scope),
+            options: [
+              { value: 'Direct', label: 'Direct' },
+              { value: 'Indirect', label: 'Indirect' },
+            ],
+          },
+          ...(view === 'List'
+            ? [
+                {
+                  key: 'metric',
+                  label: 'Show',
+                  required: true,
+                  value: metric,
+                  defaultValue: 'Allocated hours',
+                  onChange: (v: string) => setMetric(v as Metric),
+                  options: [
+                    { value: 'Allocated hours', label: 'Allocated hours' },
+                    { value: 'Availability', label: 'Availability' },
+                  ],
+                },
+              ]
+            : []),
+          {
+            key: 'employment',
+            label: 'Employment',
+            value: employment,
+            defaultValue: 'All',
+            onChange: (v) => setEmployment(v as 'All' | EmploymentType),
+            options: employmentTypes.map((t) => ({ value: t, label: employmentLabel[t] })),
+          },
+        ]}
+        toggles={[{ key: 'group', label: 'Group by manager', value: groupByManager, onChange: setGroupByManager }]}
+        sort={{ value: sortBy, onChange: (v) => setSortBy(v as SortBy), options: sortOptions.map((o) => ({ value: o, label: o })) }}
+      />
 
       {view === 'List' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {groups.map((g) => (
             <div key={g.manager ?? 'all'} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {groupByManager && (
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(0,0,0,0.53)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {g.manager} <span className="mono" style={{ color: 'rgba(0,0,0,0.35)' }}>({g.rows.length})</span>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {g.manager} <span className="mono" style={{ color: 'var(--color-text-tertiary)' }}>({g.rows.length})</span>
                 </div>
               )}
               {g.rows.map((r) => {
@@ -333,10 +347,10 @@ export default function Staffing() {
                   <div key={r.person.id} className="card">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <Link to={`/people/${r.person.id}`} className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>{r.person.initials}</Link>
+                        <Link to={`/people/${r.person.id}`} className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>{avatarContent(r.person)}</Link>
                         <div>
                           <Link to={`/people/${r.person.id}`} style={{ fontSize: 15, fontWeight: 600 }}>{r.person.name}</Link>
-                          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>{r.person.title || 'No title'} · {r.person.department ?? '—'}</div>
+                          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{r.person.title || 'No title'} · {r.person.department ?? '—'}</div>
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -346,20 +360,20 @@ export default function Staffing() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-                      <div style={{ flex: 1, height: 8, background: '#f5f5f5', borderRadius: 9999, overflow: 'hidden' }}>
+                      <div style={{ flex: 1, height: 8, background: 'var(--color-background-muted)', borderRadius: 9999, overflow: 'hidden' }}>
                         <div
                           style={{
                             width: `${Math.min(metric === 'Allocated hours' ? r.pct : availablePct, 100)}%`,
                             height: '100%',
-                            background: metric === 'Allocated hours' ? (r.pct > 100 ? '#ff6d33' : '#004543') : '#00736f',
+                            background: metric === 'Allocated hours' ? (r.pct > 100 ? '#ff6d33' : 'var(--brand-deep)') : 'var(--brand-mid)',
                           }}
                         />
                       </div>
-                      <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
                         {metric === 'Allocated hours' ? `${r.pct}%` : `${availablePct}% free`}
                       </span>
                     </div>
-                    <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginBottom: 14 }}>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 14 }}>
                       {metric === 'Allocated hours'
                         ? `${r.committed}h committed of ${range.capacity}h`
                         : `${availableHours}h available of ${range.capacity}h`}
@@ -372,18 +386,18 @@ export default function Staffing() {
                     </div>
 
                     {r.assignments.length > 0 && (
-                      <div style={{ borderTop: '1px solid #f5f5f5' }}>
+                      <div style={{ borderTop: '1px solid var(--table-row-border)' }}>
                         {r.assignments.map((a) => (
-                          <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f5f5f5' }}>
+                          <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--table-row-border)' }}>
                             <div>
                               <Link to={`/projects/${a.projectId}`} style={{ fontSize: 14, fontWeight: 600 }}>{projectName(a.projectId)}</Link>
-                              <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>
+                              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                                 {a.hoursPerWeek}h/wk · {new Date(a.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} {a.openEnded ? '→' : ''}
                               </div>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                               <span className="mono" style={{ fontSize: 14, fontWeight: 600 }}>{Math.round(a.hoursPerWeek * range.multiplier)}h</span>
-                              <button onClick={() => removeAssignment(a.id)} style={{ fontSize: 12, fontWeight: 600, color: '#c53030' }}>Remove</button>
+                              <button onClick={() => removeAssignment(a.id)} style={{ fontSize: 12, fontWeight: 600, color: 'var(--danger-fg)' }}>Remove</button>
                             </div>
                           </div>
                         ))}
@@ -395,27 +409,27 @@ export default function Staffing() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', padding: '24px 0' }}>No one matches those filters.</div>
+            <EmptyState keep={['tab', 'view', 'show', 'staff']} title="No one matches" />
           )}
         </div>
       ) : (
-        <div style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 14, overflow: 'auto' }}>
+        <div style={{ border: '1px solid var(--color-border-subtle)', borderRadius: 14, overflow: 'auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: `220px repeat(${weeks.length}, 1fr)`, minWidth: 220 + weeks.length * 90 }}>
             <div />
             {weeks.map((w) => (
-              <div key={w.start} style={{ fontSize: 11, fontWeight: 600, color: 'rgba(0,0,0,0.53)', textAlign: 'center', padding: '10px 6px' }}>{w.label}</div>
+              <div key={w.start} style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', textAlign: 'center', padding: '10px 6px' }}>{w.label}</div>
             ))}
             {groups.flatMap((g) => g.rows).map((r) => (
               <Fragment key={r.person.id}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderTop: '1px solid #f5f5f5' }}>
-                  <div className="avatar" style={{ width: 28, height: 28, fontSize: 10, flexShrink: 0 }}>{r.person.initials}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderTop: '1px solid var(--table-row-border)' }}>
+                  <div className="avatar" style={{ width: 28, height: 28, fontSize: 10, flexShrink: 0 }}>{avatarContent(r.person)}</div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.person.name}</div>
-                    <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.53)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.person.title || '—'}</div>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.person.title || '—'}</div>
                   </div>
                 </div>
                 {weeks.map((w) => (
-                  <div key={`${r.person.id}-${w.start}`} style={{ padding: '8px 6px', borderTop: '1px solid #f5f5f5', display: 'flex', alignItems: 'center' }}>
+                  <div key={`${r.person.id}-${w.start}`} style={{ padding: '8px 6px', borderTop: '1px solid var(--table-row-border)', display: 'flex', alignItems: 'center' }}>
                     <div style={{ ...cellStyle(r.pct, isCurrentColumn(w.start)), width: '100%' }}>{r.pct}%</div>
                   </div>
                 ))}
@@ -423,7 +437,7 @@ export default function Staffing() {
             ))}
           </div>
           {filtered.length === 0 && (
-            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', padding: '24px 16px' }}>No one matches those filters.</div>
+            <EmptyState compact keep={['tab', 'view', 'show', 'staff']} title="No one matches" />
           )}
         </div>
       )}
@@ -436,7 +450,7 @@ export default function Staffing() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase', color: 'rgba(0,0,0,0.53)' }}>{label}</div>
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>{label}</div>
       <div className="mono" style={{ fontSize: 16, fontWeight: 600 }}>{value}</div>
     </div>
   )
@@ -444,7 +458,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function SegmentedToggle({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
   return (
-    <div style={{ display: 'flex', background: '#f5f5f5', borderRadius: 10, padding: 2 }}>
+    <div style={{ display: 'flex', background: 'var(--color-background-muted)', borderRadius: 10, padding: 2 }}>
       {options.map((opt) => (
         <button
           key={opt}
@@ -455,8 +469,8 @@ function SegmentedToggle({ value, options, onChange }: { value: string; options:
             fontWeight: 600,
             borderRadius: 8,
             whiteSpace: 'nowrap',
-            background: value === opt ? '#171717' : 'transparent',
-            color: value === opt ? '#fff' : 'rgba(0,0,0,0.53)',
+            background: value === opt ? 'var(--color-background-inverse)' : 'transparent',
+            color: value === opt ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
           }}
         >
           {opt}

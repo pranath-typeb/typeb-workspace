@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { updateProject, type BillingType, type Project, type ProjectStatus } from '../data/projects'
+import DatePicker from './DatePicker'
+import { PROJECT_COLOR_PALETTE, updateProject, type BillingType, type Project, type ProjectStatus } from '../data/projects'
 import { people } from '../data/people'
 import { CloseIcon } from './icons'
+import SearchableSelect, { Select } from './SearchableSelect'
 
 interface EditProjectModalProps {
   project: Project
@@ -24,6 +26,7 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
   const [teamIds, setTeamIds] = useState<string[]>(project.teamIds)
   const [keywords, setKeywords] = useState<string[]>(project.calendarKeywords ?? [])
   const [keywordDraft, setKeywordDraft] = useState('')
+  const [color, setColor] = useState(project.color)
 
   const canSubmit = name.trim().length > 0 && client.trim().length > 0 && starts.length > 0 && ends.length > 0
 
@@ -55,6 +58,7 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
       managerId: managerId || null,
       teamIds,
       calendarKeywords: keywords,
+      color,
     })
     onClose()
   }
@@ -65,13 +69,42 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div className="serif" style={{ fontSize: 20, letterSpacing: '-0.6px' }}>Edit Project</div>
           <button onClick={onClose} aria-label="Close" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <CloseIcon color="rgba(0,0,0,0.53)" />
+            <CloseIcon color="var(--color-text-secondary)" />
           </button>
         </div>
 
         <div>
           <div className="field-label">Project name *</div>
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" />
+        </div>
+
+        <div>
+          <div className="field-label">Color</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>Used to identify this project's time entries on the Calendar.</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {PROJECT_COLOR_PALETTE.map((c) => (
+              <button
+                key={c}
+                type="button"
+                aria-label={`Use color ${c}`}
+                onClick={() => setColor(c)}
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  background: c,
+                  border: color === c ? '2px solid var(--color-text-primary)' : '2px solid transparent',
+                  outline: color === c ? '1px solid var(--color-border-subtle)' : 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              />
+            ))}
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ width: 24, height: 24, padding: 0, border: 'none', background: 'none', cursor: 'pointer' }} />
+              <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Custom</span>
+            </label>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 12 }}>
@@ -81,27 +114,27 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
           </div>
           <div style={{ flex: 1 }}>
             <div className="field-label">Project type *</div>
-            <select className="input" value={billing} onChange={(e) => setBilling(e.target.value as BillingType)}>
+            <Select className="input" value={billing} onChange={(e) => setBilling(e.target.value as BillingType)}>
               {billingTypes.map((b) => (
                 <option key={b} value={b}>{b}</option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <div style={{ flex: 1 }}>
             <div className="field-label">Project status *</div>
-            <select className="input" value={status} onChange={(e) => setStatus(e.target.value as ProjectStatus)}>
+            <Select className="input" value={status} onChange={(e) => setStatus(e.target.value as ProjectStatus)}>
               {statuses.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
-            </select>
+            </Select>
           </div>
           <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, height: 36, marginTop: 20, cursor: 'pointer' }}>
             <span
               onClick={() => setBillable((v) => !v)}
-              style={{ width: 32, height: 18, borderRadius: 9999, background: billable ? '#171717' : '#e5e5e5', position: 'relative', flexShrink: 0 }}
+              style={{ width: 32, height: 18, borderRadius: 9999, background: billable ? 'var(--color-control-on)' : 'var(--color-border-subtle)', position: 'relative', flexShrink: 0 }}
             >
               <span style={{ position: 'absolute', top: 2, left: billable ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff' }} />
             </span>
@@ -110,7 +143,7 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
           <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, height: 36, marginTop: 20, cursor: 'pointer' }}>
             <span
               onClick={() => setStaffing((v) => !v)}
-              style={{ width: 32, height: 18, borderRadius: 9999, background: staffing ? '#171717' : '#e5e5e5', position: 'relative', flexShrink: 0 }}
+              style={{ width: 32, height: 18, borderRadius: 9999, background: staffing ? 'var(--color-control-on)' : 'var(--color-border-subtle)', position: 'relative', flexShrink: 0 }}
             >
               <span style={{ position: 'absolute', top: 2, left: staffing ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff' }} />
             </span>
@@ -121,27 +154,27 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
             <div className="field-label">Start date *</div>
-            <input className="input" type="date" value={starts} onChange={(e) => setStarts(e.target.value)} />
+            <DatePicker value={starts} onChange={setStarts} />
           </div>
           <div style={{ flex: 1 }}>
             <div className="field-label">End date *</div>
-            <input className="input" type="date" value={ends} onChange={(e) => setEnds(e.target.value)} />
+            <DatePicker value={ends} onChange={setEnds} allowClear />
           </div>
         </div>
 
         <div>
           <div className="field-label">Project manager *</div>
-          <select className="input" value={managerId} onChange={(e) => setManagerId(e.target.value)}>
-            <option value="">No manager assigned</option>
-            {people.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+          <SearchableSelect
+            value={managerId}
+            onChange={setManagerId}
+            placeholder="No manager assigned"
+            options={[{ value: '', label: 'No manager assigned' }, ...people.map((p) => ({ value: p.id, label: p.name }))]}
+          />
         </div>
 
         <div>
           <div className="field-label">Team members</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, maxHeight: 160, overflowY: 'auto', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 10, padding: 10 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, maxHeight: 160, overflowY: 'auto', border: '1px solid var(--color-border-subtle)', borderRadius: 10, padding: 10 }}>
             {people.map((p) => (
               <label
                 key={p.id}
@@ -153,8 +186,8 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
                   fontWeight: 600,
                   padding: '4px 10px',
                   borderRadius: 9999,
-                  background: teamIds.includes(p.id) ? '#171717' : '#f5f5f5',
-                  color: teamIds.includes(p.id) ? '#fff' : '#404040',
+                  background: teamIds.includes(p.id) ? 'var(--color-background-inverse)' : 'var(--color-background-muted)',
+                  color: teamIds.includes(p.id) ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
                   cursor: 'pointer',
                 }}
               >
@@ -167,7 +200,7 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
 
         <div>
           <div className="field-label">Calendar keywords</div>
-          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginBottom: 8 }}>Tag a calendar event's title with [keyword] to auto-select this project when logging time.</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>Tag a calendar event's title with [keyword] to auto-select this project when logging time.</div>
           <input
             className="input"
             value={keywordDraft}
@@ -186,7 +219,7 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
                 <span key={kw} className="tag" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   [{kw}]
                   <button onClick={() => setKeywords((prev) => prev.filter((k) => k !== kw))} aria-label={`Remove ${kw}`} style={{ display: 'flex' }}>
-                    <CloseIcon size={10} color="rgba(0,0,0,0.53)" />
+                    <CloseIcon size={10} color="var(--color-text-secondary)" />
                   </button>
                 </span>
               ))}

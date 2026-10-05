@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { feedback } from './uiSounds'
 
 export type ToastKind = 'success' | 'danger' | 'info'
 
@@ -19,6 +20,7 @@ function setState(next: Toast[]) {
 export function showToast(message: string, kind: ToastKind = 'success') {
   const toast: Toast = { id: `t${Date.now()}${Math.random().toString(36).slice(2, 6)}`, message, kind }
   setState([...state, toast])
+  feedback(kind === 'success' ? 'success' : kind === 'danger' ? 'error' : 'notify')
   setTimeout(() => dismissToast(toast.id), 3200)
 }
 

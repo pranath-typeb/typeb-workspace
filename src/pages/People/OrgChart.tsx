@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PeopleSidebar from '../../components/PeopleSidebar'
 import { PeopleIcon } from '../../components/icons'
+import { avatarContent } from '../../components/Avatar'
 import { people, type Person } from '../../data/people'
 
 function NodeCard({ person }: { person: Person }) {
@@ -9,20 +10,20 @@ function NodeCard({ person }: { person: Person }) {
     <Link
       to={`/people/${person.id}`}
       style={{
-        border: '1px solid rgba(0,0,0,0.1)',
+        border: '1px solid var(--color-border-subtle)',
         borderRadius: 10,
         padding: '8px 10px',
-        background: '#fff',
+        background: 'var(--color-background-page)',
         display: 'flex',
         alignItems: 'center',
         gap: 8,
         width: 170,
       }}
     >
-      <div className="avatar" style={{ width: 26, height: 26, fontSize: 10, flexShrink: 0 }}>{person.initials}</div>
+      <div className="avatar" style={{ width: 26, height: 26, fontSize: 10, flexShrink: 0 }}>{avatarContent(person)}</div>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{person.name}</div>
-        <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.53)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{person.title || '—'}</div>
+        <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{person.title || '—'}</div>
       </div>
     </Link>
   )
@@ -49,13 +50,13 @@ export default function OrgChart() {
 
   return (
     <AppShell
-      appIcon={<PeopleIcon size={16} color="rgba(0,0,0,0.53)" />}
+      appIcon={<PeopleIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="People"
       appHref="/people"
       sidebar={<PeopleSidebar active="org-chart" />}
     >
       <div className="page-title">Org chart</div>
-      <div className="card" style={{ minHeight: 400, position: 'relative', overflow: 'auto', background: '#fafafa' }}>
+      <div className="card" style={{ minHeight: 400, position: 'relative', overflow: 'auto', background: 'var(--color-background-subtle)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 40, padding: 30 }}>
           {roots.map((root) => (
             <Branch key={root.id} person={root} depth={0} />
