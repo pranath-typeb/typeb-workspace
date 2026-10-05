@@ -325,9 +325,25 @@ export default function Approvals() {
                   </td>
                   <td className="td2 col-sticky-right" onClick={(e) => e.stopPropagation()}>
                     {stage && (
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap' }}>
-                        <button className="btn-outline" onClick={() => setRejectTarget(s)}>Reject</button>
-                        <button className="btn-dark" title={`Approve as ${STAGE_LABEL[stage]}`} onClick={() => approveOne(s)}>Approve ({stage === 'lm' ? 'LM' : STAGE_LABEL[stage]})</button>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'nowrap' }}>
+                        <button
+                          className="row-action-btn"
+                          style={{ background: 'var(--danger-bg)' }}
+                          aria-label="Reject"
+                          title="Reject"
+                          onClick={() => setRejectTarget(s)}
+                        >
+                          <CloseIcon size={14} color="var(--danger-fg)" />
+                        </button>
+                        <button
+                          className="row-action-btn"
+                          style={{ background: 'var(--brand-soft-bg)' }}
+                          aria-label={`Approve as ${STAGE_LABEL[stage]}`}
+                          title={`Approve as ${STAGE_LABEL[stage]}`}
+                          onClick={() => approveOne(s)}
+                        >
+                          <CheckIcon size={14} color="var(--brand-text)" />
+                        </button>
                       </div>
                     )}
                   </td>
