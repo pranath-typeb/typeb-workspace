@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import DatePicker from './DatePicker'
 import { addLeaveRequest, updateLeaveRequest, type LeaveRequest, type LeaveType } from '../data/leave'
 import { CloseIcon } from './icons'
 import { Select } from './SearchableSelect'
@@ -64,7 +65,7 @@ export default function RequestLeaveModal({ onClose, requestedBy, defaultType = 
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
             <div className="field-label">Date</div>
-            <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <DatePicker value={date} onChange={setDate} />
           </div>
           <div style={{ width: 100 }}>
             <div className="field-label">Days</div>

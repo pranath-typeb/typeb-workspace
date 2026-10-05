@@ -56,9 +56,9 @@ export default function LetterPreview() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div className="serif" style={{ fontSize: 18, letterSpacing: '-0.4px' }}>{COMPANY_NAME}</div>
-              <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)', marginTop: 2 }}>{COMPANY_ADDRESS}</div>
+              <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.62)', marginTop: 2 }}>{COMPANY_ADDRESS}</div>
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)', textAlign: 'right' }}>{today}</div>
+            <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.62)', textAlign: 'right' }}>{today}</div>
           </div>
 
           <div style={{ borderTop: '1px solid #ececee' }} />
@@ -77,12 +77,12 @@ export default function LetterPreview() {
           <div style={{ marginTop: 24 }}>
             <div style={{ fontSize: 13 }}>Sincerely,</div>
             <div style={{ marginTop: 40, fontSize: 13, fontWeight: 600 }}>People Operations</div>
-            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)' }}>{COMPANY_NAME}</div>
+            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.62)' }}>{COMPANY_NAME}</div>
           </div>
 
           <div style={{ borderTop: '1px solid #ececee', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.35)' }}>This is a system-generated letter and does not require a physical signature.</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.35)' }}>TYPE B</span>
+            <span style={{ fontSize: 10, color: 'rgba(0,0,0,0.62)' }}>This is a system-generated letter and does not require a physical signature.</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.62)' }}>TYPE B</span>
           </div>
         </div>
       </div>

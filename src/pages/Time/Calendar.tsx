@@ -624,7 +624,7 @@ export default function TimeCalendar() {
                 })}
                 {isToday && showNowLine && (
                   <div style={{ position: 'absolute', top: (nowMinutes / 60) * HOUR_HEIGHT, left: 0, right: 0, height: 0, borderTop: '2px solid #ff4800', zIndex: 2, pointerEvents: 'none' }}>
-                    <span className="mono" style={{ position: 'absolute', left: -4, top: -8, background: '#ff4800', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3 }}>
+                    <span className="mono" style={{ position: 'absolute', left: -4, top: -8, background: '#ff4800', color: '#0f0f10', fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3 }}>
                       {String(Math.floor(nowMinutes / 60)).padStart(2, '0')}:{String(nowMinutes % 60).padStart(2, '0')}
                     </span>
                   </div>
@@ -878,7 +878,7 @@ function QuickAddPopover({
         <DurationPicker options={DURATION_OPTIONS} selectedMinutes={duration} onSelect={applyDuration} />
         {duration <= 0 && <div style={{ fontSize: 12, color: 'var(--danger-fg)' }}>End time must be after start time.</div>}
 
-        <EntryTags category={category} onCategory={setCategory} billable={billable} onBillable={setBillable} />
+        <EntryTags defaultCategory="Manual" category={category} onCategory={setCategory} billable={billable} onBillable={setBillable} />
 
         <div className="ep-footer">
           <button className="btn-outline" onClick={onClose}>Cancel</button>

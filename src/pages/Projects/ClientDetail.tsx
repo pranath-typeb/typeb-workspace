@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel } from '../../components/NavItem'
-import { BuildingIcon, ChevronLeftIcon, ProjectsIcon, StaffingIcon } from '../../components/icons'
+import { BuildingIcon, ChevronLeftIcon, ProjectsIcon, StaffingIcon, PresentationIcon } from '../../components/icons'
 import { useProjects, type ProjectStatus } from '../../data/projects'
 import { setClientStatus, useClientStatuses, type ClientStatus } from '../../data/clients'
 import CreateProjectModal from '../../components/CreateProjectModal'
@@ -32,7 +32,7 @@ export default function ClientDetail() {
   if (!clientName || clientProjects.length === 0) {
     return (
       <AppShell
-        appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
+        appIcon={<PresentationIcon size={16} color="var(--color-text-secondary)" />}
         appLabel="Projects"
         appHref="/projects"
         sidebar={
@@ -55,7 +55,7 @@ export default function ClientDetail() {
 
   return (
     <AppShell
-      appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
+      appIcon={<PresentationIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="Projects"
       appHref="/projects"
       sidebar={

@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PayrollSidebar from '../../components/PayrollSidebar'
-import { PayrollFileIcon, ChevronRightIcon } from '../../components/icons'
+import { PayrollFileIcon, ChevronRightIcon, WalletIcon } from '../../components/icons'
 import { CURRENT_USER_ID } from '../../data/people'
 import { statusBadgeClass, submitPeriod, usePayrollPeriods } from '../../data/payroll'
 
@@ -19,7 +19,7 @@ export default function MyPayroll() {
   const history = periods.slice(1)
 
   return (
-    <AppShell appIcon={<PayrollFileIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active="my-payroll" />}>
+    <AppShell appIcon={<WalletIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active="my-payroll" />}>
       <div className="page-title">My Payroll</div>
 
       {current?.status === 'Timesheet pending' && (

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CURRENT_USER_ID, personById } from './people'
 import { projectById } from './projects'
 import { showToast } from './toast'
+import { customTagColor } from './tags'
 import { supabase } from '../lib/supabaseClient'
 
 export interface TimeEntry {
@@ -69,7 +70,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
 export const DEFAULT_CATEGORY_COLOR = '#5f636c'
 
 export function categoryColor(category: string): string {
-  return CATEGORY_COLORS[category] ?? DEFAULT_CATEGORY_COLOR
+  return CATEGORY_COLORS[category] ?? customTagColor(category) ?? DEFAULT_CATEGORY_COLOR
 }
 
 // Color used to flag time logged with no project attached — distinct from the category

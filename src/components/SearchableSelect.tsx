@@ -6,11 +6,12 @@ import { feedback } from '../data/uiSounds'
 export interface SearchableSelectOption {
   value: string
   label: string
+  icon?: ReactNode
 }
 
 // Lists at or below this size skip the search box — typing to filter 3 items is noise.
 const SEARCH_THRESHOLD = 6
-const PANEL_MAX_HEIGHT = 280
+const PANEL_MAX_HEIGHT = 240
 
 function useIsPhone(): boolean {
   const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches)
@@ -62,6 +63,7 @@ export default function SearchableSelect({
   iconSize,
   recentKey,
   recentFrom,
+  footer,
   recentLabel = 'Recently used',
   allLabel = 'All',
 }: {
@@ -85,6 +87,8 @@ export default function SearchableSelect({
   recentKey?: string
   // Extra recents derived from real usage (e.g. latest time entries), merged after the remembered picks.
   recentFrom?: () => string[]
+  // Pinned below the list (e.g. a "Create tag" form). Receives helpers to select a value / close the panel.
+  footer?: (api: { select: (value: string) => void; close: () => void }) => ReactNode
   recentLabel?: string
   allLabel?: string
 }) {
@@ -162,7 +166,8 @@ export default function SearchableSelect({
         })
       }
       const maxWidth = Math.min(440, window.innerWidth - 16)
-      const width = Math.min(maxWidth, Math.max(r.width, 180, Math.ceil(widest) + 64))
+      const iconPad = options.some((o) => o.icon) ? 24 : 0
+      const width = Math.min(maxWidth, Math.max(r.width, 150, Math.ceil(widest) + 52 + iconPad))
       const left = Math.min(Math.max(8, r.left), window.innerWidth - width - 8)
       setPos(flip ? { left, width, bottom: window.innerHeight - r.top + 6, maxHeight } : { left, width, top: r.bottom + 6, maxHeight })
     }
@@ -258,6 +263,7 @@ export default function SearchableSelect({
       }}
       onMouseEnter={() => setHighlight(i)}
     >
+      {opt.icon && <span className="ss-option-icon">{opt.icon}</span>}
       <span className="ss-option-label">{opt.label}</span>
       {opt.value === value && <CheckIcon size={14} color="var(--color-text-primary)" />}
     </div>
@@ -280,6 +286,18 @@ export default function SearchableSelect({
       )}
     </div>
   )
+
+  const footerNode = footer ? (
+    <div
+      className="ss-footer"
+      onKeyDown={(e) => {
+        // typing in a footer form must not trigger list navigation / selection
+        if (e.key !== 'Escape') e.stopPropagation()
+      }}
+    >
+      {footer({ select: (v) => { const o = options.find((x) => x.value === v); if (o) selectOption(o); else { onChange(v); close(true) } }, close: () => close(true) })}
+    </div>
+  ) : null
 
   const searchBox = searchable && (
     <div className="ss-search">
@@ -313,6 +331,7 @@ export default function SearchableSelect({
       >
         {iconTrigger ?? (
           <>
+            {selected?.icon && <span className="ss-option-icon">{selected.icon}</span>}
             <span className={`ss-value${selected ? '' : ' placeholder'}`}>{selected ? selected.label : placeholder}</span>
             <ChevronDownIcon size={14} color="var(--color-text-tertiary)" />
           </>
@@ -329,6 +348,7 @@ export default function SearchableSelect({
                 {(title || ariaLabel) && <div className="ss-sheet-title">{title ?? ariaLabel}</div>}
                 {searchBox}
                 {list}
+                {footerNode}
               </div>
             </>
           ) : (
@@ -342,6 +362,7 @@ export default function SearchableSelect({
             >
               {searchBox}
               {list}
+              {footerNode}
             </div>
           ),
           document.body,

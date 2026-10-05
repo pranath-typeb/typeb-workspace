@@ -2,17 +2,16 @@ import { Link } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { useLeaveRequests, PTO_TOTAL_ACCRUED, PTO_TOTAL_USED } from '../data/leave'
 import {
-  upcomingEvents,
   weeklyHoursWorked,
   weeklyHoursTarget,
   weeklyBehindLabel,
-  weekSummaries,
 } from '../data/dashboard'
 import { CURRENT_USER_ID } from '../data/people'
+import { useCalendarEvents } from '../data/calendarEvents'
 import { addDays, categoryColor, minutesForPersonDate, projectLabel, todayLocal, useTimeEntries, weekStartFor, type TimeEntry } from '../data/timeEntries'
 import { startTimer, toggleTimerRunning, useTimerState } from '../data/timer'
 import { triggerScreenRipple } from '../data/screenRipple'
-import { AlertFileIcon, CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon, StopIcon, TimerActivityIcon } from '../components/icons'
+import { CakeIcon, ChevronRightIcon, FlagIcon, PlayIcon, StopIcon, TimerActivityIcon } from '../components/icons'
 import WellbeingRow from '../components/WellbeingRow'
 import DialClock from '../components/DialClock'
 import WhoIsOff from '../components/WhoIsOff'
@@ -110,6 +109,28 @@ export default function Home() {
       }
     })
   }, [timeEntries, today])
+
+  // This week's company events (birthdays, holidays, main events) from the live calendar; leave is shown in "Who's off".
+  const calendarEvents = useCalendarEvents()
+  const eventsThisWeek = useMemo(() => {
+    const start = weekStartFor(today)
+    const end = addDays(start, 6)
+    return calendarEvents
+      .filter((e) => e.category !== 'Employee Leave' && e.date >= start && e.date <= end)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 4)
+      .map((e) => {
+        const d = new Date(e.date + 'T00:00:00')
+        return {
+          id: e.id,
+          month: d.toLocaleDateString('en-US', { month: 'short' }),
+          day: String(d.getDate()),
+          title: e.title,
+          subtitle: [d.toLocaleDateString('en-US', { weekday: 'long' }), e.detail].filter(Boolean).join(' · '),
+          kind: e.category === 'Birthday' ? 'birthday' : 'holiday',
+        }
+      })
+  }, [calendarEvents, today])
 
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
@@ -306,7 +327,7 @@ export default function Home() {
                             WebkitBackdropFilter: 'blur(6px)',
                           }}
                         >
-                          <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: hasData ? '#0f0f10' : 'rgba(0,0,0,0.53)' }}>{d.label}</span>
+                          <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', color: hasData ? '#0f0f10' : 'rgba(0,0,0,0.72)' }}>{d.label}</span>
                           <span className="mono" style={{ fontSize: 15, fontWeight: 500, color: '#0f0f10' }}>{d.date}</span>
                         </div>
                       </button>
@@ -320,34 +341,6 @@ export default function Home() {
                     <span style={{ fontSize: 24, fontWeight: 500, color: 'var(--color-text-secondary)' }}> / {weeklyHoursTarget} h</span>
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{weeklyBehindLabel}</div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
-                  {weekSummaries.map((w) => (
-                    <div key={w.range} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--color-background-muted)', border: '1px solid var(--color-border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <AlertFileIcon size={16} color="var(--color-text-secondary)" />
-                      </div>
-                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: 12, fontWeight: 600 }}>{w.range}</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span
-                            style={{
-                              background: w.onTrack ? 'var(--brand-deep)' : '#ff4800',
-                              color: '#f5f5f5',
-                              fontSize: 12,
-                              fontWeight: 600,
-                              padding: '4px 8px',
-                              borderRadius: 20,
-                            }}
-                          >
-                            {w.hours} / {w.target} h
-                          </span>
-                          <Link to="/time" style={{ fontSize: 12, fontWeight: 600, textDecoration: 'underline', color: 'var(--color-text-secondary)' }}>View</Link>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
 
@@ -412,8 +405,11 @@ export default function Home() {
                     <SmallLink to="/calendar">View calendar</SmallLink>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {upcomingEvents.map((e) => (
-                      <div key={e.title} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    {eventsThisWeek.length === 0 && (
+                      <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Nothing on the calendar this week.</div>
+                    )}
+                    {eventsThisWeek.map((e) => (
+                      <div key={e.id} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                         <div style={{ width: 40, background: 'var(--color-background-muted)', border: '1px solid var(--color-border-subtle)', borderRadius: 12, padding: '5px 1px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
                           <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{e.month}</span>
                           <span style={{ background: '#2f2f33', color: '#fff', fontSize: 13, fontWeight: 500, borderRadius: 10, padding: '1px 7px' }}>{e.day}</span>

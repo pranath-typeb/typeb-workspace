@@ -1,19 +1,21 @@
 import { useMemo, useState } from 'react'
+import EmptyState from '../../components/EmptyState'
+import { useUrlParam } from '../../lib/useUrlState'
 import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PeopleSidebar from '../../components/PeopleSidebar'
 import { PeopleIcon, RefreshIcon } from '../../components/icons'
 import { avatarContent } from '../../components/Avatar'
 import { resyncAllPeople, usePeople, type Department } from '../../data/people'
-import { Select } from '../../components/SearchableSelect'
+import FilterBar from '../../components/FilterBar'
 
 const departments: Department[] = ['Technology', 'Growth', 'Strategy', 'Operations', 'People']
 
 export default function EmployeeRecords() {
   const people = usePeople()
-  const [query, setQuery] = useState('')
-  const [jurisdiction, setJurisdiction] = useState('All')
-  const [dept, setDept] = useState<'All' | Department>('All')
+  const [query, setQuery] = useUrlParam('q', '')
+  const [jurisdiction, setJurisdiction] = useUrlParam('jurisdiction', 'All')
+  const [dept, setDept] = useUrlParam<'All' | Department>('dept', 'All')
 
   const jurisdictions = useMemo(
     () => Array.from(new Set(people.map((p) => p.jurisdiction).filter((j): j is string => Boolean(j)))).sort(),
@@ -46,32 +48,28 @@ export default function EmployeeRecords() {
         <button className="btn-outline" onClick={resyncAllPeople}><RefreshIcon color="var(--color-text-primary)" /> Sync all</button>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 220 }}>
-          <div className="field-label">Search</div>
-          <input className="input" placeholder="Search by name or email" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </div>
-        <div>
-          <div className="field-label">Jurisdiction</div>
-          <Select className="input" style={{ width: 180 }} value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)}>
-            <option value="All">All jurisdictions</option>
-            {jurisdictions.map((j) => (
-              <option key={j} value={j}>{j}</option>
-            ))}
-          </Select>
-        </div>
-        <div>
-          <div className="field-label">Department</div>
-          <Select className="input" style={{ width: 170 }} value={dept} onChange={(e) => setDept(e.target.value as 'All' | Department)}>
-            <option value="All">All departments</option>
-            {departments.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </Select>
-        </div>
-      </div>
-
-      <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Showing {filtered.length} of {people.length} employees</div>
+      <FilterBar
+        search={{ value: query, onChange: setQuery, placeholder: 'Search name or email' }}
+        filters={[
+          {
+            key: 'jurisdiction',
+            label: 'Jurisdiction',
+            value: jurisdiction,
+            defaultValue: 'All',
+            onChange: setJurisdiction,
+            options: jurisdictions.map((j) => ({ value: j, label: j })),
+          },
+          {
+            key: 'dept',
+            label: 'Department',
+            value: dept,
+            defaultValue: 'All',
+            onChange: (v) => setDept(v as 'All' | Department),
+            options: departments.map((d) => ({ value: d, label: d })),
+          },
+        ]}
+        count={`${filtered.length} of ${people.length} employees`}
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
         {filtered.map((p) => (
@@ -94,7 +92,7 @@ export default function EmployeeRecords() {
           </Link>
         ))}
         {filtered.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 0' }}>No one matches those filters.</div>
+          <EmptyState title="No employees match" />
         )}
       </div>
     </AppShell>

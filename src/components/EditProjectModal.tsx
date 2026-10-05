@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import DatePicker from './DatePicker'
 import { PROJECT_COLOR_PALETTE, updateProject, type BillingType, type Project, type ProjectStatus } from '../data/projects'
 import { people } from '../data/people'
 import { CloseIcon } from './icons'
@@ -153,11 +154,11 @@ export default function EditProjectModal({ project, onClose }: EditProjectModalP
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
             <div className="field-label">Start date *</div>
-            <input className="input" type="date" value={starts} onChange={(e) => setStarts(e.target.value)} />
+            <DatePicker value={starts} onChange={setStarts} />
           </div>
           <div style={{ flex: 1 }}>
             <div className="field-label">End date *</div>
-            <input className="input" type="date" value={ends} onChange={(e) => setEnds(e.target.value)} />
+            <DatePicker value={ends} onChange={setEnds} allowClear />
           </div>
         </div>
 

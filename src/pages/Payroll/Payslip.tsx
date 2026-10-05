@@ -64,20 +64,20 @@ export default function Payslip() {
 
         <div className="doc-page" style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececee', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', padding: '32px 36px', display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)' }}>Type B OS · Payroll</span>
+            <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.62)' }}>Type B OS · Payroll</span>
             <span className={`badge ${statusBadgeClass(period.status)}`} style={{ textTransform: 'uppercase', fontSize: 10 }}>{period.status}</span>
           </div>
 
           <div>
             <div className="serif" style={{ fontSize: 26, letterSpacing: '-0.8px' }}>Payslip</div>
-            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.53)', marginTop: 2 }}>{period.label}</div>
+            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.62)', marginTop: 2 }}>{period.label}</div>
           </div>
 
           <div style={{ borderTop: '1px solid #ececee' }} />
 
           <div>
             <div style={{ fontSize: 17, fontWeight: 600 }}>{person.name}</div>
-            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', marginTop: 2 }}>Pay cycle {period.cycle}</div>
+            <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.62)', marginTop: 2 }}>Pay cycle {period.cycle}</div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 24px', marginTop: 16 }}>
               <InfoField label="Employee ID" value={person.employeeId ?? '—'} />
@@ -117,7 +117,7 @@ export default function Payslip() {
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderTop: i === 0 ? 'none' : '1px solid #f5f5f5' }}>
                     <span className="badge b-neutral" style={{ fontSize: 10, flexShrink: 0 }}>{a.type}</span>
                     <span style={{ fontSize: 13, flex: 1 }}>{a.description}</span>
-                    <span className="mono" style={{ fontSize: 12, color: 'rgba(0,0,0,0.53)', flexShrink: 0 }}>{fmtDate(a.date)}</span>
+                    <span className="mono" style={{ fontSize: 12, color: 'rgba(0,0,0,0.62)', flexShrink: 0 }}>{fmtDate(a.date)}</span>
                     <span className="mono" style={{ fontSize: 13, fontWeight: 600, width: 70, textAlign: 'right', flexShrink: 0 }}>{money(a.amount)}</span>
                   </div>
                 ))}
@@ -132,14 +132,14 @@ export default function Payslip() {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 24, marginTop: 8 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.53)', marginBottom: 24 }}>Employer signature</div>
+              <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.62)', marginBottom: 24 }}>Employer signature</div>
               <div style={{ borderTop: '1px solid rgba(0,0,0,0.2)', paddingTop: 6 }}>
                 <div style={{ fontSize: 12, fontWeight: 600 }}>Type B OS Payroll</div>
-                <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)' }}>Signed electronically</div>
+                <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.62)' }}>Signed electronically</div>
               </div>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.53)', marginBottom: 24 }}>Date</div>
+              <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.62)', marginBottom: 24 }}>Date</div>
               <div style={{ borderTop: '1px solid rgba(0,0,0,0.2)', paddingTop: 6 }}>
                 <div className="mono" style={{ fontSize: 12 }}>{period.payDate ? fmtDate(period.payDate) : '—'}</div>
               </div>
@@ -159,7 +159,7 @@ export default function Payslip() {
 function InfoField({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.4)' }}>{label}</div>
+      <div style={{ fontSize: 10, color: 'rgba(0,0,0,0.62)' }}>{label}</div>
       <div style={{ fontSize: 13, marginTop: 2 }}>{value}</div>
     </div>
   )
@@ -172,8 +172,8 @@ function LineItemTable({ title, rows }: { title: string; rows: { label: string; 
     <div>
       <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 10 }}>{title}</div>
       <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #ececee' }}>
-        <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Item</span>
-        <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Amount</span>
+        <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.62)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Item</span>
+        <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(0,0,0,0.62)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Amount</span>
       </div>
       {visibleRows.map((r) => (
         <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f5f5f5' }}>

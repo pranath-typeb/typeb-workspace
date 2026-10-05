@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel } from '../../components/NavItem'
 import { avatarContent } from '../../components/Avatar'
-import { BuildingIcon, ChevronLeftIcon, EditIcon, ProjectsIcon, StaffingIcon, TrashIcon } from '../../components/icons'
+import { BuildingIcon, ChevronLeftIcon, EditIcon, ProjectsIcon, StaffingIcon, TrashIcon, PresentationIcon } from '../../components/icons'
 import { deleteProject, updateProject, useProjects, type ProjectStatus } from '../../data/projects'
 import { personById } from '../../data/people'
 import { showToast } from '../../data/toast'
@@ -46,7 +46,7 @@ export default function ProjectDetail() {
 
   return (
     <AppShell
-      appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
+      appIcon={<PresentationIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="Projects"
       appHref="/projects"
       sidebar={
@@ -67,14 +67,14 @@ export default function ProjectDetail() {
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <button
               onClick={() => navigate('/projects')}
               style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: 'var(--color-text-secondary)' }}
             >
               <ChevronLeftIcon color="var(--color-text-secondary)" /> Projects
             </button>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button className="btn-outline" style={{ height: 36 }} onClick={() => setEditing(true)}>
                 <EditIcon color="var(--color-text-primary)" /> Edit Project
               </button>
@@ -130,11 +130,11 @@ export default function ProjectDetail() {
             {team.length === 0 ? (
               <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>No one staffed on this project yet.</div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 210px), 1fr))', gap: 20 }}>
                 {team.map((member) => (
                   <Link key={member.id} to={`/people/${member.id}`} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>{avatarContent(member)}</div>
-                    <div>
+                    <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600 }}>{member.name}</div>
                       <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{member.title || member.email}</div>
                     </div>

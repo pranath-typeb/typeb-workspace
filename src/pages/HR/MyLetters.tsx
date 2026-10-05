@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel, NavSep } from '../../components/NavItem'
-import { ClockIcon, GridIcon, LetterIcon, PolicyIcon, BenefitsIcon, EyeIcon, TrashIcon, PlusIcon } from '../../components/icons'
+import { IdBadgeIcon, ClockIcon, GridIcon, LetterIcon, PolicyIcon, BenefitsIcon, EyeIcon, TrashIcon, PlusIcon } from '../../components/icons'
 import RequestLetterModal from '../../components/RequestLetterModal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { useLetterRequests, deleteLetterRequest, type LetterRequest } from '../../data/letters'
@@ -19,7 +19,7 @@ export default function MyLetters() {
 
   return (
     <AppShell
-      appIcon={<ClockIcon size={16} color="var(--color-text-secondary)" />}
+      appIcon={<IdBadgeIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="HR"
       appHref="/hr/leave"
       sidebar={

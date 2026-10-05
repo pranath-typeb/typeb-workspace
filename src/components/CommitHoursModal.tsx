@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import DatePicker from './DatePicker'
 import { addAssignment } from '../data/staffing'
 import { useProjects } from '../data/projects'
 import type { Person } from '../data/people'
@@ -66,7 +67,7 @@ export default function CommitHoursModal({ person, onClose }: CommitHoursModalPr
           </div>
           <div style={{ flex: 1 }}>
             <div className="field-label">Starts *</div>
-            <input className="input" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <DatePicker value={startDate} onChange={setStartDate} />
           </div>
         </div>
 

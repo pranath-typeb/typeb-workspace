@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import DatePicker from '../../components/DatePicker'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
@@ -177,11 +178,11 @@ export default function Timesheets() {
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 160 }}>
             <div className="field-label">From</div>
-            <input className="input" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <DatePicker value={from} onChange={setFrom} allowClear />
           </div>
           <div style={{ flex: 1, minWidth: 160 }}>
             <div className="field-label">To</div>
-            <input className="input" type="date" value={to} onChange={(e) => setTo(e.target.value)} placeholder="Same as From" />
+            <DatePicker value={to} onChange={setTo} placeholder="Same as From" allowClear />
           </div>
           <button className="btn-dark" disabled={!from} onClick={submitCustomRange}>Submit for review</button>
         </div>

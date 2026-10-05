@@ -1,15 +1,17 @@
 import { Fragment, useMemo, useState } from 'react'
+import EmptyState from '../../components/EmptyState'
+import { useUrlParam, useUrlFlag } from '../../lib/useUrlState'
+import FilterBar from '../../components/FilterBar'
 import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavGroupLabel, NavItem } from '../../components/NavItem'
-import { BuildingIcon, ProjectsIcon, StaffingIcon } from '../../components/icons'
+import { BuildingIcon, ProjectsIcon, StaffingIcon, PresentationIcon } from '../../components/icons'
 import { avatarContent } from '../../components/Avatar'
 import { people, personById, type Department, type EmploymentType } from '../../data/people'
 import { useProjects } from '../../data/projects'
 import { allocationStatus, committedHoursFor, removeAssignment, useAssignments } from '../../data/staffing'
 import { addDays, formatWeekRange, todayLocal, weekStartFor } from '../../data/timeEntries'
 import CommitHoursModal from '../../components/CommitHoursModal'
-import { Select } from '../../components/SearchableSelect'
 
 type FilterTab = 'Everyone' | 'Over-allocated' | 'At capacity' | 'Has room' | 'Unassigned'
 type Granularity = 'Weekly' | 'Monthly' | 'Yearly'
@@ -47,17 +49,17 @@ function yearEnd(d: string) {
 export default function Staffing() {
   const projects = useProjects()
   const assignments = useAssignments()
-  const [view, setView] = useState<'List' | 'Timeline'>('List')
-  const [metric, setMetric] = useState<Metric>('Allocated hours')
-  const [scope, setScope] = useState<Scope>('Direct')
-  const [groupByManager, setGroupByManager] = useState(false)
+  const [view, setView] = useUrlParam<'List' | 'Timeline'>('view', 'List')
+  const [metric, setMetric] = useUrlParam<Metric>('show', 'Allocated hours')
+  const [scope, setScope] = useUrlParam<Scope>('staff', 'Direct')
+  const [groupByManager, setGroupByManager] = useUrlFlag('group')
   const [granularity, setGranularity] = useState<Granularity>('Monthly')
   const [anchor, setAnchor] = useState(() => todayLocal())
-  const [query, setQuery] = useState('')
-  const [dept, setDept] = useState<'All' | Department>('All')
-  const [employment, setEmployment] = useState<'All' | EmploymentType>('All')
-  const [sortBy, setSortBy] = useState<SortBy>('Default order')
-  const [tab, setTab] = useState<FilterTab>('Everyone')
+  const [query, setQuery] = useUrlParam('q', '')
+  const [dept, setDept] = useUrlParam<'All' | Department>('dept', 'All')
+  const [employment, setEmployment] = useUrlParam<'All' | EmploymentType>('employment', 'All')
+  const [sortBy, setSortBy] = useUrlParam<SortBy>('sort', 'Default order')
+  const [tab, setTab] = useUrlParam<FilterTab>('tab', 'Everyone')
   const [commitFor, setCommitFor] = useState<string | null>(null)
 
   const projectName = (id: string) => projects.find((p) => p.id === id)?.name ?? 'Unknown project'
@@ -212,7 +214,7 @@ export default function Staffing() {
 
   return (
     <AppShell
-      appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
+      appIcon={<PresentationIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="Projects"
       appHref="/projects"
       sidebar={
@@ -224,27 +226,18 @@ export default function Staffing() {
         </>
       }
     >
-      <div className="page-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <span>Staffing</span>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <SegmentedToggle value={metric} options={['Allocated hours', 'Availability']} onChange={(v) => setMetric(v as Metric)} />
-          <SegmentedToggle value={view} options={['List', 'Timeline']} onChange={(v) => setView(v as 'List' | 'Timeline')} />
-        </div>
-      </div>
+      <div className="page-title">Staffing</div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <SegmentedToggle value={granularity} options={['Weekly', 'Monthly', 'Yearly']} onChange={(v) => changeGranularity(v as Granularity)} />
-          <button className="btn-outline" style={{ width: 32, padding: 0, justifyContent: 'center' }} onClick={() => step(-1)}>‹</button>
-          <div className="serif" style={{ fontSize: 16, letterSpacing: '-0.4px', minWidth: 120, textAlign: 'center' }}>{range.label}</div>
-          <button className="btn-outline" style={{ width: 32, padding: 0, justifyContent: 'center' }} onClick={() => step(1)}>›</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'nowrap' }}>
+            <button className="btn-outline" style={{ width: 32, padding: 0, justifyContent: 'center', flexShrink: 0 }} onClick={() => step(-1)} aria-label="Previous period">‹</button>
+            <div className="serif" style={{ fontSize: 16, letterSpacing: '-0.4px', minWidth: 110, textAlign: 'center' }}>{range.label}</div>
+            <button className="btn-outline" style={{ width: 32, padding: 0, justifyContent: 'center', flexShrink: 0 }} onClick={() => step(1)} aria-label="Next period">›</button>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <SegmentedToggle value={scope} options={['Direct', 'Indirect']} onChange={(v) => setScope(v as Scope)} />
-          <button className="btn-outline" onClick={() => setGroupByManager((v) => !v)} style={groupByManager ? { background: 'var(--color-background-inverse)', color: 'var(--color-text-inverse)', borderColor: 'var(--color-background-inverse)' } : undefined}>
-            Group by manager
-          </button>
-        </div>
+        <SegmentedToggle value={view} options={['List', 'Timeline']} onChange={(v) => setView(v as 'List' | 'Timeline')} />
       </div>
 
       <div className="stat-strip" style={{ display: 'flex', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
@@ -286,38 +279,57 @@ export default function Staffing() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ flex: 2, minWidth: 200 }}>
-          <div className="field-label">Search</div>
-          <input className="input" placeholder="Name or job title" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </div>
-        <div style={{ flex: 1, minWidth: 140 }}>
-          <div className="field-label">Department</div>
-          <Select className="input" value={dept} onChange={(e) => setDept(e.target.value as 'All' | Department)}>
-            <option value="All">Any</option>
-            {departments.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </Select>
-        </div>
-        <div style={{ flex: 1, minWidth: 140 }}>
-          <div className="field-label">Employment</div>
-          <Select className="input" value={employment} onChange={(e) => setEmployment(e.target.value as 'All' | EmploymentType)}>
-            <option value="All">Any</option>
-            {employmentTypes.map((t) => (
-              <option key={t} value={t}>{employmentLabel[t]}</option>
-            ))}
-          </Select>
-        </div>
-        <div style={{ flex: 1, minWidth: 180 }}>
-          <div className="field-label">Sort by</div>
-          <Select className="input" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
-            {sortOptions.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </Select>
-        </div>
-      </div>
+      <FilterBar
+        search={{ value: query, onChange: setQuery, placeholder: 'Search name or job title' }}
+        filters={[
+          {
+            key: 'dept',
+            label: 'Department',
+            value: dept,
+            defaultValue: 'All',
+            onChange: (v) => setDept(v as 'All' | Department),
+            options: departments.map((d) => ({ value: d, label: d })),
+          },
+          {
+            key: 'scope',
+            label: 'Staff',
+            required: true,
+            value: scope,
+            defaultValue: 'Direct',
+            onChange: (v) => setScope(v as Scope),
+            options: [
+              { value: 'Direct', label: 'Direct' },
+              { value: 'Indirect', label: 'Indirect' },
+            ],
+          },
+          ...(view === 'List'
+            ? [
+                {
+                  key: 'metric',
+                  label: 'Show',
+                  required: true,
+                  value: metric,
+                  defaultValue: 'Allocated hours',
+                  onChange: (v: string) => setMetric(v as Metric),
+                  options: [
+                    { value: 'Allocated hours', label: 'Allocated hours' },
+                    { value: 'Availability', label: 'Availability' },
+                  ],
+                },
+              ]
+            : []),
+          {
+            key: 'employment',
+            label: 'Employment',
+            value: employment,
+            defaultValue: 'All',
+            onChange: (v) => setEmployment(v as 'All' | EmploymentType),
+            options: employmentTypes.map((t) => ({ value: t, label: employmentLabel[t] })),
+          },
+        ]}
+        toggles={[{ key: 'group', label: 'Group by manager', value: groupByManager, onChange: setGroupByManager }]}
+        sort={{ value: sortBy, onChange: (v) => setSortBy(v as SortBy), options: sortOptions.map((o) => ({ value: o, label: o })) }}
+      />
 
       {view === 'List' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -397,7 +409,7 @@ export default function Staffing() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 0' }}>No one matches those filters.</div>
+            <EmptyState keep={['tab', 'view', 'show', 'staff']} title="No one matches" />
           )}
         </div>
       ) : (
@@ -425,7 +437,7 @@ export default function Staffing() {
             ))}
           </div>
           {filtered.length === 0 && (
-            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 16px' }}>No one matches those filters.</div>
+            <EmptyState compact keep={['tab', 'view', 'show', 'staff']} title="No one matches" />
           )}
         </div>
       )}

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import DatePicker from '../../components/DatePicker'
 import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
@@ -35,7 +36,7 @@ function statusForPct(pct: number): { label: string; badge: string } {
 
 function SegmentedToggle({ value, options, onChange }: { value: string; options: { value: string; label: string }[]; onChange: (v: string) => void }) {
   return (
-    <div style={{ display: 'flex', background: 'var(--color-background-muted)', borderRadius: 10, padding: 2 }}>
+    <div className="scroll-x" style={{ display: 'flex', maxWidth: '100%', background: 'var(--color-background-muted)', borderRadius: 10, padding: 2 }}>
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -65,6 +66,17 @@ export default function Reporting() {
 
   const [rangeStart, setRangeStart] = useState(() => addDays(todayLocal(), -29))
   const [rangeEnd, setRangeEnd] = useState(() => todayLocal())
+  const [customRange, setCustomRange] = useState(false)
+  const rangePresets = useMemo(() => {
+    const t = todayLocal()
+    const ws = weekStartFor(t)
+    return [
+      { value: 'week', label: 'This week', start: ws, end: addDays(ws, 6) },
+      { value: '30d', label: 'Last 30 days', start: addDays(t, -29), end: t },
+      { value: 'all', label: 'All time', start: '2000-01-01', end: t },
+    ]
+  }, [])
+  const activePreset = customRange ? 'custom' : rangePresets.find((p) => p.start === rangeStart && p.end === rangeEnd)?.value ?? 'custom'
   const [assignOpen, setAssignOpen] = useState(false)
   const [assignProjectId, setAssignProjectId] = useState('')
 
@@ -156,45 +168,29 @@ export default function Reporting() {
 
       {view === 'mine' ? (
         <>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                className="btn-outline"
-                onClick={() => {
-                  const ws = weekStartFor(todayLocal())
-                  setRangeStart(ws)
-                  setRangeEnd(addDays(ws, 6))
-                }}
-              >
-                This week
-              </button>
-              <button
-                className="btn-outline"
-                onClick={() => {
-                  setRangeStart(addDays(todayLocal(), -29))
-                  setRangeEnd(todayLocal())
-                }}
-              >
-                Last 30 days
-              </button>
-              <button
-                className="btn-outline"
-                onClick={() => {
-                  setRangeStart('2000-01-01')
-                  setRangeEnd(todayLocal())
-                }}
-              >
-                All time
-              </button>
-            </div>
-            <div>
-              <div className="field-label">From</div>
-              <input className="input" type="date" value={rangeStart} onChange={(e) => setRangeStart(e.target.value)} />
-            </div>
-            <div>
-              <div className="field-label">To</div>
-              <input className="input" type="date" value={rangeEnd} onChange={(e) => setRangeEnd(e.target.value)} />
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <SegmentedToggle
+              value={activePreset}
+              options={[...rangePresets.map((p) => ({ value: p.value, label: p.label })), { value: 'custom', label: 'Custom' }]}
+              onChange={(v) => {
+                const preset = rangePresets.find((p) => p.value === v)
+                if (preset) {
+                  setCustomRange(false)
+                  setRangeStart(preset.start)
+                  setRangeEnd(preset.end)
+                } else {
+                  setCustomRange(true)
+                }
+              }}
+            />
+            {activePreset === 'custom' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <DatePicker value={rangeStart} onChange={setRangeStart} ariaLabel="From" style={{ width: 150 }} />
+                <span style={{ color: 'var(--color-text-tertiary)' }}>–</span>
+                <DatePicker value={rangeEnd} onChange={setRangeEnd} min={rangeStart} ariaLabel="To" style={{ width: 150 }} />
+              </div>
+            )}
+            <span style={{ flex: 1 }} />
             <button className="btn-outline" onClick={exportMine}>
               <DownloadIcon size={14} color="var(--color-text-primary)" /> Export CSV
             </button>

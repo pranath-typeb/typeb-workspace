@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { CloseIcon, PlusIcon } from './icons'
+import { setSidebarCollapsed, useSidebarCollapsed } from '../data/sidebar'
 
 interface AppShellProps {
   appIcon: ReactNode
@@ -11,13 +12,22 @@ interface AppShellProps {
 }
 
 // Sidebar starts collapsed to an icon rail on phones/small tablets so it doesn't
-// eat most of the screen on first render — desktop still starts expanded.
+// eat most of the screen on first render. On wider screens the collapsed/expanded choice is shared by
+// every page (see data/sidebar.ts), so it stays however you left it.
 function isNarrowViewport(): boolean {
   return typeof window !== 'undefined' && window.innerWidth < 768
 }
 
 export default function AppShell({ appIcon, appLabel, appHref, sidebar, children }: AppShellProps) {
-  const [collapsed, setCollapsed] = useState(isNarrowViewport)
+  const narrow = isNarrowViewport()
+  const [localCollapsed, setLocalCollapsed] = useState(true)
+  const sharedCollapsed = useSidebarCollapsed()
+  const collapsed = narrow ? localCollapsed : sharedCollapsed
+  const setCollapsed = (update: boolean | ((current: boolean) => boolean)) => {
+    const next = typeof update === 'function' ? update(collapsed) : update
+    if (narrow) setLocalCollapsed(next)
+    else setSidebarCollapsed(next)
+  }
   const sidebarRef = useRef<HTMLDivElement>(null)
 
   // On phones the sidebar is a horizontal chip strip — bring the active section into view.

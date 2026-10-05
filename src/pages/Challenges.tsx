@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import DatePicker from '../components/DatePicker'
 import { Link, useLocation } from 'react-router-dom'
 import { ChevronLeftIcon, CloseIcon, FlameIcon, FootprintsIcon, TrophyIcon } from '../components/icons'
 import { avatarContent } from '../components/Avatar'
@@ -323,11 +324,11 @@ function NewChallengeModal({ onClose, onCreated }: { onClose: () => void; onCrea
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 150 }}>
             <div className="field-label">Starts</div>
-            <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+            <DatePicker value={start} onChange={setStart} />
           </div>
           <div style={{ flex: 1, minWidth: 150 }}>
             <div className="field-label">Ends</div>
-            <input className="input" type="date" min={start} value={end} onChange={(e) => setEnd(e.target.value)} />
+            <DatePicker min={start} value={end} onChange={setEnd} />
           </div>
         </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 500 }}>

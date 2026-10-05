@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   BellIcon,
+  IdBadgeIcon,
   CalendarIcon,
   ChartIcon,
   CoffeeIcon,
@@ -30,7 +31,9 @@ import {
 import { avatarContent } from './Avatar'
 import { CURRENT_USER_ID, usePeople } from '../data/people'
 import { useProjects } from '../data/projects'
-import { CATEGORIES } from '../data/timeEntries'
+import { BillableButton, CategoryTagButton } from './EntryTags'
+import SearchableSelect from './SearchableSelect'
+import { recentProjectIds } from '../data/timeEntries'
 import { showToast } from '../data/toast'
 import { useNavPinned, useNavPosition, type NavPosition } from '../data/navPosition'
 import { togglePinnedApp, usePinnedApps } from '../data/pinnedApps'
@@ -50,7 +53,7 @@ interface AppDef {
 const apps: AppDef[] = [
   { key: 'dashboard', label: 'Dashboard', description: 'Your day at a glance', to: '/', icon: (c) => <GridIcon size={16} color={c} /> },
   { key: 'time', label: 'Time', description: 'Track hours and timesheets', to: '/time', icon: (c) => <ClockIcon size={16} color={c} /> },
-  { key: 'hr', label: 'HR', description: 'Leave, policies, people ops', to: '/hr/leave', icon: (c) => <BellIcon size={16} color={c} /> },
+  { key: 'hr', label: 'HR', description: 'Leave, policies, people ops', to: '/hr/leave', icon: (c) => <IdBadgeIcon size={16} color={c} /> },
   { key: 'payroll', label: 'Payroll', description: 'Runs, payslips and reviews', to: '/payroll', icon: (c) => <WalletIcon size={16} color={c} /> },
   { key: 'projects', label: 'Projects', description: 'Delivery and staffing', to: '/projects', icon: (c) => <PresentationIcon size={16} color={c} /> },
   { key: 'people', label: 'People', description: 'Directory and org', to: '/people', icon: (c) => <PeopleIcon size={16} color={c} /> },
@@ -146,6 +149,8 @@ export default function BottomNav() {
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
+      // Dropdown panels are portaled out of the popups; a pick inside one is not an outside click.
+      if ((e.target as Element | null)?.closest?.('.ss-panel')) return
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false)
       if (timerRef.current && !timerRef.current.contains(e.target as Node)) setTimerPopupOpen(false)
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false)
@@ -153,6 +158,7 @@ export default function BottomNav() {
     }
     function onKeyDown(e: KeyboardEvent) {
       if (e.key !== 'Escape') return
+      if (document.querySelector('.ss-panel')) return
       setAppSwitcherOpen(false)
       setNotifOpen(false)
       setTimerPopupOpen(false)
@@ -354,7 +360,7 @@ export default function BottomNav() {
                       <label className="bn-timer-field-label">Description</label>
                       <input
                         className="bn-timer-input"
-                        placeholder="What are you working on?"
+                        placeholder="Working on"
                         value={timerDescription}
                         onChange={(e) => setTimerDescription(e.target.value)}
                       />
@@ -362,38 +368,20 @@ export default function BottomNav() {
                     <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <label className="bn-timer-field-label">Project</label>
-                        <select className="bn-timer-input" value={timerProjectId} onChange={(e) => setTimerProjectId(e.target.value)}>
-                          <option value="">Select…</option>
-                          {projects.map((p) => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                          ))}
-                        </select>
+                        <SearchableSelect
+                          className="bn-timer-select"
+                          recentKey="project"
+                          recentFrom={recentProjectIds}
+                          allLabel="All projects"
+                          value={timerProjectId}
+                          onChange={setTimerProjectId}
+                          placeholder="No project"
+                          ariaLabel="Project"
+                          options={[{ value: '', label: 'No project' }, ...projects.map((p) => ({ value: p.id, label: p.name }))]}
+                        />
                       </div>
-                      <div style={{ position: 'relative', width: 40, height: 36, flexShrink: 0 }}>
-                        <select
-                          className="bn-timer-input"
-                          value={timerCategory}
-                          onChange={(e) => setTimerCategory(e.target.value)}
-                          aria-label="Category"
-                          title={`Category: ${timerCategory}`}
-                          style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', padding: 0 }}
-                        >
-                          {CATEGORIES.map((c) => (
-                            <option key={c} value={c}>{c}</option>
-                          ))}
-                        </select>
-                        <div style={{ width: 40, height: 36, borderRadius: 10, background: '#171717', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                          <TagIcon size={16} color="#ebebeb" />
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setTimerBillable(!timerBillable)}
-                        aria-label="Billable"
-                        title={timerBillable ? 'Billable' : 'Non-billable'}
-                        style={{ width: 40, height: 36, borderRadius: 10, flexShrink: 0, background: timerBillable ? '#005c59' : '#171717', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.15s ease' }}
-                      >
-                        <DollarSignIcon size={16} color="#ebebeb" />
-                      </button>
+                      <CategoryTagButton value={timerCategory} onChange={setTimerCategory} size={36} defaultValue="Development" />
+                      <BillableButton value={timerBillable} onChange={setTimerBillable} size={36} />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, borderTop: '1px solid var(--nav-border)', paddingTop: 10 }}>
                       <Link
@@ -610,7 +598,7 @@ export default function BottomNav() {
             style={{ width: 768, maxWidth: 'calc(100vw - 32px)', display: 'flex', flexDirection: 'column', gap: 20 }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: '#a1a1a1' }}>Apps</div>
+              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--nav-fg-subtle)' }}>Apps</div>
               <input
                 autoFocus
                 value={appFilter}

@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react'
+import EmptyState from '../../components/EmptyState'
+import { useUrlParam } from '../../lib/useUrlState'
+import FilterBar from '../../components/FilterBar'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
@@ -18,7 +21,6 @@ import {
   type ReviewStage,
   type WeekSubmission,
 } from '../../data/timeEntries'
-import { Select } from '../../components/SearchableSelect'
 import { useAssignments, committedHoursForProject } from '../../data/staffing'
 import { useLeaveRequests } from '../../data/leave'
 import { setApprovalQueue } from '../../data/approvalQueue'
@@ -42,10 +44,10 @@ export default function Approvals() {
   const entries = useTimeEntries()
   const navigate = useNavigate()
   const reviewer = personById(CURRENT_USER_ID)!
-  const [tab, setTab] = useState<Tab>('Awaiting me')
-  const [weekFilter, setWeekFilter] = useState('All')
-  const [deptFilter, setDeptFilter] = useState<Department | 'All'>('All')
-  const [query, setQuery] = useState('')
+  const [tab, setTab] = useUrlParam<Tab>('tab', 'Awaiting me')
+  const [weekFilter, setWeekFilter] = useUrlParam('week', 'All')
+  const [deptFilter, setDeptFilter] = useUrlParam<Department | 'All'>('dept', 'All')
+  const [query, setQuery] = useUrlParam('q', '')
   const [showAllDates, setShowAllDates] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [rejectTarget, setRejectTarget] = useState<WeekSubmission | 'bulk' | null>(null)
@@ -216,37 +218,31 @@ export default function Approvals() {
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ flex: 2, minWidth: 220 }}>
-          <div className="field-label">Search</div>
-          <input className="input" placeholder="Employee name or email" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </div>
-        <div style={{ flex: 1, minWidth: 160 }}>
-          <div className="field-label">Department</div>
-          <Select className="input" value={deptFilter} onChange={(e) => setDeptFilter(e.target.value as Department | 'All')}>
-            <option value="All">Any</option>
-            {DEPARTMENTS.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </Select>
-        </div>
-        <div style={{ flex: 1, minWidth: 180 }}>
-          <div className="field-label">Timesheet period</div>
-          <Select
-            className="input"
-            value={effectiveWeekFilter}
-            onChange={(e) => {
+      <FilterBar
+        search={{ value: query, onChange: setQuery, placeholder: 'Search employee name or email' }}
+        filters={[
+          {
+            key: 'dept',
+            label: 'Department',
+            value: deptFilter,
+            defaultValue: 'All',
+            onChange: (v) => setDeptFilter(v as Department | 'All'),
+            options: DEPARTMENTS.map((d) => ({ value: d, label: d })),
+          },
+          {
+            key: 'week',
+            label: 'Period',
+            value: effectiveWeekFilter,
+            defaultValue: 'All',
+            onChange: (v) => {
               setShowAllDates(false)
-              setWeekFilter(e.target.value)
-            }}
-          >
-            <option value="All">All weeks</option>
-            {weeks.map((w) => (
-              <option key={w} value={w}>{formatWeekRange(w)}</option>
-            ))}
-          </Select>
-        </div>
-      </div>
+              setWeekFilter(v)
+            },
+            options: weeks.map((w) => ({ value: w, label: formatWeekRange(w) })),
+          },
+        ]}
+        count={`${filtered.length} ${filtered.length === 1 ? 'timesheet' : 'timesheets'}`}
+      />
 
       {cleanIds.length > 0 && (
         <div className="clean-bar">
@@ -269,7 +265,7 @@ export default function Approvals() {
       )}
 
       <div className="card" style={{ padding: 0 }}>
-        <table>
+        <table className="appr-table">
           <thead>
             <tr>
               <th className="th2" style={{ width: 36 }}>
@@ -339,7 +335,9 @@ export default function Approvals() {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td className="td2" colSpan={9} style={{ color: 'var(--color-text-tertiary)' }}>Nothing here.</td>
+                <td colSpan={9}>
+                  <EmptyState compact keep={['tab']} title={tab === 'Awaiting me' ? 'Nothing waiting on you' : `No ${tab.toLowerCase()} timesheets`} body={tab === 'Awaiting me' ? "You're all caught up." : undefined} />
+                </td>
               </tr>
             )}
           </tbody>

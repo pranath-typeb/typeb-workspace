@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
+import EmptyState from '../../components/EmptyState'
+import { useUrlParam } from '../../lib/useUrlState'
+import FilterBar from '../../components/FilterBar'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PayrollSidebar from '../../components/PayrollSidebar'
-import { PayrollFileIcon, ChevronRightIcon } from '../../components/icons'
+import { PayrollFileIcon, ChevronRightIcon, WalletIcon } from '../../components/icons'
 import { avatarContent } from '../../components/Avatar'
 import { personById } from '../../data/people'
 import { bulkApprove, statusBadgeClass, usePayrollPeriods, type PayrollStatus } from '../../data/payroll'
-import { Select } from '../../components/SearchableSelect'
 
 const STATUSES: PayrollStatus[] = ['Timesheet pending', 'Under review', 'Update needed', 'Approved', 'Paid out']
 
@@ -19,7 +21,7 @@ export default function Reviews() {
   const periods = usePayrollPeriods()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useUrlParam('q', '')
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const cycles = useMemo(() => {
@@ -91,20 +93,24 @@ export default function Reviews() {
   }
 
   return (
-    <AppShell appIcon={<PayrollFileIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active="reviews" />}>
+    <AppShell appIcon={<WalletIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active="reviews" />}>
       <div className="page-title">Payroll Reviews</div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Select className="input" style={{ width: 220 }} value={cycle} onChange={(e) => setCycle(e.target.value)}>
-            {cycles.map((c) => (
-              <option key={c.cycle} value={c.cycle}>{c.label} · {c.cycle}</option>
-            ))}
-          </Select>
-          <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{cyclePeriods.length} {cyclePeriods.length === 1 ? 'employee' : 'employees'}</span>
-        </div>
-        <input className="input" style={{ width: 220 }} placeholder="Search employees…" value={query} onChange={(e) => setQuery(e.target.value)} />
-      </div>
+      <FilterBar
+        search={{ value: query, onChange: setQuery, placeholder: 'Search employees' }}
+        filters={[
+          {
+            key: 'cycle',
+            label: 'Cycle',
+            required: true,
+            value: cycle,
+            defaultValue: cycles[0]?.cycle ?? '',
+            onChange: setCycle,
+            options: cycles.map((c) => ({ value: c.cycle, label: `${c.label} · ${c.cycle}` })),
+          },
+        ]}
+        count={`${cyclePeriods.length} ${cyclePeriods.length === 1 ? 'employee' : 'employees'}`}
+      />
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <StatusPill label="All" count={cyclePeriods.length} active={status === 'All'} onClick={() => setStatusFilter('All')} />
@@ -162,8 +168,8 @@ export default function Reviews() {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td className="td2" colSpan={6} style={{ color: 'var(--color-text-tertiary)' }}>
-                  No reviews match those filters{activeCycleLabel ? ` for ${activeCycleLabel}` : ''}.
+                <td colSpan={6}>
+                  <EmptyState compact keep={['cycle']} title={`No reviews${activeCycleLabel ? ` in ${activeCycleLabel}` : ''} match`} />
                 </td>
               </tr>
             )}

@@ -8,7 +8,8 @@ const PINNED_STORAGE_KEY = 'typeb-hr.nav-pinned.v1'
 function loadInitial(): NavPosition {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === 'bottom' || saved === 'top' || saved === 'left' || saved === 'right') return saved
+    // 'top' is no longer offered; anyone who had it saved falls back to the bottom dock
+    if (saved === 'bottom' || saved === 'left' || saved === 'right') return saved
   } catch {
     // ignore
   }

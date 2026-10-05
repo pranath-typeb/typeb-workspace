@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import DatePicker from '../../components/DatePicker'
 import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
@@ -28,6 +29,7 @@ import {
   submitWeek,
   todayLocal,
   type TimeEntry,
+  useSubmissions,
   useTimeEntries,
   weekStartFor,
   WEEKLY_TARGET_MINUTES,
@@ -64,6 +66,7 @@ function minutesToTime(min: number): string {
 
 export default function MyTime() {
   const entries = useTimeEntries()
+  const submissions = useSubmissions()
   const projects = useProjects()
 
   const [weekStart, setWeekStart] = useState(() => weekStartFor(todayLocal()))
@@ -219,7 +222,7 @@ export default function MyTime() {
               justifyContent: 'center',
               padding: '6px 14px',
               borderRadius: 30,
-              background: mode === 'Timer' ? 'var(--color-background-inverse)' : 'var(--color-background-muted)',
+              background: mode === 'Timer' ? 'var(--color-background-inverse)' : 'linear-gradient(var(--color-background-muted), var(--color-background-muted)) var(--color-background-page)',
               color: mode === 'Timer' ? 'var(--color-text-inverse)' : 'var(--color-text-primary)',
               fontSize: 12,
               fontWeight: 600,
@@ -236,7 +239,7 @@ export default function MyTime() {
               justifyContent: 'center',
               padding: '6px 14px',
               borderRadius: 30,
-              background: mode === 'Manual' ? 'var(--color-background-inverse)' : 'var(--color-background-muted)',
+              background: mode === 'Manual' ? 'var(--color-background-inverse)' : 'linear-gradient(var(--color-background-muted), var(--color-background-muted)) var(--color-background-page)',
               color: mode === 'Manual' ? 'var(--color-text-inverse)' : 'var(--color-text-primary)',
               fontSize: 12,
               fontWeight: 600,
@@ -256,7 +259,7 @@ export default function MyTime() {
             <input
               className="input"
               style={{ flex: 1, minWidth: 160, borderRadius: 10 }}
-              placeholder="What are you working on?"
+              placeholder="Working on"
               value={timer.description}
               onChange={(e) => setTimerDescription(e.target.value)}
             />
@@ -268,11 +271,11 @@ export default function MyTime() {
               onChange={setTimerProjectId}
               placeholder="Select Project"
               style={{ width: 220 }}
-              options={[{ value: '', label: 'Select Project' }, ...projects.map((p) => ({ value: p.id, label: p.name }))]}
+              options={[{ value: '', label: 'No project' }, ...projects.map((p) => ({ value: p.id, label: p.name }))]}
             />
             <div className="hide-on-phone" style={{ width: 1, alignSelf: 'stretch', background: 'var(--color-border-default)' }} />
             <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
-              <CategoryTagButton value={timer.category} onChange={setTimerCategory} size={36} />
+              <CategoryTagButton value={timer.category} onChange={setTimerCategory} size={36} defaultValue="Development" />
               <BillableButton value={timer.billable} onChange={setTimerBillable} size={36} />
             </div>
             {timer.running ? (
@@ -308,11 +311,11 @@ export default function MyTime() {
               <TimeInput label="End" value={manualEndTime} onChange={setManualEndTime} />
               <div style={{ width: 150 }}>
                 <div className="field-label">Date</div>
-                <input className="input" style={{ borderRadius: 16 }} type="date" value={manualDate} onChange={(e) => setManualDate(e.target.value)} />
+                <DatePicker style={{ borderRadius: 16 }} value={manualDate} onChange={setManualDate} />
               </div>
               <div style={{ flex: 2, minWidth: 180 }}>
                 <div className="field-label">Description</div>
-                <input className="input" style={{ borderRadius: 10 }} value={manualDesc} onChange={(e) => setManualDesc(e.target.value)} placeholder="What are you working on?" />
+                <input className="input" style={{ borderRadius: 10 }} value={manualDesc} onChange={(e) => setManualDesc(e.target.value)} placeholder="Worked on" />
               </div>
               <div style={{ flex: 1, minWidth: 160 }}>
                 <div className="field-label">Project</div>
@@ -330,7 +333,7 @@ export default function MyTime() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
               <DurationPicker options={QUICK_DURATIONS} selectedMinutes={manualMinutes} onSelect={applyQuickDuration} />
               <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
-                <CategoryTagButton value={manualCategory} onChange={setManualCategory} size={36} />
+                <CategoryTagButton value={manualCategory} onChange={setManualCategory} size={36} defaultValue="Manual" />
                 <BillableButton value={manualBillable} onChange={setManualBillable} size={36} />
                 <button className="btn-dark" style={{ borderRadius: 10 }} disabled={!manualDesc.trim() || manualMinutes <= 0} onClick={addManualEntry}>Add Entry</button>
               </div>
@@ -392,7 +395,7 @@ export default function MyTime() {
         </div>
         <div style={{ flex: '1 1 120px', minWidth: 120, padding: '16px 20px', borderRight: '1px solid var(--color-border-subtle)' }}>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Balance</div>
-          <span className="mono" style={{ fontSize: 20, fontWeight: 600, color: weekMinutes >= WEEKLY_TARGET_MINUTES ? 'var(--brand-text)' : '#ff4800' }}>
+          <span className="mono" style={{ fontSize: 20, fontWeight: 600, color: weekMinutes >= WEEKLY_TARGET_MINUTES ? 'var(--brand-text)' : 'var(--warn-fg)' }}>
             {formatMinutes(weekMinutes - WEEKLY_TARGET_MINUTES)}
           </span>
         </div>
@@ -509,7 +512,7 @@ export default function MyTime() {
               )}
               <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span className="mono" style={{ fontSize: 16, fontWeight: 600, color: isFull ? '#fff' : isToday ? 'var(--brand-mid)' : 'var(--color-text-primary)' }}>{dateNum}</span>
-                <span style={{ fontSize: 10, fontWeight: 600, color: isFull ? 'rgba(255,255,255,0.6)' : isToday ? 'var(--brand-mid)' : '#a1a1a1' }}>{dayName}</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: isFull ? 'rgba(255,255,255,0.6)' : isToday ? 'var(--brand-mid)' : 'var(--color-text-tertiary)' }}>{dayName}</span>
               </div>
               <div className="mono" style={{ position: 'relative', zIndex: 1, fontSize: 13, fontWeight: 600, color: isFull ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)' }}>{mins > 0 ? formatMinutes(mins) : '—'}</div>
             </button>
@@ -518,22 +521,44 @@ export default function MyTime() {
       </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {quickWeeks.map((w) => (
-          <button
-            key={w}
-            onClick={() => setWeekStart(w)}
-            style={{
-              padding: '8px 14px',
-              borderRadius: 20,
-              fontSize: 12,
-              fontWeight: 600,
-              color: w === weekStart ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
-              background: w === weekStart ? 'var(--color-background-inverse)' : 'var(--color-background-muted)',
-            }}
-          >
-            {formatWeekRange(w)}
-          </button>
-        ))}
+        {quickWeeks.map((w) => {
+          const st = weekChipStatus(w, currentWeek, entries, submissions)
+          const selected = w === weekStart
+          return (
+            <button
+              key={w}
+              onClick={() => setWeekStart(w)}
+              title={st ? `${formatWeekRange(w)} · ${st.label}` : formatWeekRange(w)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 7,
+                padding: '8px 14px',
+                borderRadius: 20,
+                fontSize: 12,
+                fontWeight: 600,
+                color: selected ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
+                background: selected ? 'var(--color-background-inverse)' : 'var(--color-background-muted)',
+              }}
+            >
+              {st && (
+                <span
+                  aria-hidden
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: '50%',
+                    flexShrink: 0,
+                    background: st.hollow ? 'transparent' : st.color,
+                    border: st.hollow ? `1.5px solid ${st.color}` : 'none',
+                  }}
+                />
+              )}
+              {formatWeekRange(w)}
+              {st?.label === 'Current' && <span style={{ fontSize: 10.5, fontWeight: 500, opacity: 0.85 }}>{st.label}</span>}
+            </button>
+          )
+        })}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
@@ -683,6 +708,24 @@ export default function MyTime() {
 }
 
 // One logged-time row with hover-reveal Duplicate / Resume-as-timer / Delete actions —
+// Status cue for a week chip: a dot (solid for something that needs attention or has been decided,
+// a hollow ring for the quiet current/upcoming states) plus a short label. Empty past weeks show nothing.
+function weekChipStatus(
+  week: string,
+  currentWeek: string,
+  entries: TimeEntry[],
+  subs: ReturnType<typeof useSubmissions>,
+): { label: string; color: string; hollow?: boolean; quiet?: boolean } | null {
+  const sub = subs.find((x) => x.personId === CURRENT_USER_ID && x.weekStart === week)
+  if (sub?.status === 'Approved') return { label: 'Approved', color: '#1f8a5b' }
+  if (sub?.status === 'Pending') return { label: 'In review', color: '#d99a00' }
+  if (sub?.status === 'Rejected') return { label: 'Rejected', color: '#e11d48' }
+  if (week === currentWeek) return { label: 'Current', color: 'var(--brand-mid)', hollow: true }
+  if (week > currentWeek) return { label: 'Upcoming', color: 'var(--color-text-tertiary)', hollow: true, quiet: true }
+  if (minutesForPersonWeek(entries, CURRENT_USER_ID, week) > 0) return { label: 'Not submitted', color: '#ff6d33' }
+  return null
+}
+
 // shared by the week's day list and the Manual-tab staged-entries list.
 function EntryRow({
   entry,
@@ -714,31 +757,7 @@ function EntryRow({
         background: isRunningThis ? 'rgba(0, 115, 111, 0.08)' : undefined,
       }}
     >
-      {entry.startMinutes !== undefined && (
-        <div className="mono" style={{ width: 130, textAlign: 'right', fontSize: 11, color: 'var(--color-text-secondary)', flexShrink: 0 }}>
-          {formatTimeRange(entry.startMinutes, entry.minutes)}
-        </div>
-      )}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 600 }}>{entry.description}</div>
-        <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: projectColor(entry.projectId), flexShrink: 0 }} />
-          {projectLabel(entry.projectId)} · {entry.category}
-          {entry.billable === false && <span className="badge b-neutral" style={{ marginLeft: 6, fontSize: 9, padding: '0 6px', height: 16 }}>Non-billable</span>}
-        </div>
-      </div>
-      {isRunningThis && <TimerActivityIcon size={13} color="#00736f" />}
-      <div className="mono" style={{ fontSize: 13, fontWeight: 500, flexShrink: 0 }}>{formatMinutes(entry.minutes)}</div>
-      <div className="time-entry-actions">
-        <button className="time-entry-action-btn time-entry-action-btn-danger" onClick={() => onDelete(entry)} aria-label="Delete entry" title="Delete">
-          <TrashIcon color="#991b1b" />
-        </button>
-        <button className="time-entry-action-btn" onClick={() => onEdit(entry)} aria-label="Edit entry" title="Edit">
-          <EditIcon size={13} color="var(--color-text-tertiary)" />
-        </button>
-        <button className="time-entry-action-btn" onClick={() => onDuplicate(entry)} aria-label="Duplicate entry" title="Duplicate">
-          <DuplicateIcon size={13} color="var(--color-text-tertiary)" />
-        </button>
+      <div className={`time-entry-lead${isRunningThis ? ' running' : ''}`}>
         <button
           className="time-entry-action-btn"
           onClick={() => {
@@ -754,6 +773,32 @@ function EntryRow({
           style={isRunningThis ? { background: '#00736f' } : undefined}
         >
           {isRunningThis ? <StopIcon size={10} color="#fff" /> : <PlayIcon size={12} color="var(--color-text-tertiary)" />}
+        </button>
+        <button className="time-entry-action-btn" onClick={() => onDuplicate(entry)} aria-label="Duplicate entry" title="Duplicate">
+          <DuplicateIcon size={13} color="var(--color-text-tertiary)" />
+        </button>
+      </div>
+      {entry.startMinutes !== undefined && (
+        <div className="mono time-entry-time" style={{ width: 130, textAlign: 'right', fontSize: 11, color: 'var(--color-text-secondary)', flexShrink: 0 }}>
+          {formatTimeRange(entry.startMinutes, entry.minutes)}
+        </div>
+      )}
+      <div className="time-entry-main" style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12, fontWeight: 600 }}>{entry.description}</div>
+        <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: projectColor(entry.projectId), flexShrink: 0 }} />
+          {projectLabel(entry.projectId)} · {entry.category}
+          {entry.billable === false && <span className="badge b-neutral" style={{ marginLeft: 6, fontSize: 9, padding: '0 6px', height: 16 }}>Non-billable</span>}
+        </div>
+      </div>
+      {isRunningThis && <TimerActivityIcon size={13} color="#00736f" />}
+      <div className="mono time-entry-duration" style={{ fontSize: 13, fontWeight: 500, flexShrink: 0 }}>{formatMinutes(entry.minutes)}</div>
+      <div className="time-entry-actions">
+        <button className="time-entry-action-btn time-entry-action-btn-danger" onClick={() => onDelete(entry)} aria-label="Delete entry" title="Delete">
+          <TrashIcon color="#991b1b" />
+        </button>
+        <button className="time-entry-action-btn" onClick={() => onEdit(entry)} aria-label="Edit entry" title="Edit">
+          <EditIcon size={13} color="var(--color-text-tertiary)" />
         </button>
       </div>
     </div>

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import DatePicker from '../../components/DatePicker'
 import { Link, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PayrollSidebar from '../../components/PayrollSidebar'
 import { avatarContent } from '../../components/Avatar'
-import { ChevronLeftIcon, DownloadIcon, HistoryIcon, PayrollFileIcon, PlusIcon, TrashIcon } from '../../components/icons'
+import { ChevronLeftIcon, DownloadIcon, HistoryIcon, PayrollFileIcon, PlusIcon, TrashIcon, WalletIcon } from '../../components/icons'
 import { CURRENT_USER_ID, personById } from '../../data/people'
 import { useLeaveRequests, type LeaveRequest } from '../../data/leave'
 import { showToast } from '../../data/toast'
@@ -109,7 +110,7 @@ export default function PeriodDetail({ mode }: { mode: 'admin' | 'self' }) {
 
   if (!period || !person) {
     return (
-      <AppShell appIcon={<PayrollFileIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active={mode === 'admin' ? 'reviews' : 'my-payroll'} />}>
+      <AppShell appIcon={<WalletIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active={mode === 'admin' ? 'reviews' : 'my-payroll'} />}>
         <div className="card">
           <div style={{ fontWeight: 600, marginBottom: 8 }}>We couldn't find that payroll period.</div>
           <Link to={backHref} className="btn-outline">Back</Link>
@@ -157,7 +158,7 @@ export default function PeriodDetail({ mode }: { mode: 'admin' | 'self' }) {
   }
 
   return (
-    <AppShell appIcon={<PayrollFileIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active={mode === 'admin' ? 'reviews' : 'my-payroll'} />}>
+    <AppShell appIcon={<WalletIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active={mode === 'admin' ? 'reviews' : 'my-payroll'} />}>
       <Link to={backHref} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}>
         <ChevronLeftIcon size={14} color="var(--color-text-secondary)" /> Back to {mode === 'admin' ? 'Reviews' : 'My Payroll'}
       </Link>
@@ -426,7 +427,7 @@ export default function PeriodDetail({ mode }: { mode: 'admin' | 'self' }) {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div className="field-label">Pay date</div>
-                  <input className="input" type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} />
+                  <DatePicker value={payDate} onChange={setPayDate} />
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button className="btn-outline" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setShowPayDateField(false)}>Cancel</button>
                     <button className="btn-dark" style={{ flex: 1, justifyContent: 'center' }} onClick={confirmMarkPaid}>Confirm</button>

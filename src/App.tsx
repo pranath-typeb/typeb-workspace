@@ -42,7 +42,7 @@ import ScrollToTopButton from './components/ScrollToTopButton'
 import TimerLiveWidget from './components/TimerLiveWidget'
 import ScreenRippleOverlay from './components/ScreenRippleOverlay'
 import { NavItem, NavGroupLabel, NavSep } from './components/NavItem'
-import { GridIcon, ClockIcon, LetterIcon, PolicyIcon, BenefitsIcon } from './components/icons'
+import { IdBadgeIcon, GridIcon, ClockIcon, LetterIcon, PolicyIcon, BenefitsIcon } from './components/icons'
 import Focus from './pages/Focus'
 import Challenges from './pages/Challenges'
 import MoveReminder from './components/MoveReminder'
@@ -62,7 +62,7 @@ function HrSidebar({ active }: { active: string }) {
   )
 }
 
-const hrAppProps = { appIcon: <ClockIcon size={16} color="var(--color-text-secondary)" />, appLabel: 'HR', appHref: '/hr/leave' }
+const hrAppProps = { appIcon: <IdBadgeIcon size={16} color="var(--color-text-secondary)" />, appLabel: 'HR', appHref: '/hr/leave' }
 
 const AUTH_ROUTES = ['/login', '/signup', '/forgot-password', '/check-email', '/reset-password']
 

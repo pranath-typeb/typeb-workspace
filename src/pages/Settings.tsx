@@ -22,13 +22,12 @@ import {
 
 const NAV_POSITIONS: { key: NavPosition; label: string }[] = [
   { key: 'bottom', label: 'Bottom' },
-  { key: 'top', label: 'Top' },
   { key: 'left', label: 'Left' },
   { key: 'right', label: 'Right' },
 ]
 
 function NavPositionIcon({ position, active }: { position: NavPosition; active: boolean }) {
-  const barStyle = { background: active ? 'var(--color-text-primary)' : 'var(--color-border-subtle)' }
+  const barStyle = { fill: active ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)' }
   return (
     <svg width={40} height={28} viewBox="0 0 40 28" style={{ display: 'block' }}>
       <rect x="0.5" y="0.5" width="39" height="27" rx="4" fill="none" stroke="var(--color-border-subtle)" />

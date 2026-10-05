@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel, NavSep } from '../../components/NavItem'
-import { ClockIcon, GridIcon, LetterIcon, PolicyIcon, BenefitsIcon, EyeIcon, EditIcon, TrashIcon, CloseIcon } from '../../components/icons'
+import { IdBadgeIcon, ClockIcon, GridIcon, LetterIcon, PolicyIcon, BenefitsIcon, EyeIcon, EditIcon, TrashIcon, CloseIcon } from '../../components/icons'
 import RequestLeaveModal from '../../components/RequestLeaveModal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { useLeaveRequests, deleteLeaveRequest, PTO_TOTAL_ACCRUED, PTO_TOTAL_USED, LIEU_GRANTED, LEAVE_CYCLE, type LeaveRequest, type LeaveStatus } from '../../data/leave'
@@ -26,7 +26,7 @@ export default function MyLeave() {
 
   return (
     <AppShell
-      appIcon={<ClockIcon size={16} color="var(--color-text-secondary)" />}
+      appIcon={<IdBadgeIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="HR"
       appHref="/hr/leave"
       sidebar={
@@ -173,11 +173,9 @@ function ViewField({ label, value }: { label: string; value: string }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ flex: 1, minWidth: 140 }}>
-      <div className="stat">
-        <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>{label}</div>
-        <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-1px' }}>{value}</div>
-      </div>
+    <div className="stat" style={{ flex: '1 1 140px' }}>
+      <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-1px' }}>{value}</div>
     </div>
   )
 }

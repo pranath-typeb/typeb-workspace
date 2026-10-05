@@ -1,11 +1,13 @@
 import { useState } from 'react'
+import DatePicker from './DatePicker'
 import DurationPicker from './DurationPicker'
 import SearchableSelect, { Select } from './SearchableSelect'
 import TimeInput from './TimeInput'
 import { CircleArrowRightIcon, CloseIcon } from './icons'
 import { CURRENT_USER_ID } from '../data/people'
 import { useProjects } from '../data/projects'
-import { addEntry, CATEGORIES, recentProjectIds, updateEntry, type TimeEntry } from '../data/timeEntries'
+import { addEntry, recentProjectIds, updateEntry, type TimeEntry } from '../data/timeEntries'
+import { CategorySelect } from './EntryTags'
 
 const DURATION_OPTIONS = [15, 30, 45, 60, 90, 120, 180, 240]
 
@@ -93,7 +95,7 @@ export default function AddTimeEntryModal({ date, onClose, editing, onSave }: Ad
 
         <div>
           <div className="field-label">Date</div>
-          <input className="input" type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
+          <DatePicker value={entryDate} onChange={setEntryDate} />
         </div>
 
         <div style={{ display: 'flex', gap: 12 }}>
@@ -111,11 +113,7 @@ export default function AddTimeEntryModal({ date, onClose, editing, onSave }: Ad
           </div>
           <div style={{ flex: 1 }}>
             <div className="field-label">Category</div>
-            <Select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </Select>
+            <CategorySelect value={category} onChange={setCategory} />
           </div>
         </div>
 

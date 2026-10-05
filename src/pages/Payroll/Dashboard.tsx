@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PayrollSidebar from '../../components/PayrollSidebar'
-import { PayrollFileIcon } from '../../components/icons'
+import { PayrollFileIcon, WalletIcon } from '../../components/icons'
 import { people } from '../../data/people'
 import { usePayrollPeriods } from '../../data/payroll'
 
@@ -53,7 +53,7 @@ export default function Dashboard() {
   }
 
   return (
-    <AppShell appIcon={<PayrollFileIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active="dashboard" />}>
+    <AppShell appIcon={<WalletIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active="dashboard" />}>
       <div className="page-title">Dashboard</div>
 
       <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>

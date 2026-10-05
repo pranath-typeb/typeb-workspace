@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react'
+import EmptyState from '../../components/EmptyState'
+import { useUrlParam, useUrlFlag } from '../../lib/useUrlState'
 import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel, NavSep } from '../../components/NavItem'
-import { BuildingIcon, PlusIcon, ProjectsIcon, StaffingIcon } from '../../components/icons'
+import { BuildingIcon, PlusIcon, ProjectsIcon, StaffingIcon, PresentationIcon } from '../../components/icons'
 import { useProjects, type BillingType, type ProjectStatus } from '../../data/projects'
 import { CURRENT_USER_ID } from '../../data/people'
 import CreateProjectModal from '../../components/CreateProjectModal'
 import { useNavigate } from 'react-router-dom'
-import { Select } from '../../components/SearchableSelect'
+import FilterBar from '../../components/FilterBar'
 
 const statusBadge: Record<ProjectStatus, string> = {
   Active: 'b-pine',
@@ -20,11 +22,11 @@ const stages: BillingType[] = ['Fixed bid', 'Time & materials', 'Retainer']
 export default function ProjectsList() {
   const projects = useProjects()
   const navigate = useNavigate()
-  const [query, setQuery] = useState('')
-  const [status, setStatus] = useState<'Any' | ProjectStatus>('Any')
-  const [stage, setStage] = useState<'Any' | BillingType>('Any')
-  const [client, setClient] = useState('Any')
-  const [onlyMine, setOnlyMine] = useState(false)
+  const [query, setQuery] = useUrlParam('q', '')
+  const [status, setStatus] = useUrlParam<'Any' | ProjectStatus>('status', 'Any')
+  const [stage, setStage] = useUrlParam<'Any' | BillingType>('billing', 'Any')
+  const [client, setClient] = useUrlParam('client', 'Any')
+  const [onlyMine, setOnlyMine] = useUrlFlag('mine')
   const [modalOpen, setModalOpen] = useState(false)
 
   const clients = useMemo(() => Array.from(new Set(projects.map((p) => p.client))).sort(), [projects])
@@ -47,7 +49,7 @@ export default function ProjectsList() {
 
   return (
     <AppShell
-      appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
+      appIcon={<PresentationIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="Projects"
       appHref="/projects"
       sidebar={
@@ -76,51 +78,38 @@ export default function ProjectsList() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ flex: 2, minWidth: 200 }}>
-          <div className="field-label">Search</div>
-          <input className="input" placeholder="Project or client name" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </div>
-        <div style={{ flex: 1, minWidth: 140 }}>
-          <div className="field-label">Status</div>
-          <Select className="input" value={status} onChange={(e) => setStatus(e.target.value as 'Any' | ProjectStatus)}>
-            <option value="Any">Any</option>
-            <option value="Active">Active</option>
-            <option value="On Track">On Track</option>
-            <option value="Completed">Completed</option>
-          </Select>
-        </div>
-        <div style={{ flex: 1, minWidth: 140 }}>
-          <div className="field-label">Stage</div>
-          <Select className="input" value={stage} onChange={(e) => setStage(e.target.value as 'Any' | BillingType)}>
-            <option value="Any">Any</option>
-            {stages.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </Select>
-        </div>
-        <div style={{ flex: 1, minWidth: 140 }}>
-          <div className="field-label">Client</div>
-          <Select className="input" value={client} onChange={(e) => setClient(e.target.value)}>
-            <option value="Any">Any</option>
-            {clients.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </Select>
-        </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, height: 36, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)', cursor: 'pointer' }}>
-          <span
-            onClick={() => setOnlyMine((v) => !v)}
-            style={{ width: 32, height: 18, borderRadius: 9999, background: onlyMine ? 'var(--color-control-on)' : 'var(--color-border-subtle)', position: 'relative', transition: 'background 0.15s', flexShrink: 0 }}
-          >
-            <span style={{ position: 'absolute', top: 2, left: onlyMine ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
-          </span>
-          Only mine
-        </label>
-        <button className="btn-dark" onClick={() => setModalOpen(true)}>Create Project</button>
-      </div>
-
-      <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{filtered.length} projects</div>
+      <FilterBar
+        search={{ value: query, onChange: setQuery, placeholder: 'Search project or client' }}
+        filters={[
+          {
+            key: 'status',
+            label: 'Status',
+            value: status,
+            defaultValue: 'Any',
+            onChange: (v) => setStatus(v as 'Any' | ProjectStatus),
+            options: ['Active', 'On Track', 'Completed'].map((v) => ({ value: v, label: v })),
+          },
+          {
+            key: 'stage',
+            label: 'Billing',
+            value: stage,
+            defaultValue: 'Any',
+            onChange: (v) => setStage(v as 'Any' | BillingType),
+            options: stages.map((v) => ({ value: v, label: v })),
+          },
+          {
+            key: 'client',
+            label: 'Client',
+            value: client,
+            defaultValue: 'Any',
+            onChange: setClient,
+            options: clients.map((v) => ({ value: v, label: v })),
+          },
+        ]}
+        toggles={[{ key: 'mine', label: 'Only mine', value: onlyMine, onChange: setOnlyMine }]}
+        count={`${filtered.length} ${filtered.length === 1 ? 'project' : 'projects'}`}
+        trailing={<button className="btn-dark" onClick={() => setModalOpen(true)}>Create Project</button>}
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
         {filtered.map((p) => (
@@ -146,7 +135,7 @@ export default function ProjectsList() {
           </Link>
         ))}
         {filtered.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 0' }}>No projects match those filters.</div>
+          <EmptyState title="No projects match" />
         )}
       </div>
 

@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react'
+import EmptyState from '../../components/EmptyState'
+import { useUrlParam } from '../../lib/useUrlState'
+import FilterBar from '../../components/FilterBar'
 import { Link } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel } from '../../components/NavItem'
-import { BuildingIcon, ProjectsIcon, StaffingIcon } from '../../components/icons'
+import { BuildingIcon, ProjectsIcon, StaffingIcon, PresentationIcon } from '../../components/icons'
 import { useProjects } from '../../data/projects'
 import { clientSummaries, useClientStatuses, type ClientStatus } from '../../data/clients'
 
@@ -11,8 +14,8 @@ type Tab = 'Active' | 'Inactive' | 'All' | 'Removed'
 export default function Clients() {
   const projects = useProjects()
   const statuses = useClientStatuses()
-  const [query, setQuery] = useState('')
-  const [tab, setTab] = useState<Tab>('Active')
+  const [query, setQuery] = useUrlParam('q', '')
+  const [tab, setTab] = useUrlParam<Tab>('tab', 'Active')
 
   const clients = useMemo(() => clientSummaries(projects, statuses), [projects, statuses])
 
@@ -37,7 +40,7 @@ export default function Clients() {
 
   return (
     <AppShell
-      appIcon={<ProjectsIcon size={16} color="var(--color-text-secondary)" />}
+      appIcon={<PresentationIcon size={16} color="var(--color-text-secondary)" />}
       appLabel="Projects"
       appHref="/projects"
       sidebar={
@@ -52,10 +55,7 @@ export default function Clients() {
       <div className="page-title">Clients</div>
 
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ maxWidth: 340, flex: 1, minWidth: 220 }}>
-          <div className="field-label">Search</div>
-          <input className="input" placeholder="Client name" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </div>
+        <FilterBar search={{ value: query, onChange: setQuery, placeholder: 'Search clients' }} />
         <div className="scroll-x" style={{ display: 'flex', background: 'var(--color-background-muted)', borderRadius: 10, padding: 2 }}>
           {(Object.keys(counts) as Tab[]).map((t) => (
             <button
@@ -100,7 +100,7 @@ export default function Clients() {
           </Link>
         ))}
         {filtered.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 0' }}>No clients match those filters.</div>
+          <EmptyState keep={['tab']} title="No clients match" />
         )}
       </div>
     </AppShell>

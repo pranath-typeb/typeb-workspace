@@ -157,7 +157,7 @@ export default function CompanyCalendar() {
                         <span style={{ background: 'var(--brand-deep)', color: '#fff', width: 22, height: 22, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{cell.label}</span>
                       ) : cell.label}
                       {dayEvents.map((e) => (
-                        <div key={e.id} className="mono" style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 9999, marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: `${categoryColor[e.category]}22`, color: categoryColor[e.category] }} title={e.title}>
+                        <div key={e.id} className="mono" style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 9999, marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: `${categoryColor[e.category]}22`, color: `color-mix(in srgb, ${categoryColor[e.category]} 70%, var(--color-text-primary))` }} title={e.title}>
                           {e.title}
                         </div>
                       ))}
