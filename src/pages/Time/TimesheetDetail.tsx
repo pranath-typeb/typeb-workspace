@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
@@ -440,7 +440,6 @@ export default function TimesheetDetail() {
           <table>
             <thead>
               <tr>
-                <th className="th2">Day</th>
                 <th className="th2">Time</th>
                 <th className="th2">Description</th>
                 <th className="th2">Category</th>
@@ -450,36 +449,52 @@ export default function TimesheetDetail() {
               </tr>
             </thead>
             <tbody>
-              {weekEntries.map((e) => (
-                <tr key={e.id} id={`entry-${e.id}`} className={`ts-row${flagMap.get(e.id)?.some((f) => f.severity === 'warn') ? ' flag-warn' : flagMap.has(e.id) ? ' flag-info' : ''}${flash.has(e.id) ? ' flash' : ''}`}>
-                  <td className="td2">{new Date(e.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</td>
-                  <td className="td2 mono" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{e.startMinutes !== undefined ? formatTimeRange(e.startMinutes, e.minutes) : '—'}</td>
-                  <td className="td2 wrap">
-                    {e.description || 'Untitled entry'}
-                    {[...new Map((flagMap.get(e.id) ?? []).filter((f) => f.short).map((f) => [f.short, f])).values()].slice(0, 2).map((f) => (
-                      <span key={f.short} className={`ts-tag${f.severity === 'warn' ? ' warn' : ''}`}>{f.short}</span>
+              {byDay.map(({ date, entries: dayEntries }) => {
+                if (dayEntries.length === 0) return null
+                const dayLabel = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                const dayMinutes = dayEntries.reduce((s, e) => s + e.minutes, 0)
+                return (
+                  <Fragment key={date}>
+                    <tr>
+                      <td className="td2" colSpan={6} style={{ background: 'var(--color-background-muted)', fontWeight: 700, fontSize: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>{dayLabel}</span>
+                          <span className="mono" style={{ fontWeight: 600, color: 'var(--color-text-secondary)' }}>{formatMinutes(dayMinutes)}</span>
+                        </div>
+                      </td>
+                    </tr>
+                    {dayEntries.map((e) => (
+                      <tr key={e.id} id={`entry-${e.id}`} className={`ts-row${flagMap.get(e.id)?.some((f) => f.severity === 'warn') ? ' flag-warn' : flagMap.has(e.id) ? ' flag-info' : ''}${flash.has(e.id) ? ' flash' : ''}`}>
+                        <td className="td2 mono" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{e.startMinutes !== undefined ? formatTimeRange(e.startMinutes, e.minutes) : '—'}</td>
+                        <td className="td2 wrap">
+                          {e.description || 'Untitled entry'}
+                          {[...new Map((flagMap.get(e.id) ?? []).filter((f) => f.short).map((f) => [f.short, f])).values()].slice(0, 2).map((f) => (
+                            <span key={f.short} className={`ts-tag${f.severity === 'warn' ? ' warn' : ''}`}>{f.short}</span>
+                          ))}
+                        </td>
+                        <td className="td2" style={{ color: 'var(--color-text-secondary)' }}>{e.category}</td>
+                        <td className="td2">{projectLabel(e.projectId)}</td>
+                        <td className="td2">
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={e.billable !== false}
+                            disabled={locked}
+                            className={`switch${e.billable !== false ? ' on' : ''}`}
+                            onClick={() => updateEntry(e.id, { billable: e.billable === false })}
+                          >
+                            <span className="switch-knob" />
+                          </button>
+                        </td>
+                        <td className="td2 mono">{formatMinutes(e.minutes)}</td>
+                      </tr>
                     ))}
-                  </td>
-                  <td className="td2" style={{ color: 'var(--color-text-secondary)' }}>{e.category}</td>
-                  <td className="td2">{projectLabel(e.projectId)}</td>
-                  <td className="td2">
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={e.billable !== false}
-                      disabled={locked}
-                      className={`switch${e.billable !== false ? ' on' : ''}`}
-                      onClick={() => updateEntry(e.id, { billable: e.billable === false })}
-                    >
-                      <span className="switch-knob" />
-                    </button>
-                  </td>
-                  <td className="td2 mono">{formatMinutes(e.minutes)}</td>
-                </tr>
-              ))}
+                  </Fragment>
+                )
+              })}
               {weekEntries.length === 0 && (
                 <tr>
-                  <td className="td2" colSpan={7} style={{ color: 'var(--color-text-tertiary)' }}>No time logged this week.</td>
+                  <td className="td2" colSpan={6} style={{ color: 'var(--color-text-tertiary)' }}>No time logged this week.</td>
                 </tr>
               )}
             </tbody>
