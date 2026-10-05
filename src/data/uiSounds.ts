@@ -14,7 +14,7 @@ export interface UiSoundSettings {
 }
 
 const KEY = 'typeb-hr.ui-sounds.v1'
-const DEFAULTS: UiSoundSettings = { enabled: true, volume: 0.5, haptics: true }
+const DEFAULTS: UiSoundSettings = { enabled: true, volume: 1, haptics: true }
 
 function load(): UiSoundSettings {
   try {
