@@ -1,7 +1,8 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PeopleSidebar from '../../components/PeopleSidebar'
-import { OrgChartIcon, PeopleIcon, ChevronLeftIcon, ChevronRightIcon, CakeIcon, DownloadIcon, HistoryIcon, TrendingUpIcon, DollarIcon, FlagIcon } from '../../components/icons'
+import Breadcrumb from '../../components/Breadcrumb'
+import { OrgChartIcon, PeopleIcon, ChevronRightIcon, CakeIcon, DownloadIcon, HistoryIcon, TrendingUpIcon, DollarIcon, FlagIcon } from '../../components/icons'
 import { people, personById, localTimeFor, CURRENT_USER_ID } from '../../data/people'
 import { statusBadgeClass, usePayrollPeriods } from '../../data/payroll'
 import { useHistoryFor, typeBadgeClass, type HistoryEvent, type HistoryEventType } from '../../data/employeeHistory'
@@ -87,7 +88,6 @@ function anniversaryProgress(startDate: string) {
 
 export default function Profile() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const person = id ? personById(id) : undefined
   const manager = person?.managerId ? personById(person.managerId) : undefined
   const reports = person ? people.filter((p) => p.managerId === person.id) : []
@@ -124,12 +124,7 @@ export default function Profile() {
       sidebar={<PeopleSidebar active="directory" />}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button
-          onClick={() => navigate('/people')}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}
-        >
-          <ChevronLeftIcon color="var(--color-text-secondary)" /> Directory
-        </button>
+        <Breadcrumb items={[{ label: 'People', to: '/people' }, { label: person.name }]} />
         <Link to="/people/org-chart" className="btn-outline">
           <OrgChartIcon size={14} color="var(--color-text-primary)" /> Show in org chart
         </Link>

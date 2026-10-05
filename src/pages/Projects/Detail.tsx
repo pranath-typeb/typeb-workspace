@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel } from '../../components/NavItem'
 import { avatarContent } from '../../components/Avatar'
-import { BuildingIcon, ChevronLeftIcon, EditIcon, ProjectsIcon, StaffingIcon, TrashIcon, PresentationIcon } from '../../components/icons'
+import { BuildingIcon, EditIcon, ProjectsIcon, StaffingIcon, TrashIcon, PresentationIcon } from '../../components/icons'
+import Breadcrumb from '../../components/Breadcrumb'
 import { deleteProject, updateProject, useProjects, type ProjectStatus } from '../../data/projects'
 import { personById } from '../../data/people'
 import { showToast } from '../../data/toast'
@@ -68,12 +69,7 @@ export default function ProjectDetail() {
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <button
-              onClick={() => navigate('/projects')}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: 'var(--color-text-secondary)' }}
-            >
-              <ChevronLeftIcon color="var(--color-text-secondary)" /> Projects
-            </button>
+            <Breadcrumb items={[{ label: 'Projects', to: '/projects' }, { label: project.name }]} />
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button className="btn-outline" style={{ height: 36 }} onClick={() => setEditing(true)}>
                 <EditIcon color="var(--color-text-primary)" /> Edit Project

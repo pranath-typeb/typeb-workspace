@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PeopleSidebar from '../../components/PeopleSidebar'
-import { ChevronLeftIcon, OrgChartIcon, PeopleIcon, RefreshIcon } from '../../components/icons'
+import { OrgChartIcon, PeopleIcon, RefreshIcon } from '../../components/icons'
+import Breadcrumb from '../../components/Breadcrumb'
 import { people, resyncPerson, updatePerson, usePeople, type Department, type EmploymentType } from '../../data/people'
 import { Select } from '../../components/SearchableSelect'
 
@@ -21,7 +22,6 @@ function reportingChain(personId: string) {
 
 export default function EmployeeRecordDetail() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const allPeople = usePeople()
   const person = allPeople.find((p) => p.id === id)
 
@@ -88,12 +88,13 @@ export default function EmployeeRecordDetail() {
     >
       <div className="page-title">Employee Record Detail</div>
 
-      <button
-        onClick={() => navigate('/people/records')}
-        style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}
-      >
-        <ChevronLeftIcon color="var(--color-text-secondary)" /> Directory
-      </button>
+      <Breadcrumb
+        items={[
+          { label: 'People', to: '/people' },
+          { label: 'Employee records', to: '/people/records' },
+          { label: person.name },
+        ]}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>

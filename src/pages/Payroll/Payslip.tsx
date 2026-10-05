@@ -1,6 +1,7 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeftIcon, DownloadIcon } from '../../components/icons'
-import { personById } from '../../data/people'
+import { Link, useParams } from 'react-router-dom'
+import { DownloadIcon } from '../../components/icons'
+import Breadcrumb from '../../components/Breadcrumb'
+import { CURRENT_USER_ID, personById } from '../../data/people'
 import {
   adjustmentsTotal,
   deductionsTotal,
@@ -20,7 +21,6 @@ function fmtDate(iso: string): string {
 
 export default function Payslip() {
   const { periodId } = useParams<{ periodId: string }>()
-  const navigate = useNavigate()
   const periods = usePayrollPeriods()
   const period = periodId ? periods.find((p) => p.id === periodId) : undefined
   const person = period ? personById(period.personId) : undefined
@@ -51,12 +51,13 @@ export default function Payslip() {
     <section className="stage" style={{ background: 'var(--color-background-subtle)' }}>
       <div style={{ width: '100%', maxWidth: 680, padding: '24px 16px 60px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button
-            onClick={() => navigate(-1)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}
-          >
-            <ChevronLeftIcon color="var(--color-text-secondary)" /> Back
-          </button>
+          <Breadcrumb
+            items={[
+              { label: 'Payroll', to: '/payroll' },
+              person.id === CURRENT_USER_ID ? { label: 'My Payroll', to: '/payroll/my' } : { label: 'Reviews', to: '/payroll/reviews' },
+              { label: period.label },
+            ]}
+          />
           <button className="btn-dark" onClick={() => window.print()}>
             <DownloadIcon size={14} color="var(--color-text-inverse)" /> Download PDF
           </button>

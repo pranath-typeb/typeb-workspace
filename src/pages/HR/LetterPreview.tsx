@@ -1,5 +1,6 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeftIcon, DownloadIcon } from '../../components/icons'
+import { Link, useParams } from 'react-router-dom'
+import { DownloadIcon } from '../../components/icons'
+import Breadcrumb from '../../components/Breadcrumb'
 import { personById } from '../../data/people'
 import { letterRequestById, useLetterRequests } from '../../data/letters'
 
@@ -16,7 +17,6 @@ function fmtDateShort(iso: string): string {
 
 export default function LetterPreview() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   useLetterRequests() // subscribe so this re-renders if the request list changes
   const letter = id ? letterRequestById(id) : undefined
   const person = letter ? personById(letter.requestedBy) : undefined
@@ -41,12 +41,7 @@ export default function LetterPreview() {
     <section className="stage" style={{ background: 'var(--color-background-subtle)' }}>
       <div style={{ width: '100%', maxWidth: 680, padding: '24px 16px 60px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button
-            onClick={() => navigate(-1)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}
-          >
-            <ChevronLeftIcon color="var(--color-text-secondary)" /> Back
-          </button>
+          <Breadcrumb items={[{ label: 'My Letters', to: '/hr/letters' }, { label: letter.type }]} />
           <button className="btn-dark" onClick={() => window.print()}>
             <DownloadIcon size={14} color="var(--color-text-inverse)" /> Download PDF
           </button>

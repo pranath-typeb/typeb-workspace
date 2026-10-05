@@ -4,7 +4,8 @@ import { Link, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PayrollSidebar from '../../components/PayrollSidebar'
 import { avatarContent } from '../../components/Avatar'
-import { ChevronLeftIcon, DownloadIcon, HistoryIcon, PayrollFileIcon, PlusIcon, TrashIcon, WalletIcon } from '../../components/icons'
+import { DownloadIcon, HistoryIcon, PayrollFileIcon, PlusIcon, TrashIcon, WalletIcon } from '../../components/icons'
+import Breadcrumb from '../../components/Breadcrumb'
 import { CURRENT_USER_ID, personById } from '../../data/people'
 import { useLeaveRequests, type LeaveRequest } from '../../data/leave'
 import { showToast } from '../../data/toast'
@@ -159,9 +160,13 @@ export default function PeriodDetail({ mode }: { mode: 'admin' | 'self' }) {
 
   return (
     <AppShell appIcon={<WalletIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active={mode === 'admin' ? 'reviews' : 'my-payroll'} />}>
-      <Link to={backHref} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}>
-        <ChevronLeftIcon size={14} color="var(--color-text-secondary)" /> Back to {mode === 'admin' ? 'Reviews' : 'My Payroll'}
-      </Link>
+      <Breadcrumb
+        items={[
+          { label: 'Payroll', to: '/payroll' },
+          { label: mode === 'admin' ? 'Reviews' : 'My Payroll', to: backHref },
+          { label: mode === 'admin' ? person.name : period.label },
+        ]}
+      />
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

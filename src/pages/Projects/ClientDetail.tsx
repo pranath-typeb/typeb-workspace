@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel } from '../../components/NavItem'
-import { BuildingIcon, ChevronLeftIcon, ProjectsIcon, StaffingIcon, PresentationIcon } from '../../components/icons'
+import { BuildingIcon, ProjectsIcon, StaffingIcon, PresentationIcon } from '../../components/icons'
+import Breadcrumb from '../../components/Breadcrumb'
 import { useProjects, type ProjectStatus } from '../../data/projects'
 import { setClientStatus, useClientStatuses, type ClientStatus } from '../../data/clients'
 import CreateProjectModal from '../../components/CreateProjectModal'
@@ -69,12 +70,13 @@ export default function ClientDetail() {
     >
       <div className="page-title">Client</div>
 
-      <button
-        onClick={() => navigate('/projects/clients')}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: 'var(--color-text-secondary)' }}
-      >
-        <ChevronLeftIcon color="var(--color-text-secondary)" /> Clients
-      </button>
+      <Breadcrumb
+        items={[
+          { label: 'Projects', to: '/projects' },
+          { label: 'Clients', to: '/projects/clients' },
+          { label: clientName },
+        ]}
+      />
 
       <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>

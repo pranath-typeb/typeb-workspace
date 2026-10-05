@@ -2,7 +2,8 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import TimeSidebar from '../../components/TimeSidebar'
-import { ChevronLeftIcon, ClockIcon, CloseIcon, LockIcon } from '../../components/icons'
+import { ClockIcon, CloseIcon, LockIcon } from '../../components/icons'
+import Breadcrumb from '../../components/Breadcrumb'
 import { avatarContent } from '../../components/Avatar'
 import { DecisionBar, ReviewTrack, Sparkline, VerdictCard } from '../../components/ReviewParts'
 import { computeTimesheetFlags, flagsByEntry, type TimesheetFlag } from '../../data/timesheetFlags'
@@ -256,12 +257,13 @@ export default function TimesheetDetail() {
 
   return (
     <AppShell appIcon={<ClockIcon size={16} color="var(--color-text-secondary)" />} appLabel="Time" appHref="/time" sidebar={<TimeSidebar active={isOwn ? 'timesheets' : 'approvals'} />}>
-      <button
-        onClick={() => navigate(-1)}
-        style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}
-      >
-        <ChevronLeftIcon color="var(--color-text-secondary)" /> Back
-      </button>
+      <Breadcrumb
+        items={[
+          { label: 'Time', to: '/time' },
+          isOwn ? { label: 'Timesheets', to: '/time/timesheets' } : { label: 'Approvals', to: '/time/approvals' },
+          { label: isOwn ? 'Your timesheet' : person.name },
+        ]}
+      />
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
