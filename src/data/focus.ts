@@ -181,6 +181,8 @@ function completePhase() {
     history = [session, ...history].slice(0, 400)
     save(HISTORY_KEY, history)
     if (settings.logToTimesheet) {
+      const now = new Date()
+      const startMinutes = Math.max(0, now.getHours() * 60 + now.getMinutes() - minutes)
       addEntry({
         personId: CURRENT_USER_ID,
         date: session.date,
@@ -188,6 +190,7 @@ function completePhase() {
         projectId: session.projectId,
         category: 'Development',
         minutes,
+        startMinutes,
         billable: true,
       })
     } else {

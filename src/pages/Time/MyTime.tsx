@@ -9,7 +9,7 @@ import DurationPicker from '../../components/DurationPicker'
 import SearchableSelect from '../../components/SearchableSelect'
 import { BillableButton, CategoryTagButton } from '../../components/EntryTags'
 import TimeInput from '../../components/TimeInput'
-import { ChevronLeftIcon, ChevronRightIcon, CircleArrowRightIcon, ClockIcon, DuplicateIcon, EditIcon, PlayIcon, StopIcon, TimerActivityIcon, TrashIcon } from '../../components/icons'
+import { ChevronLeftIcon, ChevronRightIcon, CircleArrowRightIcon, ClockIcon, DuplicateIcon, EditIcon, LockIcon, PlayIcon, StopIcon, TimerActivityIcon, TrashIcon } from '../../components/icons'
 import { CURRENT_USER_ID } from '../../data/people'
 import { projectColor, useProjects } from '../../data/projects'
 import {
@@ -22,6 +22,7 @@ import {
   formatMinutes,
   formatTimeRange,
   formatWeekRange,
+  isLockedStatus,
   minutesForPersonDate,
   minutesForPersonWeek,
   projectLabel,
@@ -87,12 +88,14 @@ export default function MyTime() {
   const [addEntryDate, setAddEntryDate] = useState<string | null>(null)
   const [editEntryTarget, setEditEntryTarget] = useState<TimeEntry | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<TimeEntry | null>(null)
+  const [confirmingSubmit, setConfirmingSubmit] = useState(false)
 
   const today = todayLocal()
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart])
   const weekMinutes = minutesForPersonWeek(entries, CURRENT_USER_ID, weekStart)
   const submission = submissionFor(CURRENT_USER_ID, weekStart)
   const weekEntries = entries.filter((e) => e.personId === CURRENT_USER_ID && days.includes(e.date))
+  const weekLocked = isLockedStatus(submission?.status ?? 'Not Submitted')
 
   const currentWeek = weekStartFor(today)
   const quickWeeks = useMemo(() => Array.from({ length: 5 }, (_, i) => addDays(currentWeek, -14 + i * 7)), [currentWeek])
@@ -385,6 +388,19 @@ export default function MyTime() {
         />
       )}
 
+      {confirmingSubmit && (
+        <ConfirmDialog
+          title="Submit an incomplete week?"
+          message={`You've logged ${formatMinutes(weekMinutes)} of the ${formatMinutes(WEEKLY_TARGET_MINUTES)} target. Once submitted, entries lock and you'll need to request a recall to change anything.`}
+          confirmLabel="Submit anyway"
+          onCancel={() => setConfirmingSubmit(false)}
+          onConfirm={() => {
+            submitWeek(CURRENT_USER_ID, weekStart)
+            setConfirmingSubmit(false)
+          }}
+        />
+      )}
+
       <div className="stat-strip" style={{ display: 'flex', flexWrap: 'wrap', background: 'var(--color-background-page)', border: '1px solid var(--color-border-default)', borderRadius: 14, overflow: 'hidden' }}>
         <div style={{ flex: '1 1 160px', minWidth: 160, padding: '16px 20px', borderRight: '1px solid var(--color-border-subtle)' }}>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Week logged</div>
@@ -564,13 +580,24 @@ export default function MyTime() {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <div style={{ flex: 1, minWidth: 0, background: 'var(--color-background-subtle)', border: '1px solid var(--color-border-default)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>{formatWeekRange(weekStart)}</div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{formatWeekRange(weekStart)}</div>
+              {weekLocked && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3, fontSize: 11, color: 'var(--color-text-secondary)' }}>
+                  <LockIcon size={11} color="var(--color-text-secondary)" />
+                  Locked — entries can't be edited while {submission?.status === 'Approved' ? 'approved' : 'in review'}
+                </div>
+              )}
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <span className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-secondary)' }}>{formatMinutes(weekMinutes)} / {formatMinutes(WEEKLY_TARGET_MINUTES)}</span>
               <button
                 className="btn-dark"
-                disabled={weekEntries.length === 0 || submission?.status === 'Pending' || submission?.status === 'Approved'}
-                onClick={() => submitWeek(CURRENT_USER_ID, weekStart)}
+                disabled={weekEntries.length === 0 || weekLocked}
+                onClick={() => {
+                  if (weekMinutes < WEEKLY_TARGET_MINUTES) setConfirmingSubmit(true)
+                  else submitWeek(CURRENT_USER_ID, weekStart)
+                }}
               >
                 Submit Week
               </button>
@@ -605,16 +632,22 @@ export default function MyTime() {
                   <span className="mono" style={{ fontSize: 13, fontWeight: 600 }}>{formatMinutes(dayEntries.reduce((s, e) => s + e.minutes, 0))}</span>
                 </div>
                 {dayEntries.length === 0 ? (
-                  <button
-                    onClick={() => setAddEntryDate(d)}
-                    style={{ width: '100%', textAlign: 'left', padding: '10px 14px', border: '1px dashed var(--color-border-default)', borderRadius: 10, fontSize: 12, color: 'var(--color-text-tertiary)' }}
-                  >
-                    Nothing logged, click to add
-                  </button>
+                  weekLocked ? (
+                    <div style={{ width: '100%', padding: '10px 14px', border: '1px dashed var(--color-border-default)', borderRadius: 10, fontSize: 12, color: 'var(--color-text-tertiary)' }}>
+                      Nothing logged
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setAddEntryDate(d)}
+                      style={{ width: '100%', textAlign: 'left', padding: '10px 14px', border: '1px dashed var(--color-border-default)', borderRadius: 10, fontSize: 12, color: 'var(--color-text-tertiary)' }}
+                    >
+                      Nothing logged, click to add
+                    </button>
+                  )
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {dayEntries.map((e) => (
-                      <EntryRow key={e.id} entry={e} onEdit={setEditEntryTarget} onDuplicate={(entry) => duplicateEntry(entry.id)} onResume={resumeAsTimer} onDelete={setDeleteTarget} />
+                      <EntryRow key={e.id} entry={e} locked={weekLocked} onEdit={setEditEntryTarget} onDuplicate={(entry) => duplicateEntry(entry.id)} onResume={resumeAsTimer} onDelete={setDeleteTarget} />
                     ))}
                   </div>
                 )}
@@ -729,12 +762,14 @@ function weekChipStatus(
 // shared by the week's day list and the Manual-tab staged-entries list.
 function EntryRow({
   entry,
+  locked = false,
   onEdit,
   onDuplicate,
   onResume,
   onDelete,
 }: {
   entry: TimeEntry
+  locked?: boolean
   onEdit: (entry: TimeEntry) => void
   onDuplicate: (entry: TimeEntry) => void
   onResume: (entry: TimeEntry) => void
@@ -758,25 +793,33 @@ function EntryRow({
       }}
     >
       <div className={`time-entry-lead${isRunningThis ? ' running' : ''}`}>
-        <button
-          className="time-entry-action-btn"
-          onClick={() => {
-            if (isRunningThis) {
-              toggleTimerRunning()
-              triggerScreenRipple()
-            } else {
-              onResume(entry)
-            }
-          }}
-          aria-label={isRunningThis ? 'Pause timer' : 'Resume as timer'}
-          title={isRunningThis ? 'Pause timer' : 'Resume timer'}
-          style={isRunningThis ? { background: '#00736f' } : undefined}
-        >
-          {isRunningThis ? <StopIcon size={10} color="#fff" /> : <PlayIcon size={12} color="var(--color-text-tertiary)" />}
-        </button>
-        <button className="time-entry-action-btn" onClick={() => onDuplicate(entry)} aria-label="Duplicate entry" title="Duplicate">
-          <DuplicateIcon size={13} color="var(--color-text-tertiary)" />
-        </button>
+        {locked ? (
+          <span className="time-entry-action-btn" title="Locked — part of a submitted week" style={{ cursor: 'default' }}>
+            <LockIcon size={12} color="var(--color-text-tertiary)" />
+          </span>
+        ) : (
+          <>
+            <button
+              className="time-entry-action-btn"
+              onClick={() => {
+                if (isRunningThis) {
+                  toggleTimerRunning()
+                  triggerScreenRipple()
+                } else {
+                  onResume(entry)
+                }
+              }}
+              aria-label={isRunningThis ? 'Pause timer' : 'Resume as timer'}
+              title={isRunningThis ? 'Pause timer' : 'Resume timer'}
+              style={isRunningThis ? { background: '#00736f' } : undefined}
+            >
+              {isRunningThis ? <StopIcon size={10} color="#fff" /> : <PlayIcon size={12} color="var(--color-text-tertiary)" />}
+            </button>
+            <button className="time-entry-action-btn" onClick={() => onDuplicate(entry)} aria-label="Duplicate entry" title="Duplicate">
+              <DuplicateIcon size={13} color="var(--color-text-tertiary)" />
+            </button>
+          </>
+        )}
       </div>
       {entry.startMinutes !== undefined && (
         <div className="mono time-entry-time" style={{ width: 130, textAlign: 'right', fontSize: 11, color: 'var(--color-text-secondary)', flexShrink: 0 }}>
@@ -793,14 +836,16 @@ function EntryRow({
       </div>
       {isRunningThis && <TimerActivityIcon size={13} color="#00736f" />}
       <div className="mono time-entry-duration" style={{ fontSize: 13, fontWeight: 500, flexShrink: 0 }}>{formatMinutes(entry.minutes)}</div>
-      <div className="time-entry-actions">
-        <button className="time-entry-action-btn time-entry-action-btn-danger" onClick={() => onDelete(entry)} aria-label="Delete entry" title="Delete">
-          <TrashIcon color="#991b1b" />
-        </button>
-        <button className="time-entry-action-btn" onClick={() => onEdit(entry)} aria-label="Edit entry" title="Edit">
-          <EditIcon size={13} color="var(--color-text-tertiary)" />
-        </button>
-      </div>
+      {!locked && (
+        <div className="time-entry-actions">
+          <button className="time-entry-action-btn time-entry-action-btn-danger" onClick={() => onDelete(entry)} aria-label="Delete entry" title="Delete">
+            <TrashIcon color="#991b1b" />
+          </button>
+          <button className="time-entry-action-btn" onClick={() => onEdit(entry)} aria-label="Edit entry" title="Edit">
+            <EditIcon size={13} color="var(--color-text-tertiary)" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
