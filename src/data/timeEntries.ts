@@ -2441,10 +2441,23 @@ function timeEntryToRow(entry: TimeEntry): TimeEntryRow {
   }
 }
 
+// PostgREST caps a single request at its configured max-rows (1000 by default) — this
+// table alone has grown past that, so a plain .select('*') silently truncates to the
+// first page and drops everything after it (most recently-added entries included).
+// Page through with .range() until a request comes back short of a full page.
 async function hydrateFromSupabase() {
-  const { data, error } = await supabase.from('time_entries').select('*')
-  if (error || !data) return
-  setEntries(data.map((row) => timeEntryFromRow(row as TimeEntryRow)))
+  const pageSize = 1000
+  const rows: TimeEntryRow[] = []
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from('time_entries')
+      .select('*')
+      .range(from, from + pageSize - 1)
+    if (error || !data) return
+    rows.push(...(data as TimeEntryRow[]))
+    if (data.length < pageSize) break
+  }
+  setEntries(rows.map((row) => timeEntryFromRow(row)))
 }
 
 interface SubmissionRow {
