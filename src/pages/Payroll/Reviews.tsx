@@ -1,216 +1,293 @@
-import { useMemo, useState } from 'react'
-import EmptyState from '../../components/EmptyState'
-import { useUrlParam } from '../../lib/useUrlState'
-import FilterBar from '../../components/FilterBar'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PayrollSidebar from '../../components/PayrollSidebar'
-import { PayrollFileIcon, ChevronRightIcon, WalletIcon } from '../../components/icons'
+import FilterBar from '../../components/FilterBar'
+import EmptyState from '../../components/EmptyState'
 import { avatarContent } from '../../components/Avatar'
-import { personById } from '../../data/people'
-import { bulkApprove, statusBadgeClass, usePayrollPeriods, type PayrollStatus } from '../../data/payroll'
+import { HoursMeter, StageChip, money } from '../../components/PayrollParts'
+import { ChevronRightIcon, WalletIcon } from '../../components/icons'
+import { personById, type Department } from '../../data/people'
+import { bulkApprove, usePayrollPeriods } from '../../data/payroll'
+import { useAssignments } from '../../data/staffing'
+import { cyclesFrom, hoursState, isOverdue, reconcile, reviewFigures, stageOf, type StageKey } from '../../data/payrollInsights'
+import { useSubmissions } from '../../data/timeEntries'
+import { useUrlParam } from '../../lib/useUrlState'
 
-const STATUSES: PayrollStatus[] = ['Timesheet pending', 'Under review', 'Update needed', 'Approved', 'Paid out']
+const DEPARTMENTS: Department[] = ['Technology', 'Growth', 'Strategy', 'Operations', 'People']
+const PAGE_SIZE = 25
 
-function cycleSortKey(label: string): number {
-  const d = new Date(`1 ${label}`)
-  return isNaN(d.getTime()) ? 0 : d.getTime()
-}
+const STAGE_LABELS: { key: StageKey; label: string; submitted: boolean }[] = [
+  { key: 'under-review', label: 'Under review', submitted: true },
+  { key: 'update-needed', label: 'Update needed', submitted: true },
+  { key: 'approved', label: 'Approved', submitted: true },
+  { key: 'paid', label: 'Paid out', submitted: true },
+  { key: 'awaiting-confirmation', label: 'Awaiting confirmation', submitted: false },
+  { key: 'awaiting-approval', label: 'Awaiting approval', submitted: false },
+  { key: 'ready', label: 'Ready to submit', submitted: false },
+]
+
+type Group = 'leave' | 'timesheet' | 'invoice'
+const GROUPS: { key: Group; label: string; hint: string }[] = [
+  { key: 'leave', label: 'Leave', hint: 'Working days, PTO, unpaid leave, payout %' },
+  { key: 'timesheet', label: 'Timesheet', hint: 'Target, allocated and actual hours and the gaps' },
+  { key: 'invoice', label: 'Invoice', hint: 'Salary, other pay, total, invoice amount and difference' },
+]
+
+const dollars = (n: number | null) => (n === null ? '—' : money(n))
+const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
 
 export default function Reviews() {
   const periods = usePayrollPeriods()
+  const assignments = useAssignments()
+  useSubmissions()
   const navigate = useNavigate()
-  const [params, setParams] = useSearchParams()
+
+  const [stageParam, setStageParam] = useUrlParam<'All' | StageKey>('stage', 'All')
+  const impliedTab = stageParam !== 'All' && STAGE_LABELS.find((s) => s.key === stageParam)?.submitted === false ? 'not-submitted' : 'submitted'
+  const [tabParam, setTab] = useUrlParam<'submitted' | 'not-submitted'>('tab', impliedTab)
+  const tab = tabParam
+  const [cycle, setCycle] = useUrlParam('cycle', 'All')
+  const [dept, setDept] = useUrlParam<'All' | Department>('dept', 'All')
   const [query, setQuery] = useUrlParam('q', '')
+  const [groupsParam, setGroupsParam] = useUrlParam('cols', '')
+  const groups = new Set(groupsParam.split(',').filter(Boolean) as Group[])
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [page, setPage] = useState(0)
 
-  const cycles = useMemo(() => {
-    const map = new Map<string, string>()
-    periods.forEach((p) => {
-      if (!map.has(p.cycle)) map.set(p.cycle, p.label)
-    })
-    return Array.from(map.entries())
-      .map(([cycle, label]) => ({ cycle, label }))
-      .sort((a, b) => cycleSortKey(b.label) - cycleSortKey(a.label))
-  }, [periods])
+  const cycles = useMemo(() => cyclesFrom(periods), [periods])
+  const rows = useMemo(() => periods.map((p) => ({ p, stage: stageOf(p), overdue: isOverdue(p), person: personById(p.personId) })), [periods])
 
-  const cycle = params.get('cycle') ?? cycles[0]?.cycle ?? ''
-  const status = (params.get('status') as PayrollStatus | null) ?? 'All'
-  const activeCycleLabel = cycles.find((c) => c.cycle === cycle)?.label
-
-  const cyclePeriods = useMemo(() => periods.filter((p) => p.cycle === cycle), [periods, cycle])
-
-  const counts = useMemo(() => {
-    const map = new Map<PayrollStatus, number>()
-    cyclePeriods.forEach((p) => map.set(p.status, (map.get(p.status) ?? 0) + 1))
-    return map
-  }, [cyclePeriods])
-
-  const filtered = useMemo(() => {
+  const base = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return cyclePeriods.filter((p) => {
-      const person = personById(p.personId)
-      const matchesQuery = !q || (person?.name.toLowerCase().includes(q) ?? false)
-      const matchesStatus = status === 'All' || p.status === status
-      return matchesQuery && matchesStatus
+    return rows.filter((r) => {
+      if (cycle !== 'All' && r.p.cycle !== cycle) return false
+      if (dept !== 'All' && r.person?.department !== dept) return false
+      return !q || (r.person?.name.toLowerCase().includes(q) ?? false)
     })
-  }, [cyclePeriods, query, status])
+  }, [rows, cycle, dept, query])
 
-  function setCycle(next: string) {
-    setParams((prev) => {
-      const p = new URLSearchParams(prev)
-      p.set('cycle', next)
-      return p
-    })
-    setSelected(new Set())
+  const submittedRows = base.filter((r) => r.stage.step > 0)
+  const notSubmittedRows = base.filter((r) => r.stage.step === 0)
+  const shown = (tab === 'submitted' ? submittedRows : notSubmittedRows).filter((r) => stageParam === 'All' || r.stage.key === stageParam)
+
+  useEffect(() => setPage(0), [tab, cycle, dept, query, stageParam])
+  const pages = Math.max(Math.ceil(shown.length / PAGE_SIZE), 1)
+  const pageRows = shown.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  const reviewable = pageRows.filter((r) => r.stage.key === 'under-review')
+
+  function toggleGroup(g: Group) {
+    const next = new Set(groups)
+    if (next.has(g)) next.delete(g)
+    else next.add(g)
+    setGroupsParam([...next].join(','))
   }
-
-  function setStatusFilter(next: 'All' | PayrollStatus) {
-    setParams((prev) => {
-      const p = new URLSearchParams(prev)
-      if (next === 'All') p.delete('status')
-      else p.set('status', next)
-      return p
-    })
-  }
-
   function toggleRow(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
+    setSelected((s) => {
+      const n = new Set(s)
+      if (n.has(id)) n.delete(id)
+      else n.add(id)
+      return n
     })
   }
-
-  function toggleAll() {
-    setSelected((prev) => (prev.size === filtered.length ? new Set() : new Set(filtered.map((p) => p.id))))
-  }
-
+  const allSelected = reviewable.length > 0 && reviewable.every((r) => selected.has(r.p.id))
   function approveSelected() {
     bulkApprove([...selected])
     setSelected(new Set())
   }
 
+  const stageOptions = STAGE_LABELS.filter((s) => s.submitted === (tab === 'submitted')).map((s) => ({ value: s.key, label: s.label }))
+
   return (
     <AppShell appIcon={<WalletIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active="reviews" />}>
       <div className="page-title">Payroll Reviews</div>
 
+      <div className="pr-tabs" role="tablist">
+        <button role="tab" aria-selected={tab === 'submitted'} className={tab === 'submitted' ? 'on' : ''} onClick={() => { setTab('submitted'); setStageParam('All') }}>
+          Submitted <span className="mono">{submittedRows.length}</span>
+        </button>
+        <button role="tab" aria-selected={tab === 'not-submitted'} className={tab === 'not-submitted' ? 'on' : ''} onClick={() => { setTab('not-submitted'); setStageParam('All') }}>
+          Not submitted <span className="mono">{notSubmittedRows.length}</span>
+        </button>
+      </div>
+      <div className="pr-dash-sub" style={{ marginTop: -4 }}>
+        {tab === 'submitted'
+          ? 'Employees who sent their payroll in. Review the ones marked “Under review” and approve or request changes.'
+          : 'Employees who have not submitted yet. They still need to confirm their timesheet or get their weeks approved.'}
+      </div>
+
       <FilterBar
         search={{ value: query, onChange: setQuery, placeholder: 'Search employees' }}
         filters={[
-          {
-            key: 'cycle',
-            label: 'Cycle',
-            required: true,
-            value: cycle,
-            defaultValue: cycles[0]?.cycle ?? '',
-            onChange: setCycle,
-            options: cycles.map((c) => ({ value: c.cycle, label: `${c.label} · ${c.cycle}` })),
-          },
+          { key: 'cycle', label: 'Pay cycle', value: cycle, defaultValue: 'All', onChange: setCycle, options: cycles.map((c) => ({ value: c.cycle, label: `${c.label} · ${c.cycle}` })) },
+          { key: 'stage', label: 'Status', value: stageParam, defaultValue: 'All', onChange: (v) => setStageParam(v as 'All' | StageKey), options: stageOptions },
+          { key: 'dept', label: 'Department', value: dept, defaultValue: 'All', onChange: (v) => setDept(v as 'All' | Department), options: DEPARTMENTS.map((d) => ({ value: d, label: d })) },
         ]}
-        count={`${cyclePeriods.length} ${cyclePeriods.length === 1 ? 'employee' : 'employees'}`}
+        count={`${shown.length} ${shown.length === 1 ? 'review' : 'reviews'}`}
       />
 
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <StatusPill label="All" count={cyclePeriods.length} active={status === 'All'} onClick={() => setStatusFilter('All')} />
-        {STATUSES.map((s) => (
-          <StatusPill key={s} label={s} count={counts.get(s) ?? 0} active={status === s} onClick={() => setStatusFilter(s)} />
+      <div className="pr-colgroups">
+        <span className="pr-colgroups-label">Show columns</span>
+        {GROUPS.map((g) => (
+          <button key={g.key} type="button" title={g.hint} aria-pressed={groups.has(g.key)} className={`pr-colchip${groups.has(g.key) ? ' on' : ''}`} onClick={() => toggleGroup(g.key)}>
+            <span className="pr-colchip-box">{groups.has(g.key) ? '✓' : '+'}</span>
+            {g.label}
+          </button>
         ))}
       </div>
 
       {selected.size > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--color-background-subtle)', border: '1px solid var(--color-border-default)', borderRadius: 10, padding: '10px 14px' }}>
-          <span style={{ fontSize: 13, fontWeight: 600 }}>{selected.size} selected</span>
-          <button className="btn-dark" onClick={approveSelected}>Approve selected</button>
+        <div className="pr-bulk">
+          <span>{selected.size} selected</span>
+          <span style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-outline" onClick={() => setSelected(new Set())}>Clear</button>
+            <button className="btn-dark" onClick={approveSelected}>Approve {selected.size}</button>
+          </span>
         </div>
       )}
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table>
+      {/* table (tablet / desktop) */}
+      <div className="card pr-table-card">
+        <table className="pr-table">
           <thead>
             <tr>
-              <th className="th2" style={{ width: 36 }}>
-                <input type="checkbox" checked={selected.size > 0 && selected.size === filtered.length} onChange={toggleAll} />
+              <th className="th2 pr-sticky" style={{ width: 36 }}>
+                {tab === 'submitted' && reviewable.length > 0 && (
+                  <input type="checkbox" aria-label="Select all under review" checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(reviewable.map((r) => r.p.id)))} />
+                )}
               </th>
-              <th className="th2">Employee</th>
-              <th className="th2">Gross</th>
-              <th className="th2">Hours (actual / target)</th>
+              <th className="th2 pr-sticky pr-sticky-2">Employee</th>
+              <th className="th2">Pay cycle</th>
+              {groups.has('leave') && (
+                <>
+                  <th className="th2 g-leave">Working days</th>
+                  <th className="th2 g-leave">PTO</th>
+                  <th className="th2 g-leave">UPTO</th>
+                  <th className="th2 g-leave">Payout %</th>
+                </>
+              )}
+              {groups.has('timesheet') && (
+                <>
+                  <th className="th2 g-time">Target h</th>
+                  <th className="th2 g-time">Allocated h</th>
+                  <th className="th2 g-time">Actual h</th>
+                  <th className="th2 g-time">Actual vs target</th>
+                </>
+              )}
+              {!groups.has('timesheet') && <th className="th2">Hours</th>}
+              {groups.has('invoice') && (
+                <>
+                  <th className="th2 g-inv">Budget salary</th>
+                  <th className="th2 g-inv">Salary payout</th>
+                  <th className="th2 g-inv">Other payout</th>
+                  <th className="th2 g-inv">Invoice</th>
+                  <th className="th2 g-inv">Difference</th>
+                  <th className="th2 g-inv">Notes</th>
+                </>
+              )}
+              <th className="th2">Total payout</th>
               <th className="th2">Status</th>
-              <th className="th2"></th>
+              <th className="th2" />
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p) => {
-              const person = personById(p.personId)
-              const behind = p.actualHours < p.targetHours
+            {pageRows.map(({ p, stage, overdue, person }) => {
+              const f = reviewFigures(p, assignments)
+              const rec = reconcile(p)
+              const hs = hoursState(p)
               return (
                 <tr key={p.id} className="row-hover" style={{ cursor: 'pointer' }} onClick={() => navigate(`/payroll/reviews/${p.id}`)}>
-                  <td className="td2" onClick={(e) => e.stopPropagation()}>
-                    <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleRow(p.id)} />
+                  <td className="td2 pr-sticky" onClick={(e) => e.stopPropagation()}>
+                    {stage.key === 'under-review' && <input type="checkbox" aria-label={`Select ${person?.name}`} checked={selected.has(p.id)} onChange={() => toggleRow(p.id)} />}
                   </td>
-                  <td className="td2">
-                    <Link to={`/people/${p.personId}`} onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div className="avatar" style={{ width: 32, height: 32, fontSize: 11 }}>{person ? avatarContent(person) : '—'}</div>
-                      <span style={{ fontWeight: 600 }}>{person?.name ?? 'Unknown'}</span>
+                  <td className="td2 pr-sticky pr-sticky-2">
+                    <Link to={`/people/${p.personId}`} onClick={(e) => e.stopPropagation()} className="pr-emp">
+                      <span className="avatar" style={{ width: 32, height: 32, fontSize: 11, flexShrink: 0 }}>{person ? avatarContent(person) : '?'}</span>
+                      <span style={{ minWidth: 0 }}>
+                        <span className="pr-emp-name">{person?.name ?? 'Unknown'}</span>
+                        <span className="pr-emp-sub">{person?.email}</span>
+                      </span>
                     </Link>
                   </td>
-                  <td className="td2 mono">${p.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                  <td className="td2 mono">
-                    <span style={{ color: behind ? 'var(--warn-fg)' : undefined }}>{p.actualHours} / {p.targetHours}</span>
-                  </td>
-                  <td className="td2"><span className={`badge ${statusBadgeClass(p.status)}`}>{p.status}</span></td>
-                  <td className="td2" style={{ width: 24 }}>
-                    <ChevronRightIcon size={14} color="var(--color-text-tertiary)" />
-                  </td>
+                  <td className="td2">{p.cycle}</td>
+                  {groups.has('leave') && (
+                    <>
+                      <td className="td2 mono g-leave">{p.workingDays ?? '—'}{p.holidays ? <span className="pr-muted"> (−{p.holidays} hol)</span> : null}</td>
+                      <td className="td2 mono g-leave">{p.ptoHours ?? 0}</td>
+                      <td className="td2 mono g-leave">{p.unpaidHours ?? 0}</td>
+                      <td className="td2 mono g-leave">{f.payoutPct}%</td>
+                    </>
+                  )}
+                  {groups.has('timesheet') && (
+                    <>
+                      <td className="td2 mono g-time">{p.targetHours}</td>
+                      <td className="td2 mono g-time">{f.allocatedHours ?? '—'}</td>
+                      <td className="td2 mono g-time">{p.actualHours}</td>
+                      <td className="td2 g-time"><span className={`pr-flag ${hs.tone}`}>{hs.label}</span> <span className="mono pr-muted">{signed(rec.hoursDiff)}h</span></td>
+                    </>
+                  )}
+                  {!groups.has('timesheet') && <td className="td2" style={{ minWidth: 130 }}><HoursMeter p={p} compact /></td>}
+                  {groups.has('invoice') && (
+                    <>
+                      <td className="td2 mono g-inv">{dollars(f.budgetSalary)}</td>
+                      <td className="td2 mono g-inv">{dollars(f.salaryPayout)}</td>
+                      <td className="td2 mono g-inv">{dollars(f.otherPayout)}</td>
+                      <td className="td2 mono g-inv">{dollars(f.invoiceAmount)}</td>
+                      <td className="td2 mono g-inv" style={{ color: f.invoiceDiff && Math.abs(f.invoiceDiff) > 0.01 ? 'var(--warn-fg)' : undefined }}>{f.invoiceDiff === null ? '—' : money(f.invoiceDiff)}</td>
+                      <td className="td2 g-inv pr-muted" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.notes || '—'}</td>
+                    </>
+                  )}
+                  <td className="td2 mono" style={{ fontWeight: 600 }}>{money(f.totalPayout)}</td>
+                  <td className="td2"><StageChip stage={stage} overdue={overdue} small /></td>
+                  <td className="td2" style={{ width: 24 }}><ChevronRightIcon size={14} color="var(--color-text-tertiary)" /></td>
                 </tr>
               )
             })}
-            {filtered.length === 0 && (
+            {pageRows.length === 0 && (
               <tr>
-                <td colSpan={6}>
-                  <EmptyState compact keep={['cycle']} title={`No reviews${activeCycleLabel ? ` in ${activeCycleLabel}` : ''} match`} />
+                <td colSpan={20}>
+                  <EmptyState compact keep={['tab', 'cols']} title={tab === 'submitted' ? 'No submitted reviews match' : 'Everyone here has submitted'} body={tab === 'submitted' ? undefined : 'Nobody in this view is still waiting to submit.'} />
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
-    </AppShell>
-  )
-}
 
-function StatusPill({ label, count, active, onClick }: { label: string; count: number; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '6px 12px',
-        borderRadius: 9999,
-        fontSize: 12,
-        fontWeight: 600,
-        border: '1px solid var(--color-border-subtle)',
-        background: active ? 'var(--color-background-inverse)' : 'var(--color-background-page)',
-        color: active ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
-      }}
-    >
-      {label}
-      <span
-        className="mono"
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          padding: '1px 6px',
-          borderRadius: 9999,
-          background: active ? 'rgba(127,127,127,0.25)' : 'var(--color-border-default)',
-          color: active ? 'inherit' : 'var(--color-text-primary)',
-        }}
-      >
-        {count}
-      </span>
-    </button>
+      {/* cards (phone) */}
+      <div className="pr-cards">
+        {pageRows.map(({ p, stage, overdue, person }) => {
+          const f = reviewFigures(p, assignments)
+          return (
+            <Link key={p.id} to={`/payroll/reviews/${p.id}`} className="card pr-card">
+              <div className="pr-card-top">
+                <span className="avatar" style={{ width: 38, height: 38, fontSize: 12, flexShrink: 0 }}>{person ? avatarContent(person) : '?'}</span>
+                <span style={{ minWidth: 0, flex: 1 }}>
+                  <span className="pr-emp-name">{person?.name ?? 'Unknown'}</span>
+                  <span className="pr-emp-sub">{p.cycle}</span>
+                </span>
+                <span className="mono pr-card-total">{money(f.totalPayout)}</span>
+              </div>
+              <HoursMeter p={p} />
+              <div className="pr-card-bottom">
+                <StageChip stage={stage} overdue={overdue} small />
+                <ChevronRightIcon size={14} color="var(--color-text-tertiary)" />
+              </div>
+            </Link>
+          )
+        })}
+        {pageRows.length === 0 && <EmptyState keep={['tab', 'cols']} title="Nothing to show" />}
+      </div>
+
+      {pages > 1 && (
+        <div className="pr-pager">
+          <span className="pr-dash-sub">Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, shown.length)} of {shown.length}</span>
+          <span style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-outline" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button>
+            <button className="btn-outline" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>Next</button>
+          </span>
+        </div>
+      )}
+    </AppShell>
   )
 }

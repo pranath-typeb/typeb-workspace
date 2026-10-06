@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { useTimeEntries, todayLocal } from '../../data/timeEntries'
+import { computeClientStats, fmtHours } from '../../data/projectInsights'
 import EmptyState from '../../components/EmptyState'
 import { useUrlParam } from '../../lib/useUrlState'
 import FilterBar from '../../components/FilterBar'
@@ -17,6 +19,12 @@ export default function Clients() {
   const [query, setQuery] = useUrlParam('q', '')
   const [tab, setTab] = useUrlParam<Tab>('tab', 'Active')
 
+  const entries = useTimeEntries()
+  const today = todayLocal()
+  const clientStatsByName = useMemo(() => {
+    const names = Array.from(new Set(projects.map((p) => p.client)))
+    return new Map(names.map((n) => [n, computeClientStats(projects.filter((p) => p.client === n), entries, today)]))
+  }, [projects, entries, today])
   const clients = useMemo(() => clientSummaries(projects, statuses), [projects, statuses])
 
   const counts = useMemo(
@@ -97,6 +105,24 @@ export default function Clients() {
               {c.total} {c.total === 1 ? 'project' : 'projects'}
               {c.active > 0 ? ` · ${c.active} active` : ''}
             </div>
+            {(() => {
+              const cs = clientStatsByName.get(c.name)
+              if (!cs) return null
+              const max = Math.max(...cs.monthly.map((m) => m.minutes), 1)
+              return (
+                <div className="cc-foot">
+                  <div>
+                    <div className="mono cc-hours">{fmtHours(cs.totalMinutes)}</div>
+                    <div className="cc-sub">{cs.monthMinutes ? `${fmtHours(cs.monthMinutes)} this month` : 'Nothing this month'}</div>
+                  </div>
+                  <div className="cc-spark" aria-hidden title="Hours per month, last 6 months">
+                    {cs.monthly.map((m) => (
+                      <span key={m.month} style={{ height: `${Math.max((m.minutes / max) * 100, m.minutes ? 12 : 4)}%`, opacity: m.minutes ? 1 : 0.3 }} />
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
           </Link>
         ))}
         {filtered.length === 0 && (

@@ -212,7 +212,7 @@ export default function MyTime() {
   function resumeAsTimer(entry: TimeEntry) {
     setMode('Timer')
     setTimerBillable(entry.billable ?? true)
-    startTimer({ description: entry.description, projectId: entry.projectId, category: entry.category })
+    startTimer({ description: entry.description, projectId: entry.projectId, category: entry.category, sourceId: entry.id })
     triggerScreenRipple()
   }
 
@@ -786,7 +786,7 @@ function EntryRow({
 }) {
   const timer = useTimerState()
   const isRunningThis =
-    timer.running && timer.description === entry.description && (timer.projectId || '') === (entry.projectId || '')
+    timer.running && timer.sourceId === entry.id
 
   return (
     <div

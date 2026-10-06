@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CURRENT_USER_ID, personById } from './people'
 import { showToast } from './toast'
 import { supabase } from '../lib/supabaseClient'
+import { recordEdits } from './payrollExtras'
 
 export type PayrollStatus = 'Timesheet pending' | 'Under review' | 'Update needed' | 'Approved' | 'Paid out'
 
@@ -452,9 +453,9 @@ export function submitPeriod(id: string) {
   showToast('Submitted for payroll review', 'success')
 }
 
-export function reviewPeriod(id: string, status: 'Approved' | 'Rejected') {
+export function reviewPeriod(id: string, status: 'Approved' | 'Rejected', note?: string) {
   const period = periods.find((p) => p.id === id)
-  setState(periods.map((p) => (p.id === id ? appendHistory(p, status === 'Rejected' ? 'Timesheet pending' : 'Approved') : p)))
+  setState(periods.map((p) => (p.id === id ? appendHistory(p, status === 'Rejected' ? 'Timesheet pending' : 'Approved', note?.trim() || undefined) : p)))
   const updated = periods.find((p) => p.id === id)
   if (updated) syncUpsert(updated)
   const person = period ? personById(period.personId) : undefined
@@ -496,11 +497,34 @@ export function removeAdjustment(id: string, index: number) {
 
 // Reconciles leave hours against the employee's own figures before they submit —
 // distinct from the Adjustments list, which is for one-off reimbursements.
-export function setLeaveHours(id: string, ptoHours: number, unpaidHours: number) {
-  setState(periods.map((p) => (p.id === id ? { ...p, ptoHours, unpaidHours } : p)))
+export function setLeaveHours(id: string, ptoHours: number, unpaidHours: number, by = 'Employee') {
+  const before = periods.find((p) => p.id === id)
+  if (!before) return
+  const next: PayrollPeriod = { ...before, ptoHours, unpaidHours }
+
+  // Unpaid leave reduces the days the employee is paid for, so pay is re-prorated from the full-month salary.
+  const wd = before.workingDays
+  if (wd && wd > 0 && unpaidHours !== (before.unpaidHours ?? 0)) {
+    const eligibleBefore = before.eligibleDays ?? wd
+    const baseBefore = before.earnings?.base ?? before.grossPay
+    const monthly = eligibleBefore > 0 ? baseBefore / (eligibleBefore / wd) : baseBefore
+    const eligibleAfter = Math.max(wd - unpaidHours / 8, 0)
+    // Kept to 4 decimals (displayed as cents) so adding then removing unpaid hours returns to the exact original pay.
+    const baseAfter = Math.round(monthly * (eligibleAfter / wd) * 10000) / 10000
+    next.eligibleDays = Math.round(eligibleAfter * 100) / 100
+    if (before.earnings) next.earnings = { ...before.earnings, base: baseAfter }
+    next.grossPay = Math.round((before.grossPay - baseBefore + baseAfter) * 10000) / 10000
+  }
+
+  recordEdits(id, by, [
+    { field: 'PTO hours', from: String(before.ptoHours ?? 0), to: String(ptoHours) },
+    { field: 'Unpaid (UPTO) hours', from: String(before.unpaidHours ?? 0), to: String(unpaidHours) },
+    { field: 'Gross pay', from: before.grossPay.toFixed(2), to: next.grossPay.toFixed(2) },
+  ])
+  setState(periods.map((p) => (p.id === id ? next : p)))
   const updated = periods.find((p) => p.id === id)
   if (updated) syncUpsert(updated)
-  showToast('Leave hours saved', 'success')
+  showToast(next.grossPay !== before.grossPay ? 'Saved — pay recalculated from leave hours' : 'Leave hours saved', 'success')
 }
 
 // A separate step from submitting: confirms the underlying timesheet entries are
@@ -514,6 +538,14 @@ export function confirmTimesheet(id: string, confirmedBy: string) {
   const updated = periods.find((p) => p.id === id)
   if (updated) syncUpsert(updated)
   showToast('Timesheet confirmed — ready for payroll', 'success')
+}
+
+// "Run payroll": pays out every approved period in the list on the chosen date.
+export function runPayroll(ids: string[], payDate: string) {
+  const idSet = new Set(ids)
+  setState(periods.map((p) => (idSet.has(p.id) && p.status === 'Approved' ? appendHistory({ ...p, payDate }, 'Paid out', 'Paid in payroll run') : p)))
+  syncUpsertMany(periods.filter((p) => idSet.has(p.id)))
+  showToast(`Paid out ${ids.length} ${ids.length === 1 ? 'payroll' : 'payrolls'}`, 'success')
 }
 
 export function bulkApprove(ids: string[]) {

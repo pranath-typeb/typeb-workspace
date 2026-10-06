@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import ProjectCard from '../../components/ProjectCard'
 import EmptyState from '../../components/EmptyState'
 import { useUrlParam, useUrlFlag } from '../../lib/useUrlState'
 import { Link } from 'react-router-dom'
@@ -6,7 +7,12 @@ import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel, NavSep } from '../../components/NavItem'
 import { BuildingIcon, PlusIcon, ProjectsIcon, StaffingIcon, PresentationIcon } from '../../components/icons'
 import { useProjects, type BillingType, type ProjectStatus } from '../../data/projects'
-import { CURRENT_USER_ID } from '../../data/people'
+import { CURRENT_USER_ID, personById } from '../../data/people'
+import { avatarContent } from '../../components/Avatar'
+import { useTimeEntries, todayLocal } from '../../data/timeEntries'
+import { useAssignments } from '../../data/staffing'
+import { computeProjectStats, fmtHours } from '../../data/projectInsights'
+import { HealthBadge } from '../../components/ProjectPanels'
 import CreateProjectModal from '../../components/CreateProjectModal'
 import { useNavigate } from 'react-router-dom'
 import FilterBar from '../../components/FilterBar'
@@ -43,9 +49,14 @@ export default function ProjectsList() {
     })
   }, [projects, query, status, stage, client, onlyMine])
 
+  const entries = useTimeEntries()
+  const assignments = useAssignments()
+  const today = todayLocal()
+  const statsById = useMemo(() => new Map(projects.map((p) => [p.id, computeProjectStats(p, entries, assignments, today)])), [projects, entries, assignments, today])
+
   const activeCount = projects.filter((p) => p.status !== 'Completed').length
   const completedCount = projects.filter((p) => p.status === 'Completed').length
-  const totalHours = projects.reduce((sum, p) => sum + p.hoursLogged, 0)
+  const totalMinutes = Array.from(statsById.values()).reduce((sum, st) => sum + st.totalMinutes, 0)
 
   return (
     <AppShell
@@ -68,7 +79,7 @@ export default function ProjectsList() {
           { label: 'All Projects', value: projects.length, sub: 'Across all clients' },
           { label: 'Active Projects', value: activeCount, sub: 'Currently in progress' },
           { label: 'Completed Projects', value: completedCount, sub: 'Delivered to date' },
-          { label: 'Total Billable Hours', value: `${totalHours}h`, sub: 'Logged this cycle' },
+          { label: 'Hours Logged', value: fmtHours(totalMinutes), sub: 'Across all projects' },
         ].map((s, i, arr) => (
           <div key={s.label} style={{ flex: 1, padding: '16px 20px', borderRight: i < arr.length - 1 ? '1px solid var(--color-border-subtle)' : 'none' }}>
             <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--muted-label)' }}>{s.label}</div>
@@ -113,26 +124,7 @@ export default function ProjectsList() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
         {filtered.map((p) => (
-          <Link
-            key={p.id}
-            to={`/projects/${p.id}`}
-            className="card"
-            style={{ display: 'flex', flexDirection: 'column', gap: 10, textDecoration: 'none' }}
-          >
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 600 }}>{p.name}</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>{p.client}</div>
-            </div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <span className={`badge ${statusBadge[p.status]}`} style={{ textTransform: 'uppercase', fontSize: 10 }}>{p.status}</span>
-              {p.staffing && <span className="badge b-neutral" style={{ textTransform: 'uppercase', fontSize: 10 }}>Staffing</span>}
-              {p.billable && <span className="badge b-neutral" style={{ textTransform: 'uppercase', fontSize: 10 }}>Billable</span>}
-            </div>
-            <div style={{ borderTop: '1px solid var(--table-row-border)', marginTop: 'auto', paddingTop: 10, display: 'flex', gap: 16, fontSize: 12, color: 'var(--color-text-secondary)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><StaffingIcon size={12} color="currentColor" />{p.teamIds.length}</span>
-              <span>{p.hoursLogged}h</span>
-            </div>
-          </Link>
+          <ProjectCard key={p.id} project={p} stats={statsById.get(p.id)} />
         ))}
         {filtered.length === 0 && (
           <EmptyState title="No projects match" />

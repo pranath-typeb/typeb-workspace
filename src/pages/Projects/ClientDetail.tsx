@@ -4,16 +4,14 @@ import AppShell from '../../components/AppShell'
 import { NavItem, NavGroupLabel } from '../../components/NavItem'
 import { BuildingIcon, ProjectsIcon, StaffingIcon, PresentationIcon } from '../../components/icons'
 import Breadcrumb from '../../components/Breadcrumb'
-import { useProjects, type ProjectStatus } from '../../data/projects'
+import { useProjects } from '../../data/projects'
+import ProjectCard from '../../components/ProjectCard'
+import { useTimeEntries, todayLocal } from '../../data/timeEntries'
+import { useAssignments } from '../../data/staffing'
+import { computeClientStats, computeProjectStats, fmtHours } from '../../data/projectInsights'
 import { setClientStatus, useClientStatuses, type ClientStatus } from '../../data/clients'
 import CreateProjectModal from '../../components/CreateProjectModal'
 import { Select } from '../../components/SearchableSelect'
-
-const statusBadge: Record<ProjectStatus, string> = {
-  Active: 'b-pine',
-  'On Track': 'b-pine',
-  Completed: 'b-neutral',
-}
 
 const clientStatuses: ClientStatus[] = ['Active', 'Inactive', 'Removed']
 
@@ -23,10 +21,15 @@ export default function ClientDetail() {
   const projects = useProjects()
   const statuses = useClientStatuses()
   const [modalOpen, setModalOpen] = useState(false)
+  const entries = useTimeEntries()
+  const assignments = useAssignments()
+  const today = todayLocal()
 
   const clientName = name ? decodeURIComponent(name) : ''
   const clientProjects = useMemo(() => projects.filter((p) => p.client === clientName), [projects, clientName])
   const allClients = useMemo(() => Array.from(new Set(projects.map((p) => p.client))).sort(), [projects])
+  const clientStats = useMemo(() => computeClientStats(clientProjects, entries, today), [clientProjects, entries, today])
+  const projectStats = useMemo(() => new Map(clientProjects.map((p) => [p.id, computeProjectStats(p, entries, assignments, today)])), [clientProjects, entries, assignments, today])
   const status = statuses[clientName]?.status ?? 'Active'
   const activeCount = clientProjects.filter((p) => p.status !== 'Completed').length
 
@@ -92,10 +95,46 @@ export default function ClientDetail() {
               <option key={s} value={s}>{s}</option>
             ))}
           </Select>
-          <div style={{ textAlign: 'right' }}>
-            <div className="mono" style={{ fontSize: 24, fontWeight: 600 }}>{clientProjects.length}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>project{clientProjects.length === 1 ? '' : 's'}</div>
-          </div>
+        </div>
+      </div>
+
+      <div className="pp-strip">
+        <div className="pp-tile">
+          <div className="pp-tile-label">Hours logged</div>
+          <div className="pp-tile-value mono">{fmtHours(clientStats.totalMinutes)}</div>
+          <div className="pp-tile-sub">across {clientProjects.length} {clientProjects.length === 1 ? 'project' : 'projects'}</div>
+        </div>
+        <div className="pp-tile">
+          <div className="pp-tile-label">This month</div>
+          <div className="pp-tile-value mono">{fmtHours(clientStats.monthMinutes)}</div>
+          <div className="pp-tile-sub">{activeCount} active {activeCount === 1 ? 'project' : 'projects'}</div>
+        </div>
+        <div className="pp-tile">
+          <div className="pp-tile-label">People involved</div>
+          <div className="pp-tile-value mono">{clientStats.people}</div>
+          <div className="pp-tile-sub">on teams or logging time</div>
+        </div>
+      </div>
+
+      <div className="card pp-card">
+        <div className="pp-card-head">
+          <div className="pp-card-title">Hours by month</div>
+          <div className="pp-card-meta">Last 6 months</div>
+        </div>
+        <div className="pp-bars" style={{ gridTemplateColumns: 'repeat(6, minmax(0, 1fr))' }} role="img" aria-label="Hours logged per month for this client">
+          {clientStats.monthly.map((m, i) => {
+            const max = Math.max(...clientStats.monthly.map((m) => m.minutes), 60)
+            const last = i === clientStats.monthly.length - 1
+            return (
+              <div key={m.month} className="pp-bar-col">
+                <div className="pp-bar-val mono">{m.minutes ? fmtHours(m.minutes) : ''}</div>
+                <div className="pp-bar-track">
+                  <div className="pp-bar" style={{ height: `${(m.minutes / max) * 100}%`, background: last ? 'var(--brand-mid)' : 'var(--brand-bar)', opacity: last ? 1 : 0.7 }} />
+                </div>
+                <div className="pp-bar-label">{m.label}</div>
+              </div>
+            )
+          })}
         </div>
       </div>
 
@@ -106,26 +145,7 @@ export default function ClientDetail() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
         {clientProjects.map((p) => (
-          <Link
-            key={p.id}
-            to={`/projects/${p.id}`}
-            className="card"
-            style={{ display: 'flex', flexDirection: 'column', gap: 10, textDecoration: 'none' }}
-          >
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 600 }}>{p.name}</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>{p.client}</div>
-            </div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <span className={`badge ${statusBadge[p.status]}`} style={{ textTransform: 'uppercase', fontSize: 10 }}>{p.status}</span>
-              {p.staffing && <span className="badge b-neutral" style={{ textTransform: 'uppercase', fontSize: 10 }}>Staffing</span>}
-              {p.billable && <span className="badge b-neutral" style={{ textTransform: 'uppercase', fontSize: 10 }}>Billable</span>}
-            </div>
-            <div style={{ borderTop: '1px solid var(--table-row-border)', marginTop: 'auto', paddingTop: 10, display: 'flex', gap: 16, fontSize: 12, color: 'var(--color-text-secondary)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><StaffingIcon size={12} color="currentColor" />{p.teamIds.length}</span>
-              <span>{p.hoursLogged}h</span>
-            </div>
-          </Link>
+          <ProjectCard key={p.id} project={p} stats={projectStats.get(p.id)} />
         ))}
       </div>
 

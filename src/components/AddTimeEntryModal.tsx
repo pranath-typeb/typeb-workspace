@@ -27,6 +27,8 @@ interface AddTimeEntryModalProps {
   date: string // YYYY-MM-DD — initial date to prefill (the day the user clicked "Add" from)
   onClose: () => void
   editing?: TimeEntry
+  // Preselects a project when adding a new entry (e.g. "Log time" from a project page).
+  defaultProjectId?: string
   // When set, save() calls this instead of writing to the real store — used to edit an
   // entry that's still staged locally (e.g. the Manual tab's not-yet-saved batch).
   onSave?: (fields: EntryFields) => void
@@ -36,11 +38,11 @@ function formatDateLabel(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
 }
 
-export default function AddTimeEntryModal({ date, onClose, editing, onSave }: AddTimeEntryModalProps) {
+export default function AddTimeEntryModal({ date, onClose, editing, onSave, defaultProjectId }: AddTimeEntryModalProps) {
   const projects = useProjects()
   const [entryDate, setEntryDate] = useState(editing?.date ?? date)
   const [description, setDescription] = useState(editing?.description ?? '')
-  const [projectId, setProjectId] = useState(editing?.projectId ?? '')
+  const [projectId, setProjectId] = useState(editing?.projectId ?? defaultProjectId ?? '')
   const [category, setCategory] = useState(editing?.category ?? 'Manual')
   const [startTime, setStartTime] = useState(editing?.startMinutes !== undefined ? minutesToTime(editing.startMinutes) : '09:00')
   const [endTime, setEndTime] = useState(

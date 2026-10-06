@@ -10,11 +10,12 @@ import SearchableSelect from './SearchableSelect'
 interface CommitHoursModalProps {
   person: Person
   onClose: () => void
+  defaultProjectId?: string
 }
 
-export default function CommitHoursModal({ person, onClose }: CommitHoursModalProps) {
+export default function CommitHoursModal({ person, onClose, defaultProjectId }: CommitHoursModalProps) {
   const projects = useProjects()
-  const [projectId, setProjectId] = useState(projects[0]?.id ?? '')
+  const [projectId, setProjectId] = useState(defaultProjectId ?? projects[0]?.id ?? '')
   const [hoursPerWeek, setHoursPerWeek] = useState(10)
   const [startDate, setStartDate] = useState(() => todayLocal())
   const [openEnded, setOpenEnded] = useState(true)

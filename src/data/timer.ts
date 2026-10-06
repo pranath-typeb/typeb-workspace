@@ -13,9 +13,12 @@ export interface TimerState {
   projectId: string
   category: string
   billable: boolean
+  // The time entry this run was resumed from (if any), so only that one row shows as running —
+  // other entries with the same description are separate entries.
+  sourceId: string
 }
 
-let state: TimerState = { running: false, seconds: 0, description: '', projectId: '', category: 'Development', billable: true }
+let state: TimerState = { running: false, seconds: 0, description: '', projectId: '', category: 'Development', billable: true, sourceId: '' }
 let listeners: Array<(s: TimerState) => void> = []
 let intervalId: ReturnType<typeof setInterval> | null = null
 
@@ -68,8 +71,9 @@ export function setTimerBillable(billable: boolean) {
 // Prefills the shared timer from an existing task and starts it running — "resume as
 // timer" / "pick up where you left off" from Dashboard's Recent Works, staged Manual
 // entries, etc. Always restarts the elapsed time at 0.
-export function startTimer(fields: { description: string; projectId: string | null; category: string }) {
+export function startTimer(fields: { description: string; projectId: string | null; category: string; sourceId?: string }) {
   setState({
+    sourceId: fields.sourceId ?? '',
     description: fields.description,
     projectId: fields.projectId ?? '',
     category: fields.category,
@@ -96,7 +100,7 @@ export function stopAndSaveTimer(): boolean {
     startMinutes: Math.max(0, now.getHours() * 60 + now.getMinutes() - minutes),
     billable: state.billable,
   })
-  setState({ running: false, seconds: 0, description: '', projectId: '', category: 'Development', billable: true })
+  setState({ running: false, seconds: 0, description: '', projectId: '', category: 'Development', billable: true, sourceId: '' })
   syncInterval()
   return true
 }

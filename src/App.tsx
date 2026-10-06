@@ -26,6 +26,7 @@ import PayrollReviews from './pages/Payroll/Reviews'
 import MyPayroll from './pages/Payroll/MyPayroll'
 import PayrollPeriodDetail from './pages/Payroll/PeriodDetail'
 import Payslip from './pages/Payroll/Payslip'
+import Invoice from './pages/Payroll/Invoice'
 import CompanyCalendar from './pages/Calendar'
 import Analytics from './pages/Analytics'
 import ComingSoon from './pages/ComingSoon'
@@ -118,6 +119,7 @@ export default function App() {
       <Route path="/payroll/my" element={<MyPayroll />} />
       <Route path="/payroll/my/:periodId" element={<PayrollPeriodDetail mode="self" />} />
       <Route path="/payroll/payslip/:periodId" element={<Payslip />} />
+      <Route path="/payroll/invoice/:periodId" element={<Invoice />} />
 
       <Route path="/projects" element={<ProjectsList />} />
       <Route path="/projects/:id" element={<ProjectDetail />} />

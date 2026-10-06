@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
-import DatePicker from '../../components/DatePicker'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import AppShell from '../../components/AppShell'
 import PayrollSidebar from '../../components/PayrollSidebar'
-import { avatarContent } from '../../components/Avatar'
-import { DownloadIcon, HistoryIcon, PayrollFileIcon, PlusIcon, TrashIcon, WalletIcon } from '../../components/icons'
 import Breadcrumb from '../../components/Breadcrumb'
+import DatePicker from '../../components/DatePicker'
+import { avatarContent } from '../../components/Avatar'
+import { ChecksPanel, HoursMeter, Section, StageChip, Stepper, Timeline, fmtDate, fmtDateTime, money } from '../../components/PayrollParts'
+import { CloseIcon, DownloadIcon, TrashIcon, WalletIcon } from '../../components/icons'
+import { Select } from '../../components/SearchableSelect'
 import { CURRENT_USER_ID, personById } from '../../data/people'
-import { useLeaveRequests, type LeaveRequest } from '../../data/leave'
-import { showToast } from '../../data/toast'
+import { parseLeaveDate as parseLeaveDateObj, useLeaveRequests, type LeaveRequest } from '../../data/leave'
 import {
   entriesForPersonWeek,
   formatMinutes,
@@ -33,45 +34,34 @@ import {
   requestUpdate,
   reviewPeriod,
   setLeaveHours,
-  statusBadgeClass,
   submitPeriod,
   usePayrollPeriods,
   type PayrollAdjustment,
+  type PayrollPeriod,
 } from '../../data/payroll'
-import { Select } from '../../components/SearchableSelect'
-
-function money(n: number): string {
-  return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
-
-function fmtDateTime(iso: string): string {
-  return new Date(iso).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })
-}
-
-function fmtDate(iso: string): string {
-  return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-}
+import { addDocument, removeDocument, saveReviewNotes, usePayrollExtras } from '../../data/payrollExtras'
+import { cycleBounds, isOverdue, nextStep, reconcile, reviewChecks, stageOf, weeksProgress } from '../../data/payrollInsights'
 
 const ADJUSTMENT_TYPES: PayrollAdjustment['type'][] = ['Equipment', 'Software', 'Travel', 'Other']
 
-// A leave request is parsed from its "14-Sep-2026" display date and matched to the
-// period purely by name (leave.ts has no personId), scoped to the period's cycle range.
-function parseLeaveDate(display: string): string {
-  const d = new Date(display)
-  if (isNaN(d.getTime())) return ''
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
-function leaveInRange(requests: LeaveRequest[], personName: string, start?: string, end?: string): LeaveRequest[] {
-  if (!start || !end) return []
+function leaveInRange(requests: LeaveRequest[], personName: string, start: string, end: string): LeaveRequest[] {
   return requests.filter((r) => {
     if (r.requestedBy !== personName) return false
-    const d = parseLeaveDate(r.date)
-    return d >= start && d <= end
+    const d = parseLeaveDateObj(r.date)
+    if (!d) return false
+    const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    return ymd >= start && ymd <= end
   })
+}
+
+const BANNER_TONE: Record<string, string> = {
+  'awaiting-confirmation': 'purple',
+  'awaiting-approval': 'neutral',
+  ready: 'teal',
+  'under-review': 'amber',
+  'update-needed': 'red',
+  approved: 'green',
+  paid: 'green',
 }
 
 export default function PeriodDetail({ mode }: { mode: 'admin' | 'self' }) {
@@ -79,499 +69,503 @@ export default function PeriodDetail({ mode }: { mode: 'admin' | 'self' }) {
   const periods = usePayrollPeriods()
   const period = periodId ? periods.find((p) => p.id === periodId) : undefined
   const person = period ? personById(period.personId) : undefined
+  const extras = usePayrollExtras(period?.id)
+  const me = personById(CURRENT_USER_ID)?.name ?? 'You'
 
-  const [noteDraft, setNoteDraft] = useState('')
-  const [showNoteField, setShowNoteField] = useState(false)
+  const allEntries = useTimeEntries()
+  useSubmissions()
+  const leaveRequests = useLeaveRequests()
+
+  const [ptoDraft, setPtoDraft] = useState('')
+  const [unpaidDraft, setUnpaidDraft] = useState('')
+  const [notesDraft, setNotesDraft] = useState('')
+  const [evidenceDraft, setEvidenceDraft] = useState('')
+  const [decisionNote, setDecisionNote] = useState('')
+  const [changesOpen, setChangesOpen] = useState(false)
+  const [changesNote, setChangesNote] = useState('')
+  const [payOpen, setPayOpen] = useState(false)
+  const [payDate, setPayDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [adjType, setAdjType] = useState<PayrollAdjustment['type']>('Other')
   const [adjDesc, setAdjDesc] = useState('')
   const [adjAmount, setAdjAmount] = useState('')
-  const [payDate, setPayDate] = useState(() => new Date().toISOString().slice(0, 10))
-  const [showPayDateField, setShowPayDateField] = useState(false)
-  const [ptoDraft, setPtoDraft] = useState('')
-  const [unpaidDraft, setUnpaidDraft] = useState('')
-
-  const allEntries = useTimeEntries()
-  useSubmissions() // re-render when submissions change, read via submissionFor below
-  const leaveRequests = useLeaveRequests()
-
-  const backHref = mode === 'admin' ? '/payroll/reviews' : '/payroll/my'
+  const fileRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     if (!period) return
     setPtoDraft(String(period.ptoHours ?? 0))
     setUnpaidDraft(String(period.unpaidHours ?? 0))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period?.id])
+  }, [period?.id, period?.ptoHours, period?.unpaidHours])
+  useEffect(() => {
+    setNotesDraft(extras.reviewNotes ?? '')
+    setEvidenceDraft(extras.evidence ?? '')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period?.id, extras.reviewNotes, extras.evidence])
 
-  const weeks = useMemo(() => (period?.cycleStart && period?.cycleEnd ? weeksOverlapping(period.cycleStart, period.cycleEnd) : []), [period?.cycleStart, period?.cycleEnd])
-  const leaveTaken = useMemo(
-    () => (person ? leaveInRange(leaveRequests, person.name, period?.cycleStart, period?.cycleEnd) : []),
-    [leaveRequests, person, period?.cycleStart, period?.cycleEnd],
+  const bounds = period ? cycleBounds(period) : { start: '', end: '' }
+  const weeks = useMemo(() => (period ? weeksOverlapping(bounds.start, bounds.end) : []), [period, bounds.start, bounds.end])
+  const leaveTaken = useMemo(() => (person ? leaveInRange(leaveRequests, person.name, bounds.start, bounds.end) : []), [leaveRequests, person, bounds.start, bounds.end])
+
+  const backHref = mode === 'admin' ? '/payroll/reviews' : '/payroll/my'
+  const sidebarKey = mode === 'admin' ? 'reviews' : 'my-payroll'
+  const shell = (children: React.ReactNode) => (
+    <AppShell appIcon={<WalletIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active={sidebarKey} />}>
+      {children}
+    </AppShell>
   )
 
   if (!period || !person) {
-    return (
-      <AppShell appIcon={<WalletIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active={mode === 'admin' ? 'reviews' : 'my-payroll'} />}>
-        <div className="card">
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>We couldn't find that payroll period.</div>
-          <Link to={backHref} className="btn-outline">Back</Link>
-        </div>
-      </AppShell>
+    return shell(
+      <div className="card">
+        <div style={{ fontWeight: 600, marginBottom: 8 }}>We couldn't find that payroll period.</div>
+        <Link to={backHref} className="btn-outline">Back</Link>
+      </div>,
     )
   }
 
-  const gross = earningsTotal(period)
-  const net = netPay(period)
-  const behind = period.actualHours < period.targetHours
-  const history = period.history ?? []
-  const canEdit = mode === 'admin'
+  const p: PayrollPeriod = period
+  const stage = stageOf(p)
+  const overdue = isOverdue(p)
+  const step = nextStep(p, mode === 'admin' ? 'admin' : 'self')
+  const checks = reviewChecks(p)
+  const rec = reconcile(p)
+  const wp = weeksProgress(p)
+  const gross = earningsTotal(p)
+  const net = netPay(p)
+  const canEditLeave = mode === 'admin' ? p.status !== 'Paid out' : p.status === 'Timesheet pending' || p.status === 'Update needed'
+  const isAdminDecision = mode === 'admin' && (p.status === 'Under review' || p.status === 'Update needed')
+  const issues = checks.filter((c) => c.state !== 'ok').length
+  const leaveDirty = ptoDraft !== String(p.ptoHours ?? 0) || unpaidDraft !== String(p.unpaidHours ?? 0) || notesDraft !== (extras.reviewNotes ?? '') || evidenceDraft !== (extras.evidence ?? '')
+  const tone = BANNER_TONE[stage.key]
 
-  function saveLeaveHours() {
-    setLeaveHours(period!.id, Number(ptoDraft) || 0, Number(unpaidDraft) || 0)
+  function saveChanges() {
+    const pto = Number(ptoDraft) || 0
+    const upto = Number(unpaidDraft) || 0
+    if (pto !== (p.ptoHours ?? 0) || upto !== (p.unpaidHours ?? 0)) setLeaveHours(p.id, pto, upto, me)
+    if (mode === 'admin') saveReviewNotes(p.id, { reviewNotes: notesDraft, evidence: evidenceDraft }, me)
   }
-
-  function doConfirmTimesheet() {
-    confirmTimesheet(period!.id, person!.name)
-  }
-
-  function reviewInvoice() {
-    showToast("Invoice preview isn't wired up in this build", 'info')
-  }
-
   function submitAdjustment() {
     const amount = Number(adjAmount)
     if (!adjDesc.trim() || !amount) return
-    addAdjustment(period!.id, { type: adjType, description: adjDesc.trim(), date: new Date().toISOString().slice(0, 10), amount })
+    addAdjustment(p.id, { type: adjType, description: adjDesc.trim(), date: new Date().toISOString().slice(0, 10), amount })
     setAdjDesc('')
     setAdjAmount('')
   }
-
-  function confirmRequestUpdate() {
-    if (!noteDraft.trim()) return
-    requestUpdate(period!.id, noteDraft.trim())
-    setShowNoteField(false)
-    setNoteDraft('')
+  function approve() {
+    reviewPeriod(p.id, 'Approved', decisionNote)
+    setDecisionNote('')
+  }
+  function sendChanges() {
+    if (!changesNote.trim()) return
+    requestUpdate(p.id, changesNote.trim())
+    setChangesOpen(false)
+    setChangesNote('')
+  }
+  function onPickFiles(files: FileList | null) {
+    Array.from(files ?? []).forEach((f) => addDocument(p.id, { name: f.name, size: f.size }, me))
+    if (fileRef.current) fileRef.current.value = ''
   }
 
-  function confirmMarkPaid() {
-    markPaidOut(period!.id, payDate)
-    setShowPayDateField(false)
-  }
+  const editRows = extras.edits ?? []
 
-  return (
-    <AppShell appIcon={<WalletIcon size={16} color="var(--color-text-secondary)" />} appLabel="Payroll" appHref="/payroll" sidebar={<PayrollSidebar active={mode === 'admin' ? 'reviews' : 'my-payroll'} />}>
+  return shell(
+    <>
       <Breadcrumb
         items={[
           { label: 'Payroll', to: '/payroll' },
           { label: mode === 'admin' ? 'Reviews' : 'My Payroll', to: backHref },
-          { label: mode === 'admin' ? person.name : period.label },
+          { label: mode === 'admin' ? person.name : p.label },
         ]}
       />
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      {/* header */}
+      <div className="pr-head">
+        <div className="pr-head-id">
           {mode === 'admin' && (
-            <Link to={`/people/${person.id}`} className="avatar" style={{ width: 44, height: 44, fontSize: 15, flexShrink: 0 }}>
+            <Link to={`/people/${person.id}`} className="avatar" style={{ width: 46, height: 46, fontSize: 15, flexShrink: 0 }}>
               {avatarContent(person)}
             </Link>
           )}
-          <div>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, letterSpacing: '-0.8px' }}>
-              {mode === 'admin' ? person.name : period.label}
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>
-              {mode === 'admin' ? `${period.label} · ${period.cycle}` : period.cycle}
-            </div>
+          <div style={{ minWidth: 0 }}>
+            <h1 className="serif pr-head-title">{mode === 'admin' ? person.name : p.label}</h1>
+            <div className="pr-dash-sub">{mode === 'admin' ? `${p.label} · ` : ''}Pay cycle {p.cycle}</div>
           </div>
         </div>
-        <span className={`badge ${statusBadgeClass(period.status)}`} style={{ fontSize: 12 }}>{period.status}</span>
+        <StageChip stage={stage} overdue={overdue} />
       </div>
 
-      {mode === 'admin' && period.status === 'Update needed' && period.notes && (
-        <div style={{ background: 'var(--color-status-warning-bg)', border: '1px solid var(--color-status-warning-border)', borderRadius: 10, padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-status-warning-text)', marginBottom: 4 }}>Update needed</div>
-          <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{period.notes}</div>
+      {/* what is happening + what happens next */}
+      <div className={`pr-banner tone-${tone}`}>
+        <div className="pr-banner-text">
+          <div className="pr-banner-title">{step.title}</div>
+          <div className="pr-banner-body">{step.body}</div>
+          {overdue && mode === 'self' && <div className="pr-banner-body" style={{ marginTop: 4 }}>Your pay cycle ended on {fmtDate(bounds.end)}.</div>}
         </div>
-      )}
+        <Stepper stage={stage} flagged={stage.key === 'update-needed'} />
+      </div>
 
-      {mode === 'self' && period.status === 'Timesheet pending' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ background: 'var(--color-background-subtle)', border: '1px solid var(--color-border-default)', borderRadius: 10, padding: '14px 16px' }}>
-            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-              This is your draft for this period — nothing has been sent to finance yet. Check the pay breakdown and leave hours, add anything that's missing, then submit for review.
+      <div className="pr-layout">
+        <div className="pr-main">
+          {/* key numbers */}
+          <div className="pr-keys">
+            <div className="pr-key">
+              <span className="pr-tile-label">{mode === 'admin' ? 'Gross pay' : 'You earn'}</span>
+              <span className="mono pr-key-val">{money(gross)}</span>
+            </div>
+            <div className="pr-key">
+              <span className="pr-tile-label">Net pay</span>
+              <span className="mono pr-key-val">{money(net)}</span>
+            </div>
+            <div className="pr-key">
+              <span className="pr-tile-label">Hours vs target</span>
+              <HoursMeter p={p} />
+            </div>
+            <div className="pr-key">
+              <span className="pr-tile-label">Pay date</span>
+              <span className="mono pr-key-val">{p.payDate ? fmtDate(p.payDate) : 'Not set'}</span>
             </div>
           </div>
-          <div style={{ background: 'var(--color-status-warning-bg)', border: '1px solid var(--color-status-warning-border)', borderRadius: 10, padding: '14px 16px' }}>
-            <div style={{ fontSize: 13, color: 'var(--color-status-warning-text)' }}>
-              Your pay cycle ended on {period.cycleEnd ? fmtDate(period.cycleEnd) : 'recently'} and this period still hasn't been submitted. Check your hours before and submit as soon as possible.
-            </div>
-          </div>
-        </div>
-      )}
 
-      {mode === 'self' && period.status === 'Update needed' && (
-        <div style={{ background: 'var(--color-status-warning-bg)', border: '1px solid var(--color-status-warning-border)', borderRadius: 10, padding: '14px 16px' }}>
-          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-status-warning-text)', marginBottom: 4 }}>Finance has requested a change</div>
-          <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{period.notes || 'Edit the figures below to correct them, then re-submit.'}</div>
-        </div>
-      )}
-
-      {mode === 'self' && period.status === 'Paid out' && (
-        <div style={{ background: 'rgba(0, 150, 100, 0.08)', border: '1px solid rgba(0, 150, 100, 0.25)', borderRadius: 10, padding: '14px 16px' }}>
-          <div style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>
-            You've been paid for this period. {period.payDate ? `Paid on ${fmtDate(period.payDate)}.` : ''}
-          </div>
-        </div>
-      )}
-
-      {mode === 'self' && (period.status === 'Under review' || period.status === 'Approved') && (
-        <div style={{ background: 'var(--color-background-subtle)', border: '1px solid var(--color-border-default)', borderRadius: 10, padding: '14px 16px' }}>
-          <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-            {period.status === 'Under review' ? "Submitted — waiting on finance review." : "Approved — waiting to be paid out."}
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        {/* Main column */}
-        <div style={{ flex: 2, minWidth: 360, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-            <Stat label="Gross pay" value={money(gross)} />
-            <Stat label="Net pay" value={money(net)} />
-            <Stat
-              label="Hours (actual / target)"
-              value={`${period.actualHours} / ${period.targetHours}`}
-              valueColor={behind ? 'var(--warn-fg)' : undefined}
-            />
-            <Stat label="Pay date" value={period.payDate ? new Date(period.payDate + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) : 'Pending'} />
-            {mode === 'self' && period.workingDays !== undefined && (
-              <Stat label="Working days" value={`${period.workingDays}${period.holidays ? ` (${period.holidays} holiday${period.holidays === 1 ? '' : 's'})` : ''}`} />
+          <Section title="Pay breakdown" summary={<span className="mono">{money(net)} net</span>}>
+            {p.earnings && <Lines title="Earnings" rows={[{ label: 'Salary (prorated)', amount: p.earnings.base }, { label: 'Incentives', amount: p.earnings.incentives }, { label: 'Bonus', amount: p.earnings.bonus }]} />}
+            {!p.earnings && <Lines title="Earnings" rows={[{ label: 'Salary', amount: p.grossPay }]} />}
+            {p.deductions && deductionsTotal(p) > 0 && (
+              <Lines title="Deductions" negative rows={[{ label: 'Provident fund', amount: p.deductions.providentFund }, { label: 'Salary advance', amount: p.deductions.salaryAdvance }, { label: 'Other', amount: p.deductions.other }]} />
             )}
-            {mode === 'self' && period.eligibleDays !== undefined && (
-              <Stat label="Eligible days" value={String(period.eligibleDays)} />
-            )}
-          </div>
-
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ fontWeight: 700, fontSize: 15 }}>Pay breakdown</div>
-
-            {period.earnings && (
-              <LineSection
-                title="Earnings"
-                rows={[
-                  { label: 'Salary (prorated)', amount: period.earnings.base },
-                  { label: 'Incentives', amount: period.earnings.incentives },
-                  { label: 'Bonus', amount: period.earnings.bonus },
-                ]}
-              />
-            )}
-
-            {period.deductions && deductionsTotal(period) > 0 && (
-              <LineSection
-                title="Deductions"
-                negative
-                rows={[
-                  { label: 'Provident fund', amount: period.deductions.providentFund },
-                  { label: 'Salary advance', amount: period.deductions.salaryAdvance },
-                  { label: 'Other', amount: period.deductions.other },
-                ]}
-              />
-            )}
-
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}>Adjustments</div>
-                {adjustmentsTotal(period) !== 0 && <span className="mono" style={{ fontSize: 13, fontWeight: 600 }}>{money(adjustmentsTotal(period))}</span>}
+              <div className="pr-lines-title">
+                <span>Adjustments</span>
+                {adjustmentsTotal(p) !== 0 && <span className="mono">{money(adjustmentsTotal(p))}</span>}
               </div>
-              {(period.adjustments ?? []).length === 0 ? (
-                <div style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>No adjustments.</div>
+              {(p.adjustments ?? []).length === 0 ? (
+                <div className="pp-empty">No adjustments.</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {(period.adjustments ?? []).map((a, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: i === 0 ? 'none' : '1px solid var(--table-row-border)' }}>
-                      <span className="badge b-neutral" style={{ fontSize: 10, flexShrink: 0 }}>{a.type}</span>
-                      <span style={{ fontSize: 13, flex: 1 }}>{a.description}</span>
-                      <span className="mono" style={{ fontSize: 12, fontWeight: 600 }}>{money(a.amount)}</span>
-                      {canEdit && (
-                        <button onClick={() => removeAdjustment(period.id, i)} aria-label="Remove adjustment" style={{ display: 'flex', padding: 2 }}>
-                          <TrashIcon size={13} color="var(--color-text-tertiary)" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                (p.adjustments ?? []).map((a, i) => (
+                  <div key={i} className="pr-line">
+                    <span className="badge b-neutral" style={{ fontSize: 10 }}>{a.type}</span>
+                    <span style={{ flex: 1, fontSize: 13 }}>{a.description}</span>
+                    <span className="mono" style={{ fontSize: 13 }}>{money(a.amount)}</span>
+                    {mode === 'admin' && (
+                      <button onClick={() => removeAdjustment(p.id, i)} aria-label="Remove adjustment" style={{ display: 'flex', padding: 2 }}>
+                        <TrashIcon size={13} color="var(--color-text-tertiary)" />
+                      </button>
+                    )}
+                  </div>
+                ))
               )}
-
-              {canEdit && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+              {mode === 'admin' && p.status !== 'Paid out' && (
+                <div className="pr-adj-form">
                   <Select className="input" style={{ width: 120 }} value={adjType} onChange={(e) => setAdjType(e.target.value as PayrollAdjustment['type'])}>
-                    {ADJUSTMENT_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
+                    {ADJUSTMENT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </Select>
                   <input className="input" style={{ flex: 1, minWidth: 140 }} placeholder="Description" value={adjDesc} onChange={(e) => setAdjDesc(e.target.value)} />
                   <input className="input" style={{ width: 100 }} type="number" placeholder="Amount" value={adjAmount} onChange={(e) => setAdjAmount(e.target.value)} />
-                  <button className="btn-outline" onClick={submitAdjustment} disabled={!adjDesc.trim() || !adjAmount}>
-                    <PlusIcon size={13} /> Add
-                  </button>
+                  <button className="btn-outline" onClick={submitAdjustment} disabled={!adjDesc.trim() || !adjAmount}>+ Add</button>
                 </div>
               )}
             </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--color-background-subtle)', borderRadius: 10, padding: '12px 16px', marginTop: 4 }}>
-              <span style={{ fontWeight: 700, fontSize: 13 }}>Net pay</span>
-              <span className="mono" style={{ fontSize: 17, fontWeight: 700 }}>{money(net)}</span>
+            <div className="pr-net">
+              <span>Net pay</span>
+              <span className="mono">{money(net)}</span>
             </div>
-          </div>
+          </Section>
 
-          {mode === 'self' && (
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <Section title="Calculation & reconciliation" badge={<span className={`pr-flag ${rec.reconciled ? 'ok' : 'warn'}`}>{rec.reconciled ? 'Reconciled' : 'Doesn’t add up'}</span>}>
+            <div className="pr-two">
               <div>
-                <div style={{ fontWeight: 700, fontSize: 15 }}>Leave taken this period</div>
-                {leaveTaken.length === 0 ? (
-                  <div style={{ fontSize: 13, color: 'var(--color-text-tertiary)', marginTop: 6 }}>No leave taken this period.</div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', marginTop: 8 }}>
-                    {leaveTaken.map((l, i) => (
-                      <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: i === 0 ? 'none' : '1px solid var(--table-row-border)' }}>
-                        <span style={{ fontSize: 13, flex: 1 }}>{l.date}</span>
-                        <span className="badge b-neutral" style={{ fontSize: 10 }}>{l.type}</span>
-                        <span className="mono" style={{ fontSize: 12 }}>{l.days}d</span>
-                        <span className={`badge ${l.status === 'Approved' ? 'b-pine' : l.status === 'Rejected' ? 'b-danger' : 'b-ember'}`} style={{ fontSize: 10 }}>{l.status}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="pr-lines-title"><span>How pay was worked out</span></div>
+                <KV label="Working days (full month)" value={String(p.workingDays ?? '—')} />
+                <KV label="Public holidays" value={String(p.holidays ?? 0)} />
+                <KV label="Eligible paid days" value={String(p.eligibleDays ?? p.workingDays ?? '—')} />
+                <KV label="PTO / UPTO hours" value={`${p.ptoHours ?? 0} / ${p.unpaidHours ?? 0}`} />
+                <KV label="Timesheet hours" value={String(p.actualHours)} />
+                <KV label="Gross pay" value={money(gross)} strong />
               </div>
-
-              <div style={{ borderTop: '1px solid var(--table-row-border)', paddingTop: 14 }}>
-                <div style={{ fontWeight: 700, fontSize: 15 }}>Leave hours</div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 2, marginBottom: 10 }}>
-                  Taken from your approved leave — if the hours here don't match the time you actually took, correct them before payroll uses these figures.
-                </div>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                  <div style={{ flex: 1, minWidth: 140 }}>
-                    <div className="field-label">PTO hours</div>
-                    <input className="input" type="number" value={ptoDraft} onChange={(e) => setPtoDraft(e.target.value)} disabled={!canEdit && period.status !== 'Timesheet pending'} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 140 }}>
-                    <div className="field-label">Unpaid (UPTO) hours</div>
-                    <input className="input" type="number" value={unpaidDraft} onChange={(e) => setUnpaidDraft(e.target.value)} disabled={!canEdit && period.status !== 'Timesheet pending'} />
-                  </div>
-                  <button className="btn-outline" onClick={saveLeaveHours} disabled={canEdit ? false : period.status !== 'Timesheet pending'}>Save hours</button>
-                </div>
+              <div>
+                <div className="pr-lines-title"><span>Does it match?</span></div>
+                <KV label="Target hours" value={String(rec.targetHours)} />
+                <KV label="Timesheet hours" value={String(rec.timesheetHours)} />
+                <KV label="Hours difference" value={`${rec.hoursDiff > 0 ? '+' : ''}${rec.hoursDiff}`} warn={rec.hoursDiff < 0} />
+                <KV label="Invoice amount" value={rec.invoiceAmount === null ? 'No invoice yet' : money(rec.invoiceAmount)} />
+                <KV label="Invoice vs gross" value={rec.amountDiff === null ? '—' : money(rec.amountDiff)} warn={!!rec.amountDiff && Math.abs(rec.amountDiff) > 0.01} />
+                <KV label="Adjustments total" value={money(rec.adjustments)} />
+                <KV label="Left unexplained" value={rec.residual === null ? '—' : money(rec.residual)} strong warn={!rec.reconciled} />
               </div>
             </div>
+          </Section>
+
+          <Section title="Leave & notes" summary={`${leaveTaken.length} ${leaveTaken.length === 1 ? 'leave request' : 'leave requests'} this cycle`}>
+            <div>
+              <div className="pr-lines-title"><span>Leave taken this cycle</span></div>
+              {leaveTaken.length === 0 ? (
+                <div className="pp-empty">No leave taken this period.</div>
+              ) : (
+                leaveTaken.map((l) => (
+                  <div key={l.id} className="pr-line">
+                    <span style={{ flex: 1, fontSize: 13 }}>{l.date}</span>
+                    <span className="badge b-neutral" style={{ fontSize: 10 }}>{l.type}</span>
+                    <span className="mono" style={{ fontSize: 12 }}>{l.days}d</span>
+                    <span className={`badge ${l.status === 'Approved' ? 'b-pine' : l.status === 'Rejected' ? 'b-danger' : 'b-ember'}`} style={{ fontSize: 10 }}>{l.status}</span>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="pr-leave-edit">
+              <div className="pr-lines-title"><span>Leave hours payroll will use</span></div>
+              <div className="pp-empty" style={{ marginTop: -4 }}>
+                Taken from approved leave. If the hours don’t match the time actually taken, correct them. Unpaid hours reduce the days that are paid.
+              </div>
+              <div className="pr-leave-fields">
+                <div>
+                  <div className="field-label">PTO hours</div>
+                  <input className="input" type="number" min={0} value={ptoDraft} onChange={(e) => setPtoDraft(e.target.value)} disabled={!canEditLeave} />
+                </div>
+                <div>
+                  <div className="field-label">Unpaid (UPTO) hours</div>
+                  <input className="input" type="number" min={0} value={unpaidDraft} onChange={(e) => setUnpaidDraft(e.target.value)} disabled={!canEditLeave} />
+                </div>
+              </div>
+              {mode === 'admin' && (
+                <>
+                  <div>
+                    <div className="field-label">Notes</div>
+                    <textarea className="input" style={{ height: 64, padding: 10 }} placeholder="Anything finance should know about this period" value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} disabled={!canEditLeave} />
+                  </div>
+                  <div>
+                    <div className="field-label">Supporting evidence (reference)</div>
+                    <input className="input" placeholder="Ticket, email or document reference" value={evidenceDraft} onChange={(e) => setEvidenceDraft(e.target.value)} disabled={!canEditLeave} />
+                  </div>
+                </>
+              )}
+              {canEditLeave && (
+                <div>
+                  <button className="btn-dark" disabled={!leaveDirty} onClick={saveChanges}>{mode === 'admin' ? 'Save & recompute' : 'Save hours'}</button>
+                </div>
+              )}
+            </div>
+          </Section>
+
+          {weeks.length > 0 && (
+            <Section title="Timesheet entries" defaultOpen={mode === 'self'} badge={<span className={`pr-flag ${wp.approved === wp.total ? 'ok' : 'warn'}`}>{wp.approved}/{wp.total} weeks approved</span>}>
+              <TimesheetWeeks personId={p.personId} weeks={weeks} entries={allEntries} />
+            </Section>
           )}
 
-          {mode === 'self' && weeks.length > 0 && (
-            <TimesheetEntriesCard personId={period.personId} weeks={weeks} entries={allEntries} />
-          )}
+          <Section title="Documents" defaultOpen={(extras.documents ?? []).length > 0} summary={(extras.documents ?? []).length ? `${(extras.documents ?? []).length} attached` : undefined}>
+            {(extras.documents ?? []).length === 0 && <div className="pp-empty">No documents attached.</div>}
+            {(extras.documents ?? []).map((d) => (
+              <div key={d.id} className="pr-line">
+                <span style={{ flex: 1, minWidth: 0, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</span>
+                <span className="pr-muted">{(d.size / 1024).toFixed(0)} KB · {d.uploadedBy} · {fmtDateTime(d.uploadedAt)}</span>
+                <button onClick={() => removeDocument(p.id, d.id)} aria-label={`Remove ${d.name}`} style={{ display: 'flex', padding: 2 }}>
+                  <TrashIcon size={13} color="var(--color-text-tertiary)" />
+                </button>
+              </div>
+            ))}
+            <div>
+              <input ref={fileRef} type="file" multiple hidden onChange={(e) => onPickFiles(e.target.files)} />
+              <button className="btn-outline" onClick={() => fileRef.current?.click()}>+ Upload document</button>
+            </div>
+          </Section>
+
+          <Section title="Edit history" defaultOpen={false} summary={`${editRows.length} ${editRows.length === 1 ? 'change' : 'changes'}`}>
+            {editRows.length === 0 ? (
+              <div className="pp-empty">No edits have been made to this period.</div>
+            ) : (
+              [...editRows].reverse().map((e, i) => (
+                <div key={i} className="pr-line" style={{ alignItems: 'flex-start' }}>
+                  <span style={{ flex: 1, fontSize: 13 }}>
+                    <b>{e.field}</b> changed from <span className="mono">{e.from || '—'}</span> to <span className="mono">{e.to || '—'}</span>
+                    <span className="pr-muted" style={{ display: 'block' }}>{e.by} · {fmtDateTime(e.at)}</span>
+                  </span>
+                </div>
+              ))
+            )}
+          </Section>
         </div>
 
-        {/* Sidebar column */}
-        <div style={{ flex: 1, minWidth: 260, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>Actions</div>
-
-            {mode === 'self' && (period.status === 'Timesheet pending' || period.status === 'Update needed') && (
-              <>
-                {!period.timesheetConfirmed ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-                      Check the timesheet entries below, then confirm they're complete and ready for payroll.
-                    </div>
-                    <button className="btn-outline" onClick={doConfirmTimesheet}>Confirm timesheet</button>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
-                    Confirmed {new Date(period.timesheetConfirmedAt!).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })} — your timesheet is ready for payroll.
-                  </div>
-                )}
-                <button className="btn-dark" disabled={!period.timesheetConfirmed} onClick={() => submitPeriod(period.id)}>
-                  {period.status === 'Update needed' ? 'Re-submit payroll' : 'Submit payroll'}
-                </button>
-              </>
-            )}
-            {mode === 'self' && period.status !== 'Timesheet pending' && period.status !== 'Update needed' && (
-              <Link to={`/payroll/payslip/${period.id}`} className="btn-outline" style={{ justifyContent: 'center' }}>View payslip</Link>
-            )}
-
-            {mode === 'admin' && period.status === 'Timesheet pending' && (
-              <div style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>Waiting on the employee to submit their timesheet.</div>
-            )}
-
-            {mode === 'admin' && (period.status === 'Under review' || period.status === 'Update needed') && (
-              <>
-                <button className="btn-dark" onClick={() => reviewPeriod(period.id, 'Approved')}>Approve</button>
-                {!showNoteField ? (
-                  <button className="btn-outline" onClick={() => { setNoteDraft(period.notes ?? ''); setShowNoteField(true) }}>
-                    {period.status === 'Update needed' ? 'Edit update note' : 'Request update'}
-                  </button>
+        <aside className="pr-side">
+          {/* admin decision */}
+          {mode === 'admin' && (
+            <div className="card pr-decision pr-first">
+              <div className="pr-section-title">{isAdminDecision ? 'Your decision' : 'Actions'}</div>
+              {p.status === 'Timesheet pending' && (
+                <>
+                  <div className="pp-empty" style={{ padding: 0 }}>{step.body}</div>
+                  {!p.timesheetConfirmed && <button className="btn-outline" onClick={() => confirmTimesheet(p.id, me)}>Confirm timesheet on their behalf</button>}
+                </>
+              )}
+              {isAdminDecision && (
+                <>
+                  <textarea className="input" style={{ height: 64, padding: 10 }} placeholder="Note (optional) — shown in the status history" value={decisionNote} onChange={(e) => setDecisionNote(e.target.value)} />
+                  {issues > 0 && <div className="pr-decision-warn">{issues} {issues === 1 ? 'check needs' : 'checks need'} a look in the checklist below.</div>}
+                  <button className="btn-dark" onClick={approve} disabled={p.status === 'Update needed'} title={p.status === 'Update needed' ? 'Waiting for the employee to re-submit' : undefined}>Approve</button>
+                  <button className="btn-outline" onClick={() => { setChangesNote(p.notes ?? ''); setChangesOpen(true) }}>{p.status === 'Update needed' ? 'Edit change request' : 'Request changes'}</button>
+                </>
+              )}
+              {p.status === 'Approved' && (
+                !payOpen ? (
+                  <button className="btn-dark" onClick={() => setPayOpen(true)}>Mark as paid out</button>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <textarea
-                      className="input"
-                      style={{ height: 70, padding: 10 }}
-                      placeholder="What needs to change before this can be approved?"
-                      value={noteDraft}
-                      onChange={(e) => setNoteDraft(e.target.value)}
-                    />
+                    <div className="field-label">Pay date</div>
+                    <DatePicker value={payDate} onChange={setPayDate} />
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button className="btn-outline" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setShowNoteField(false)}>Cancel</button>
-                      <button className="btn-dark" style={{ flex: 1, justifyContent: 'center' }} disabled={!noteDraft.trim()} onClick={confirmRequestUpdate}>Send</button>
+                      <button className="btn-outline" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setPayOpen(false)}>Cancel</button>
+                      <button className="btn-dark" style={{ flex: 1, justifyContent: 'center' }} onClick={() => { markPaidOut(p.id, payDate); setPayOpen(false) }}>Confirm</button>
                     </div>
                   </div>
-                )}
-              </>
-            )}
+                )
+              )}
+              {p.status === 'Paid out' && <div className="pp-empty" style={{ padding: 0 }}>Paid{p.payDate ? ` on ${fmtDate(p.payDate)}` : ''}. Nothing more to do.</div>}
+            </div>
+          )}
 
-            {mode === 'admin' && period.status === 'Approved' && (
-              !showPayDateField ? (
-                <button className="btn-dark" onClick={() => setShowPayDateField(true)}>Mark as paid out</button>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div className="field-label">Pay date</div>
-                  <DatePicker value={payDate} onChange={setPayDate} />
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="btn-outline" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setShowPayDateField(false)}>Cancel</button>
-                    <button className="btn-dark" style={{ flex: 1, justifyContent: 'center' }} onClick={confirmMarkPaid}>Confirm</button>
-                  </div>
-                </div>
-              )
-            )}
+          {/* employee actions */}
+          {mode === 'self' && (p.status === 'Timesheet pending' || p.status === 'Update needed') && (
+            <div className="card pr-decision pr-first">
+              <div className="pr-section-title">Your steps</div>
+              <Step n={1} done={!!p.timesheetConfirmed} title="Confirm your timesheet" body={p.timesheetConfirmed ? `Confirmed ${fmtDate((p.timesheetConfirmedAt ?? '').slice(0, 10))}` : 'Check the entries and leave, then confirm they are complete.'} />
+              {!p.timesheetConfirmed && <button className="btn-outline" onClick={() => confirmTimesheet(p.id, me)}>Confirm timesheet</button>}
+              <Step n={2} done={false} title={p.status === 'Update needed' ? 'Re-submit your payroll' : 'Submit your payroll'} body={p.timesheetConfirmed ? 'Send it to finance for review.' : 'Available once your timesheet is confirmed.'} />
+              <button className="btn-dark" disabled={!p.timesheetConfirmed} onClick={() => submitPeriod(p.id)}>{p.status === 'Update needed' ? 'Re-submit payroll' : 'Submit payroll'}</button>
+            </div>
+          )}
 
-            {mode === 'admin' && period.status === 'Paid out' && (
-              <Link to={`/payroll/payslip/${period.id}`} className="btn-outline" style={{ justifyContent: 'center' }}>View payslip</Link>
-            )}
-          </div>
+          {mode === 'admin' && <ChecksPanelCard checks={checks} />}
+          {mode === 'self' && (p.status === 'Timesheet pending' || p.status === 'Update needed') && <ChecksPanelCard checks={checks.filter((c) => ['confirmed', 'weeks', 'leave'].includes(c.key))} />}
 
           {mode === 'admin' && (
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>Employee</div>
-              <Field label="Email" value={person.email} />
-              <Field label="Employee ID" value={person.employeeId ?? '—'} />
-              <Field label="Department" value={person.department ?? '—'} />
-              <Field label="Jurisdiction" value={person.jurisdiction ?? '—'} />
+            <div className="card pr-info">
+              <div className="pr-section-title">Employee</div>
+              <KV label="Email" value={person.email} />
+              <KV label="Employee ID" value={person.employeeId ?? '—'} />
+              <KV label="Department" value={person.department ?? '—'} />
+              <KV label="Jurisdiction" value={person.jurisdiction ?? '—'} />
             </div>
           )}
 
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <HistoryIcon size={14} color="var(--color-text-secondary)" /> Status history
+          <div className="card pr-info">
+            <div className="pr-section-title">Invoice</div>
+            <KV label="Invoice number" value={p.invoiceNumber ?? (p.status === 'Approved' || p.status === 'Paid out' ? '—' : 'Assigned when approved')} />
+            <KV label="Amount" value={money(p.invoiceAmount ?? gross)} />
+            <KV label="Issued" value={p.invoiceIssuedAt ? fmtDate(p.invoiceIssuedAt) : '—'} />
+            <KV label="Paid" value={p.invoicePaidAt ? fmtDate(p.invoicePaidAt) : '—'} />
+            <div className="pr-doc-links">
+              <Link to={`/payroll/invoice/${p.id}`} className="btn-outline" style={{ flex: 1, justifyContent: 'center' }}>View invoice</Link>
+              <Link to={`/payroll/payslip/${p.id}`} className="btn-outline" style={{ flex: 1, justifyContent: 'center' }}><DownloadIcon size={13} /> Payslip</Link>
             </div>
-            {history.length === 0 ? (
-              <div style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>No history on file yet.</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {[...history].reverse().map((h, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 0', borderTop: i === 0 ? 'none' : '1px solid var(--table-row-border)' }}>
-                    <span className={`badge ${statusBadgeClass(h.status)}`} style={{ fontSize: 9, flexShrink: 0, alignSelf: 'flex-start' }}>{h.status}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      {h.note && <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{h.note}</div>}
-                      <div className="mono" style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 2 }}>{fmtDateTime(h.at)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
-          {mode === 'self' && period.invoiceNumber && (
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>Invoice</div>
-              <Field label="Invoice number" value={period.invoiceNumber} />
-              <Field label="Amount" value={money(period.invoiceAmount ?? period.grossPay)} />
-              <Field label="Issued" value={period.invoiceIssuedAt ? fmtDate(period.invoiceIssuedAt) : '—'} />
-              <Field label="Paid" value={period.invoicePaidAt ? fmtDate(period.invoicePaidAt) : '—'} />
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Link to={`/payroll/payslip/${period.id}`} className="btn-outline" style={{ flex: 1, justifyContent: 'center' }}>
-                  <DownloadIcon size={13} /> Payslip
-                </Link>
-                <button className="btn-outline" style={{ flex: 1, justifyContent: 'center' }} onClick={reviewInvoice}>Review invoice</button>
-              </div>
-            </div>
-          )}
-        </div>
+          <div className="card pr-info">
+            <div className="pr-section-title">Status history</div>
+            <Timeline history={p.history ?? []} />
+          </div>
+        </aside>
       </div>
-    </AppShell>
+
+      {changesOpen && (
+        <div className="modal-backdrop" onClick={() => setChangesOpen(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div className="serif" style={{ fontSize: 20, letterSpacing: '-0.6px' }}>Request changes</div>
+              <button onClick={() => setChangesOpen(false)} aria-label="Close" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CloseIcon color="var(--color-text-secondary)" />
+              </button>
+            </div>
+            <div className="pr-dash-sub">{person.name} will be notified, fix what you list here and re-submit {p.label}.</div>
+            <div>
+              <div className="field-label">What needs to change? *</div>
+              <textarea className="input" style={{ height: 96, padding: 10 }} autoFocus placeholder="e.g. Unpaid leave on 12 Oct is missing" value={changesNote} onChange={(e) => setChangesNote(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button className="btn-outline" onClick={() => setChangesOpen(false)}>Cancel</button>
+              <button className="btn-dark" disabled={!changesNote.trim()} onClick={sendChanges}>Request changes</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>,
   )
 }
 
-function Stat({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
+function ChecksPanelCard({ checks }: { checks: ReturnType<typeof reviewChecks> }) {
   return (
-    <div className="stat" style={{ flex: 1, minWidth: 140 }}>
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase', color: 'var(--color-text-tertiary)' }}>{label}</div>
-      <div className="mono" style={{ fontSize: 20, fontWeight: 600, marginTop: 6, color: valueColor }}>{value}</div>
+    <div className="card pr-info pr-first">
+      <ChecksPanel checks={checks} />
     </div>
   )
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Step({ n, done, title, body }: { n: number; done: boolean; title: string; body: string }) {
+  return (
+    <div className="pr-step-row">
+      <span className={`pr-step-num${done ? ' done' : ''}`}>{done ? '✓' : n}</span>
+      <span>
+        <span className="pr-check-label">{title}</span>
+        <span className="pr-check-detail">{body}</span>
+      </span>
+    </div>
+  )
+}
+
+function KV({ label, value, strong, warn }: { label: string; value: string; strong?: boolean; warn?: boolean }) {
+  return (
+    <div className="pr-kv">
+      <span>{label}</span>
+      <span className={`mono${strong ? ' strong' : ''}`} style={warn ? { color: 'var(--warn-fg)' } : undefined}>{value}</span>
+    </div>
+  )
+}
+
+function Lines({ title, rows, negative }: { title: string; rows: { label: string; amount: number }[]; negative?: boolean }) {
+  const visible = rows.filter((r) => r.amount !== 0)
+  if (visible.length === 0) return null
   return (
     <div>
-      <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>{label}</div>
-      <div style={{ fontSize: 13, marginTop: 1 }}>{value}</div>
+      <div className="pr-lines-title"><span>{title}</span></div>
+      {visible.map((r) => (
+        <div key={r.label} className="pr-kv">
+          <span>{r.label}</span>
+          <span className="mono">{negative ? '−' : ''}{money(r.amount)}</span>
+        </div>
+      ))}
     </div>
   )
 }
 
-// Pulls the real, already-tracked time entries + their week-level approval status
-// into the payroll period — rather than inventing a parallel "payroll timesheet"
-// record, this reuses the same data the Timesheets/Approvals pages already show.
-function TimesheetEntriesCard({ personId, weeks, entries }: { personId: string; weeks: string[]; entries: TimeEntry[] }) {
+// Real, already-tracked time entries plus each week's approval status (same data the Timesheets page shows).
+function TimesheetWeeks({ personId, weeks, entries }: { personId: string; weeks: string[]; entries: TimeEntry[] }) {
   const [openWeek, setOpenWeek] = useState<string | null>(null)
   const mine = entries.filter((e) => e.personId === personId)
   const totalMinutes = weeks.reduce((sum, w) => sum + minutesForPersonWeek(mine, personId, w), 0)
   const totalEntries = weeks.reduce((sum, w) => sum + entriesForPersonWeek(mine, personId, w).length, 0)
-  const approvedWeeks = weeks.filter((w) => submissionFor(personId, w)?.status === 'Approved').length
-  const approvedPct = weeks.length ? Math.round((approvedWeeks / weeks.length) * 100) : 0
-
   return (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <div style={{ fontWeight: 700, fontSize: 15 }}>Timesheet entries</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="mono" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
-            {totalEntries} {totalEntries === 1 ? 'entry' : 'entries'} · {formatMinutes(totalMinutes)}
-          </span>
-          <span className={`badge ${approvedPct === 100 ? 'b-pine' : 'b-ember'}`} style={{ fontSize: 10 }}>
-            {approvedPct}% approved
-          </span>
-        </div>
-      </div>
-
+    <>
+      <div className="pr-muted">{totalEntries} {totalEntries === 1 ? 'entry' : 'entries'} · {formatMinutes(totalMinutes)} logged in this cycle</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {weeks.map((w) => {
-          const sub = submissionFor(personId, w)
-          const status = sub?.status ?? 'Not Submitted'
-          const minutes = minutesForPersonWeek(mine, personId, w)
+          const status = submissionFor(personId, w)?.status ?? 'Not Submitted'
           const weekEntries = entriesForPersonWeek(mine, personId, w)
-          const isOpen = openWeek === w
+          const open = openWeek === w
           return (
-            <div key={w} style={{ border: '1px solid var(--table-row-border)', borderRadius: 8 }}>
-              <button
-                onClick={() => setOpenWeek(isOpen ? null : w)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', gap: 8 }}
-              >
+            <div key={w} className="pr-week">
+              <button type="button" className="pr-week-head" onClick={() => setOpenWeek(open ? null : w)}>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{formatWeekRange(w)}</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{formatMinutes(minutes)}</span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{formatMinutes(minutesForPersonWeek(mine, personId, w))}</span>
                   <span className={`badge ${status === 'Approved' ? 'b-pine' : status === 'Rejected' ? 'b-danger' : 'b-ember'}`} style={{ fontSize: 9 }}>{status}</span>
                 </span>
               </button>
-              {isOpen && (
-                <div style={{ borderTop: '1px solid var(--table-row-border)', padding: '6px 12px 10px' }}>
+              {open && (
+                <div className="pr-week-body">
                   {weekEntries.length === 0 ? (
-                    <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', padding: '6px 0' }}>Nothing logged this week.</div>
+                    <div className="pp-empty">Nothing logged this week.</div>
                   ) : (
                     weekEntries.map((entry) => (
-                      <div key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderTop: '1px solid var(--table-row-border)' }}>
-                        <span className="mono" style={{ fontSize: 11, color: 'var(--color-text-tertiary)', width: 70, flexShrink: 0 }}>
-                          {new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })}
-                        </span>
-                        <span className="mono" style={{ fontSize: 12, width: 48, flexShrink: 0 }}>{formatMinutes(entry.minutes)}</span>
-                        {entry.billable !== false && <span className="badge b-pine" style={{ fontSize: 9 }}>Billable</span>}
+                      <div key={entry.id} className="pr-line" style={{ padding: '6px 0' }}>
+                        <span className="mono pr-muted" style={{ width: 62, flexShrink: 0 }}>{new Date(`${entry.date}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })}</span>
+                        <span className="mono" style={{ fontSize: 12, width: 44, flexShrink: 0 }}>{formatMinutes(entry.minutes)}</span>
                         <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{projectLabel(entry.projectId)}</span>
                         <span style={{ fontSize: 12, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.category}</span>
                       </div>
@@ -583,22 +577,6 @@ function TimesheetEntriesCard({ personId, weeks, entries }: { personId: string; 
           )
         })}
       </div>
-    </div>
-  )
-}
-
-function LineSection({ title, rows, negative }: { title: string; rows: { label: string; amount: number }[]; negative?: boolean }) {
-  const visible = rows.filter((r) => r.amount !== 0)
-  if (visible.length === 0) return null
-  return (
-    <div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>{title}</div>
-      {visible.map((r) => (
-        <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderTop: '1px solid var(--table-row-border)' }}>
-          <span style={{ fontSize: 13 }}>{r.label}</span>
-          <span className="mono" style={{ fontSize: 13 }}>{negative ? '−' : ''}{money(r.amount)}</span>
-        </div>
-      ))}
-    </div>
+    </>
   )
 }

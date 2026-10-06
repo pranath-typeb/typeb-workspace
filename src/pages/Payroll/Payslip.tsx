@@ -1,6 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
 import { DownloadIcon } from '../../components/icons'
 import Breadcrumb from '../../components/Breadcrumb'
+import { StageChip } from '../../components/PayrollParts'
+import { stageOf } from '../../data/payrollInsights'
 import { CURRENT_USER_ID, personById } from '../../data/people'
 import {
   adjustmentsTotal,
@@ -66,7 +68,7 @@ export default function Payslip() {
         <div className="doc-page" style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececee', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', padding: '32px 36px', display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.62)' }}>Type B OS · Payroll</span>
-            <span className={`badge ${statusBadgeClass(period.status)}`} style={{ textTransform: 'uppercase', fontSize: 10 }}>{period.status}</span>
+            <StageChip stage={stageOf(period)} small />
           </div>
 
           <div>
